@@ -1,5 +1,3 @@
---message('[Script has been started...]')
-
 --Run = true
 
 function isMin()
@@ -20,9 +18,7 @@ end
 
 
 --------------------------------------------------------------
-function main()
-  message ('[main() has been invoked...]')
-  
+function main()  
   -- DataSource для работы со свечами на графике
   ds, errorDesk = CreateDataSource("QJSIM", "SBER", INTERVAL_M10)
   if ds == nil then
@@ -45,11 +41,15 @@ function main()
     try_count = try_count + 1
   end
   
+  local tag = "sberprice"
   local currentCandle = ds:Size() -- Текущая свеча
-  --local numCandles = ds:getNumCandles("sberprice"); message (numCandles)
   local firstCandleIndex = nil
   local maxCandles = math.min(1000, ds:Size()) -- Максимальное количество свечей не может быть больше общего количества свечей в таблице
   local todaysDay = os.date("%d") -- Текущий день месяца
+
+  local tLines = getLinesCount(tag)
+  local candlesTotal = getNumCandles(tag)
+  message("Candles total: " .. candlesTotal)
   
   -- Пока не нашли первую свечу дня либо не проверили все свечи на графике
   while ((firstCandleIndex == nil) and (currentCandle > ds:Size() - maxCandles)) do
