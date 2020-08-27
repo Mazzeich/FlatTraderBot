@@ -13,8 +13,8 @@ Settings = {
 }
 
 
-function isMin(table, idx)
-  if((table[idx].low < table[idx-1].low) and (table[idx].low < table[idx+1].low)) then
+function isMin(idxl, idx, idxr)
+  if((idx.low < idxl.low) and (idx.low < idxr.low)) then
     return true
   else
     return false
@@ -22,8 +22,8 @@ function isMin(table, idx)
 end
 
 
-function isMax(table)
-  if((table[idx].high < table[idx-1].high) and (table[idx].high < table[idx+1].high)) then
+function isMax(idxl, idx, idxr)
+  if((idx.high > idxl.high) and (idx.high > idxr.high)) then
     return true
   else
     return false
@@ -82,7 +82,10 @@ function main()
   -- (MAXES[i].H - MAXES[i-1]) < OFFSET
   -- ИНАЧЕ MAXES=0, БОКОВИК НЕ НАЙДЕН. ВЕРНУТЬСЯ
   for i = n - 2, n - coveredCandles do
-    if(isMax(tableCandle, i) == true) then
+
+    local cache = 0
+
+    if(isMax(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
       maxes = maxes + 1;
       if(maxes > 2) then
         message("The flat not founded!") 
@@ -91,7 +94,7 @@ function main()
       end
     end
 
-    if(isMin(tableCandle, i) == true) then
+    if(isMin(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
       minis = minis + 1;
       if(minis > 2) then
         message("The flat not founded!") 
