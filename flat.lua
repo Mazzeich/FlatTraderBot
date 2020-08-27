@@ -1,10 +1,18 @@
 --Run = true
 
-function isMin()
+function isMin(table, idx)
+  if((table[idx].low < table[idx-1].low) and (table[idx].low < table[idx+1].low)) then
+    return true
+  else
+    return false
 end
 
 
-function isMax()
+function isMax(table)
+  if((table[idx].high < table[idx-1].high) and (table[idx].high < table[idx+1].high)) then
+    return true
+  else
+    return false
 end
 
 -- Вызывается при установлении соединения с сервером  
@@ -48,8 +56,14 @@ function main()
   local todaysDay = os.date("%d") -- Текущий день месяца
 
   local tLines = getLinesCount(tag)
+  message ("Lines: " .. tLines)
   local candlesTotal = getNumCandles(tag)
-  message("Candles total: " .. candlesTotal)
+
+  tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
+  local coveredCandles = 30
+  for i = n - 2, n - coveredCandles do
+    isMin(tableCandle, i)
+  end
   
   -- Пока не нашли первую свечу дня либо не проверили все свечи на графике
   while ((firstCandleIndex == nil) and (currentCandle > ds:Size() - maxCandles)) do
