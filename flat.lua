@@ -1,10 +1,24 @@
 --Run = true
 
+Settings = {
+  Name = 'HLine',
+  Value = 0,
+  line = {
+    {
+      Name = 'HLine',
+      Type = TYPE_LINE,
+      Width = 5
+    }
+  }
+}
+
+
 function isMin(table, idx)
   if((table[idx].low < table[idx-1].low) and (table[idx].low < table[idx+1].low)) then
     return true
   else
     return false
+  end
 end
 
 
@@ -13,6 +27,7 @@ function isMax(table)
     return true
   else
     return false
+  end
 end
 
 -- Вызывается при установлении соединения с сервером  
@@ -56,13 +71,41 @@ function main()
   local todaysDay = os.date("%d") -- Текущий день месяца
 
   local tLines = getLinesCount(tag)
-  message ("Lines: " .. tLines)
   local candlesTotal = getNumCandles(tag)
+    message ("candles: " .. candlesTotal)
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
   local coveredCandles = 30
+  local maxes = 0;
+  local minis = 0;
+  local offset = 0.5;
+  -- (MAXES[i].H - MAXES[i-1]) < OFFSET
+  -- ИНАЧЕ MAXES=0, БОКОВИК НЕ НАЙДЕН. ВЕРНУТЬСЯ
   for i = n - 2, n - coveredCandles do
-    isMin(tableCandle, i)
+    if(isMax(tableCandle, i) == true) then
+      maxes = maxes + 1;
+      if(maxes > 2) then
+        message("The flat not founded!") 
+        break
+      else goto continue
+      end
+    end
+
+    if(isMin(tableCandle, i) == true) then
+      minis = minis + 1;
+      if(minis > 2) then
+        message("The flat not founded!") 
+        break
+      else goto continue
+      end
+    end
+
+    if((maxes == 2) and (minis == 2))then 
+      message ("The flat found!")
+      break
+    end
+    
+    ::continue::
   end
   
   -- Пока не нашли первую свечу дня либо не проверили все свечи на графике
