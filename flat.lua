@@ -39,6 +39,16 @@ function OnConnected()
   end
 end
 
+local function reversedipairsiter(t, i)
+    i = i - 1
+    if i ~= 0 then
+        return i, t[i]
+    end
+end
+function reversedipairs(t)
+    return reversedipairsiter, t, #t + 1
+end
+
 
 --------------------------------------------------------------
 function main()  
@@ -75,36 +85,49 @@ function main()
     message ("candles: " .. candlesTotal)
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
-  local coveredCandles = 30
-  local maxes = 0;
-  local minis = 0;
-  local offset = 0.5;
-  -- (MAXES[i].H - MAXES[i-1]) < OFFSET
+  local coveredCandles = 30 -- Сойдёт для десятиминуток
+  local maxes   = 0;
+  local minis   = 0;
+  local offset  = 0.5;
+  -- ДОЛЖНО БЫТЬ (MAXES[i].H - MAXES[i-1].H) < OFFSET
   -- ИНАЧЕ MAXES=0, БОКОВИК НЕ НАЙДЕН. ВЕРНУТЬСЯ
-  for i = n - 2, n - coveredCandles do
-
-    local cache = 0
-
+  local cacheHigh = 0
+  local cacheLow  = 0
+  message("n-2: \n" .. n - 2) -- 57
+  message("n - coveredCandles: " .. n - coveredCandles) -- 29
+  local i = n - 2
+  local twoHighFound = false
+  local twoLowFound  = false
+  while (i > n - coveredCandles)do
+    message("i = " .. i .. "\nmaxes = " .. maxes .. "\nminis = " .. minis)
+    i = i - 1
+    -- Решение в лоб
+    -- Свеча экстремальна?
     if(isMax(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
-      maxes = maxes + 1;
-      if(maxes > 2) then
-        message("The flat not founded!") 
+      if(cacheHigh == 0) then 
+        cacheHigh = tableCandle[i].high
+        continue
+      elseif(tableCandle[i].high > (cacheHigh + offset)) then
+        message("Breakup\nFlat not found")
         break
-      else goto continue
+      elseif(tableCandle[i].high < (cacheHigh - offset)) then
+        continue
+      else twoHighFound = true
+    elseif(isMin(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
+      if(cacheLow == 0) then
+        cacheLow = tableCandle[i].low
+        continue
+      elseif(tableCandle[i].low < (cacheLow - offset)) then
+        message("Breakdown\nFlat not found")
+        break
+      elseif(tableCandle[i].low > (cacheLow + offset)) then
+        continue
+      else twoLowFound = true
       end
     end
 
-    if(isMin(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
-      minis = minis + 1;
-      if(minis > 2) then
-        message("The flat not founded!") 
-        break
-      else goto continue
-      end
-    end
-
-    if((maxes == 2) and (minis == 2))then 
-      message ("The flat found!")
+    if((twoHighFound == true) and (twoLowFound == true))then 
+      message ("The flat is found!")
       break
     end
     
