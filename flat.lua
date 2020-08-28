@@ -1,18 +1,4 @@
 --Run = true
-
-Settings = {
-  Name = 'HLine',
-  Value = 0,
-  line = {
-    {
-      Name = 'HLine',
-      Type = TYPE_LINE,
-      Width = 5
-    }
-  }
-}
-
-
 function isMin(idxl, idx, idxr)
   if((idx.low < idxl.low) and (idx.low < idxr.low)) then
     return true
@@ -38,26 +24,16 @@ function OnConnected()
     message('[Cannot connect to the server]')
   end
 end
-
-local function reversedipairsiter(t, i)
-    i = i - 1
-    if i ~= 0 then
-        return i, t[i]
-    end
-end
-function reversedipairs(t)
-    return reversedipairsiter, t, #t + 1
-end
-
-
 --------------------------------------------------------------
 function main()  
   -- DataSource для работы со свечами на графике
-  ds, errorDesk = CreateDataSource("QJSIM", "SBER", INTERVAL_M10)
+  ds, errorDesk = CreateDataSource("QJSIM", "LKOH", INTERVAL_M1)
   if ds == nil then
     message('[Connection error]: ' .. errorDesk)
   end
   
+  --local minWidth = 0.05
+
   -- Проверка, загрузился ли график
   while (errorDesk == "" or errorDesk == nil) and ds:Size() == 0 do
     sleep(1)
@@ -74,7 +50,7 @@ function main()
     try_count = try_count + 1
   end
   
-  local tag = "sberprice"
+  local tag = "lukprice"
   local currentCandle = ds:Size() -- Текущая свеча
   local firstCandleIndex = nil
   local maxCandles = math.min(1000, ds:Size()) -- Максимальное количество свечей не может быть больше общего количества свечей в таблице
@@ -82,44 +58,48 @@ function main()
 
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
-    message ("candles: " .. candlesTotal)
+  message ("candles: " .. candlesTotal)
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
-  local coveredCandles = 30 -- Сойдёт для десятиминуток
+  local coveredCandles = 30
   local maxes   = 0;
   local minis   = 0;
-  local offset  = 0.5;
-  -- ДОЛЖНО БЫТЬ (MAXES[i].H - MAXES[i-1].H) < OFFSET
-  -- ИНАЧЕ MAXES=0, БОКОВИК НЕ НАЙДЕН. ВЕРНУТЬСЯ
+  local offset  = 0.05;
   local cacheHigh = 0
   local cacheLow  = 0
-  message("n-2: \n" .. n - 2) -- 57
-  message("n - coveredCandles: " .. n - coveredCandles) -- 29
+  
+  message("n - 2: \n" .. n - 2) 
+  message("n - coveredCandles: " .. n - coveredCandles) 
+
   local i = n - 2
   local twoHighFound = false
   local twoLowFound  = false
-  while (i > n - coveredCandles)do
-    message("i = " .. i .. "\nmaxes = " .. maxes .. "\nminis = " .. minis)
-    i = i - 1
+  while (i > n - coveredCandles) do
+
+    local dateCandle = tableCandle[i].datetime
+
     -- Решение в лоб
-    -- Свеча экстремальна?
+    message("twoHighFound = " .. tostring(twoHighFound) .. "\ntwoLowFound = " .. tostring(twoLowFound))
+    i = i - 1
+    -- Свеча -- локальный максимум?
     if(isMax(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
       if(cacheHigh == 0) then 
         cacheHigh = tableCandle[i].high
         goto continue
       elseif tableCandle[i].high > (cacheHigh + offset) then
-        message("Breakup\nFlat not found")
+        message("Breakup on " .. tostring(dateCandle.hour) .. ":" .. tostring(dateCandle.min))
         break
       elseif(tableCandle[i].high < (cacheHigh - offset)) then
         goto continue
       else twoHighFound = true
       end
+    -- Свеча -- локальный минимум?
     elseif(isMin(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
       if(cacheLow == 0) then
         cacheLow = tableCandle[i].low
         goto continue
       elseif(tableCandle[i].low < (cacheLow - offset)) then
-        message("Breakdown\nFlat not found")
+        message("Breakdown on " .. tostring(dateCandle.hour) .. ":" .. tostring(dateCandle.min))
         break
       elseif(tableCandle[i].low > (cacheLow + offset)) then
         goto continue
@@ -127,8 +107,9 @@ function main()
       end
     end
 
-    if((twoHighFound == true) and (twoLowFound == true))then 
-      message ("The flat is found!")
+    if((twoHighFound == true) and (twoLowFound == true))then
+      --message("twoHighFound = " .. tostring(twoHighFound) .. "\ntwoLowFound = " .. tostring(twoLowFound))
+      message("The flat is found on " .. tostring(dateCandle.hour) .. ":" .. tostring(dateCandle.min))
       break
     end
     
