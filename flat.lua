@@ -106,22 +106,23 @@ function main()
     if(isMax(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
       if(cacheHigh == 0) then 
         cacheHigh = tableCandle[i].high
-        continue
-      elseif(tableCandle[i].high > (cacheHigh + offset)) then
+        goto continue
+      elseif tableCandle[i].high > (cacheHigh + offset) then
         message("Breakup\nFlat not found")
         break
       elseif(tableCandle[i].high < (cacheHigh - offset)) then
-        continue
+        goto continue
       else twoHighFound = true
+      end
     elseif(isMin(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
       if(cacheLow == 0) then
         cacheLow = tableCandle[i].low
-        continue
+        goto continue
       elseif(tableCandle[i].low < (cacheLow - offset)) then
         message("Breakdown\nFlat not found")
         break
       elseif(tableCandle[i].low > (cacheLow + offset)) then
-        continue
+        goto continue
       else twoLowFound = true
       end
     end
@@ -139,7 +140,7 @@ function main()
       -- Если день этой свечи не совпадает с сегодняшним днём, тогда...
       if tonumber(ds:T(currentCandle).day) ~= todaysDay then
         firstCandleIndex = currentCandle - 1 -- ... = индекс искомой свечи
-        message ("Found index: " .. tostring (firstCandleIndex))
+        --message ("Found index: " .. tostring (firstCandleIndex))
       end
       currentCandle = currentCandle - 1
   end
