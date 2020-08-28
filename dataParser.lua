@@ -1,5 +1,5 @@
 function main()
-  local openPath 	= "/dataOpen1.txt"
+  local openPath 	= "C:/Projects/Lua/dataOpen1.txt"
   local highPath 	= "C:/Projects/Lua/datahigh.txt"
   local lowPath 	= "C:/Projects/Lua/dataLow.txt"
   local closePath 	= "C:/Projects/Lua/dataClose.txt"
