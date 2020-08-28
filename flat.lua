@@ -27,12 +27,13 @@ end
 --------------------------------------------------------------
 function main()  
   -- DataSource для работы со свечами на графике
-  ds, errorDesk = CreateDataSource("QJSIM", "LKOH", INTERVAL_M1)
+  ds, errorDesk = CreateDataSource("QJSIM", "ROSN", INTERVAL_M1)
+  local tag = "rosprice"
   if ds == nil then
     message('[Connection error]: ' .. errorDesk)
   end
   
-  --local minWidth = 0.05
+  local minWidth = 0.02
 
   -- Проверка, загрузился ли график
   while (errorDesk == "" or errorDesk == nil) and ds:Size() == 0 do
@@ -50,7 +51,6 @@ function main()
     try_count = try_count + 1
   end
   
-  local tag = "lukprice"
   local currentCandle = ds:Size() -- Текущая свеча
   local firstCandleIndex = nil
   local maxCandles = math.min(1000, ds:Size()) -- Максимальное количество свечей не может быть больше общего количества свечей в таблице
@@ -61,17 +61,17 @@ function main()
   message ("candles: " .. candlesTotal)
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
-  local coveredCandles = 30
+  local coveredCandles = 70
   local maxes   = 0;
   local minis   = 0;
   local offset  = 0.05;
   local cacheHigh = 0
   local cacheLow  = 0
   
-  message("n - 2: \n" .. n - 2) 
+  message("n - 1: \n" .. n - 1) 
   message("n - coveredCandles: " .. n - coveredCandles) 
 
-  local i = n - 2
+  local i = n - 10
   local twoHighFound = false
   local twoLowFound  = false
   while (i > n - coveredCandles) do
@@ -79,7 +79,7 @@ function main()
     local dateCandle = tableCandle[i].datetime
 
     -- Решение в лоб
-    message("twoHighFound = " .. tostring(twoHighFound) .. "\ntwoLowFound = " .. tostring(twoLowFound))
+    --message("twoHighFound = " .. tostring(twoHighFound) .. "\ntwoLowFound = " .. tostring(twoLowFound))
     i = i - 1
     -- Свеча -- локальный максимум?
     if(isMax(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
@@ -105,6 +105,13 @@ function main()
         goto continue
       else twoLowFound = true
       end
+    end
+
+    -- Теперь обработаем случай, когда первый найденный экстремум находится между двумя следующими
+    if((cacheHigh ~= 0) and (math.abs(cacheLow - tableCandle[i].high) > (minWidth * tableCandle[i].close))) then
+      cacheHigh = 0
+    elseif((cacheLow ~= 0) and (math.abs(cacheHigh - tableCandle[i].low) > (minWidth * tableCandle[i].close))) then
+      cacheLow = 0
     end
 
     if((twoHighFound == true) and (twoLowFound == true))then
