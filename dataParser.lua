@@ -47,11 +47,13 @@ function main()
 --    local C = t[i].close; -- Получить значение Close для указанной свечи (цена закрытия свечи)
 --    local V = t[i].volume; -- Получить значение Volume для указанной свечи (объем сделок в свече)
   for i = n - coveredCandles, n - 1 do
-  	openIO:write(tableCandle[i].open 	 .. "\n")
-  	highIO:write(tableCandle[i].high 	 .. "\n")
-  	lowIO:write(tableCandle[i].low 		 .. "\n")
-  	closeIO:write(tableCandle[i].close 	 .. "\n")
-  	volumeIO:write(tableCandle[i].volume .. "\n")
+  	local dateCandle = tableCandle[i].datetime
+
+  	openIO:write(tableCandle[i].open 	 .."\t["..i.."]\t["..dateCandle.hour..":"..dateCandle.min.."]\n")
+  	highIO:write(tableCandle[i].high 	 .."\t["..i.."]\t["..dateCandle.hour..":"..dateCandle.min.."]\n")
+  	lowIO:write(tableCandle[i].low 		 .."\t["..i.."]\t["..dateCandle.hour..":"..dateCandle.min.."]\n")
+  	closeIO:write(tableCandle[i].close 	 .."\t["..i.."]\t["..dateCandle.hour..":"..dateCandle.min.."]\n")
+  	volumeIO:write(tableCandle[i].volume .."\t["..i.."]\t["..dateCandle.hour..":"..dateCandle.min.."]\n")
   end
 
   --f:write(data)

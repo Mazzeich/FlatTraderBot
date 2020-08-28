@@ -1,6 +1,6 @@
 --Run = true
 function isMin(idxl, idx, idxr)
-  if((idx.low < idxl.low) and (idx.low < idxr.low)) then
+  if((idx.high <= idxl.high) and (idx.high <= idxr.high)) then
     return true
   else
     return false
@@ -9,7 +9,7 @@ end
 
 
 function isMax(idxl, idx, idxr)
-  if((idx.high > idxl.high) and (idx.high > idxr.high)) then
+  if((idx.high >= idxl.high) and (idx.high >= idxr.high)) then
     return true
   else
     return false
@@ -54,7 +54,7 @@ function main()
   local currentCandle = ds:Size() -- Текущая свеча
   local firstCandleIndex = nil
   local maxCandles = math.min(1000, ds:Size()) -- Максимальное количество свечей не может быть больше общего количества свечей в таблице
-  local todaysDay = os.date("%d") -- Текущий день месяца
+  local nowsMinute = os.date("%M") -- Текущий день месяца
 
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
@@ -96,12 +96,12 @@ function main()
     -- Свеча -- локальный минимум?
     elseif(isMin(tableCandle[i-1], tableCandle[i], tableCandle[i+1]) == true) then
       if(cacheLow == 0) then
-        cacheLow = tableCandle[i].low
+        cacheLow = tableCandle[i].high
         goto continue
-      elseif(tableCandle[i].low < (cacheLow - offset)) then
+      elseif(tableCandle[i].high < (cacheLow - offset)) then
         message("Breakdown on " .. tostring(dateCandle.hour) .. ":" .. tostring(dateCandle.min))
         break
-      elseif(tableCandle[i].low > (cacheLow + offset)) then
+      elseif(tableCandle[i].high > (cacheLow + offset)) then
         goto continue
       else twoLowFound = true
       end
@@ -110,7 +110,7 @@ function main()
     -- Теперь обработаем случай, когда первый найденный экстремум находится между двумя следующими
     if((cacheHigh ~= 0) and (math.abs(cacheLow - tableCandle[i].high) > (minWidth * tableCandle[i].close))) then
       cacheHigh = 0
-    elseif((cacheLow ~= 0) and (math.abs(cacheHigh - tableCandle[i].low) > (minWidth * tableCandle[i].close))) then
+    elseif((cacheLow ~= 0) and (math.abs(cacheHigh - tableCandle[i].high) > (minWidth * tableCandle[i].close))) then
       cacheLow = 0
     end
 
@@ -126,7 +126,7 @@ function main()
   -- Пока не нашли первую свечу дня либо не проверили все свечи на графике
   while ((firstCandleIndex == nil) and (currentCandle > ds:Size() - maxCandles)) do
       -- Если день этой свечи не совпадает с сегодняшним днём, тогда...
-      if tonumber(ds:T(currentCandle).day) ~= todaysDay then
+      if tonumber(ds:T(currentCandle).min) ~= nowsMinute then
         firstCandleIndex = currentCandle - 1 -- ... = индекс искомой свечи
         --message ("Found index: " .. tostring (firstCandleIndex))
       end
