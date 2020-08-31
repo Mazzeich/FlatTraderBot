@@ -1,14 +1,14 @@
 function main()
-  local openPath 	= "C:/Projects/Lua/dataOpen1.txt"
-  local highPath 	= "C:/Projects/Lua/dataHigh.txt"
-  local lowPath 	= "C:/Projects/Lua/dataLow.txt"
-  local closePath 	= "C:/Projects/Lua/dataClose.txt"
-  local volumePath 	= "C:/Projects/Lua/dataVolume.txt"
+  local openPath 	 = "C:/Projects/Lua/Data/dataOpen.txt"
+  local highPath 	 = "C:/Projects/Lua/Data/dataHigh.txt"
+  local lowPath 	 = "C:/Projects/Lua/Data/dataLow.txt"
+  local closePath  = "C:/Projects/Lua/Data/dataClose.txt"
+  local volumePath = "C:/Projects/Lua/Data/dataVolume.txt"
 
-  local openIO 	 = io.open(openPath, "w")
-  local highIO 	 = io.open(highPath, "w")
-  local lowIO 	 = io.open(lowPath, "w")
-  local closeIO  = io.open(closePath, "w")
+  local openIO 	 = io.open(openPath,   "w")
+  local highIO 	 = io.open(highPath,   "w")
+  local lowIO 	 = io.open(lowPath,    "w")
+  local closeIO  = io.open(closePath,  "w")
   local volumeIO = io.open(volumePath, "w")
 
   ds, errorDesk = CreateDataSource("QJSIM", "SBER", INTERVAL_M1)
