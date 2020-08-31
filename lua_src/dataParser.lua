@@ -1,10 +1,10 @@
 function main()
-  
-  local openPath 	 = "C:/Projects/Lua/dataOpen.txt"
-  local closePath  = "C:/Projects/Lua/dataClose.txt"
-  local volumePath = "C:/Projects/Lua/dataVolume.txt"
-  local highPath 	 = "C:/Projects/Lua/dataHigh.txt"
-  local lowPath 	 = "C:/Projects/Lua/dataLow.txt"
+
+  local openPath 	 = "C:/Projects/Lua/Data/dataOpen.txt"
+  local closePath  = "C:/Projects/Lua/Data/dataClose.txt"
+  local volumePath = "C:/Projects/Lua/Data/dataVolume.txt"
+  local highPath 	 = "C:/Projects/Lua/Data/dataHigh.txt"
+  local lowPath 	 = "C:/Projects/Lua/Data/dataLow.txt"
   
   local openIO 	 = io.open(openPath,   "w")
   local highIO 	 = io.open(highPath,   "w")
@@ -36,7 +36,7 @@ function main()
   local maxCandles = math.min(1000, ds:Size())
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
-  local coveredCandles = 70
+  local coveredCandles = 40
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
 
