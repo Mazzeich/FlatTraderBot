@@ -4,46 +4,60 @@ using System.Text;
 using System.Collections.Generic;
 using System.Globalization;
 
+
 namespace Lua
 {
     class Program
     {
+        //private static double CandleInterpolation(double sx, double sy, double sx2, double sxy, double[] arr, int n);
+
         static void Main(string[] args)
         {
             //string pathOpen = @"C:\Projects\Lua\Data\dataOpen.txt";
             //string pathClose = @"C:\Projects\Lua\Data\dataClose.txt";
-            string pathHigh = @"C:\Projects\Lua\Data\dataHigh.txt";
             //string pathVolume = @"C:\Projects\Lua\Data\dataVolume.txt";
-            //string pathLow = @"C:\Projects\Lua\Data\dataLow.txt";
+            string pathHigh = @"C:\Projects\Lua\Data\dataHigh.txt";
+            string pathLow = @"C:\Projects\Lua\Data\dataLow.txt";
 
-            string[] readText = File.ReadAllLines(pathHigh);
-            double[] arrHigh = new double[readText.Length];
-            for (int i = 0; i < readText.Length; i++)
+            string[] readHeights = File.ReadAllLines(pathHigh);
+            string[] readLows = File.ReadAllLines(pathLow);
+
+            double[] arrHigh = new double[readHeights.Length];
+            double[] arrLow = new double[readLows.Length];
+            for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
-                arrHigh[i] = double.Parse(readText[i], CultureInfo.InvariantCulture);
+                arrHigh[i] = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
+                arrLow[i] = double.Parse(readLows[i], CultureInfo.InvariantCulture);
             }
 
-            double globalMin = arrHigh[arrHigh.Length-1]; // Значение гМина
-            double globalMax = arrHigh[arrHigh.Length-1]; // Значение гмакса
-            int idxMin = 0; // Индекс найденного глобального минимума
-            int idxMax = 0; // Индекс найденного глобального максимума
-            double currentAvg = 0;
-            for(int i = arrHigh.Length; i > 0; i--) // От 70 до 1
+            double globalMin = double.PositiveInfinity;  // Значение гМина
+            double globalMax = double.NegativeInfinity; // Значение гмакса
+            int idxMin = 0;                               // Индекс найденного глобального минимума
+            int idxMax = 0;                               // Индекс найденного глобального максимума
+            double heightAvg = 0;
+            double lowAvg = 0;
+            for (int i = arrLow.Length - 1; i > 0; i--)
             {
-                currentAvg += arrHigh[i-1];
-                if(globalMin >= arrHigh[i-1])
+                lowAvg += arrLow[i];
+                if (globalMin > arrLow[i])
                 {
-                    idxMin = i - 1;
-                    globalMin = arrHigh[i-1];
-                } else if(globalMax <= arrHigh[i-1])
+                    globalMin = arrLow[i];
+                    idxMin = i;
+                }
+            }
+            for (int i = arrHigh.Length - 1; i > 0; i--)
+            {
+                heightAvg += arrHigh[i];
+                if (globalMax < arrHigh[i])
                 {
-                    idxMax = i - 1;
-                    globalMax = arrHigh[i-1];
+                    globalMax = arrHigh[i];
+                    idxMax = i;
                 }
             }
 
-            currentAvg /= arrHigh.Length;
-            if((globalMax - globalMin) < (0.0005 * globalMax))
+            lowAvg /= arrLow.Length;
+            heightAvg /= arrHigh.Length;
+            if ((globalMax - globalMin) < (0.005 * globalMax))
             {
                 Console.WriteLine("[Ширина коридора] = {0}\nБоковик слишком узок", globalMax - globalMin);
                 return;
@@ -51,30 +65,49 @@ namespace Lua
 
             // f(x) = kx + b
             // Нужно найти коэффициент k, стремящийся к 0, при помощи метода линейной интерполяции
-            double sumX = 0; // Ось абсцисс (номер свечи)
-            double sumY = 0; // Ось ординат (high свечи)
-            double sumX2 = 0;
-            double sumXY = 0;
 
-            for(int i = 0; i < arrHigh.Length - 1; i++)
-            {
-                sumX += i;
-                sumY += arrHigh[i];
-                sumX2 += i*i;
-                sumXY += i * arrHigh[i];
-            }
+            // for (int i = 0; i < arrHigh.Length - 1; i++)
+            // {
+            //     sumX += i;
+            //     sumY += arrHigh[i];
+            //     sumX2 += i * i;
+            //     sumXY += i * arrHigh[i];
+            // }
+            double kHigh = CandleInterpolation(arrHigh, arrHigh.Length);
 
-            double k = ((arrHigh.Length * sumXY) - (sumX * sumY))
-                        /((arrHigh.Length * sumX2) - (sumX*sumX));
+            // for (int i = 0; i < arrHigh.Length - 1; i++)
+            // {
+            //     sumX += i;
+            //     sumY += arrLow[i];
+            //     sumX2 += i * i;
+            //     sumXY += i * arrLow[i];
+            // }
+            double kLow = CandleInterpolation(arrLow, arrLow.Length);
 
-            Console.WriteLine("[k] = {0}", k);
-            Console.WriteLine(arrHigh[arrHigh.Length]);
+            Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", kHigh, kLow);
+
             Console.WriteLine("[gMin] = {0}\n[gMax] = {1}", globalMin, globalMax);
-            Console.WriteLine("[Current AVG] = {0}"     , currentAvg);
-            Console.WriteLine("[arrHigh.Length] = {0}"  , arrHigh.Length);
+            Console.WriteLine("[Current AVG] = {0}", heightAvg);
+            Console.WriteLine("[arrHigh.Length] = {0}", arrHigh.Length);
             return;
         }
 
+        private static double CandleInterpolation(double sx, double sy, double sx2, double sxy, double[] arr, int n)
+        {
+            double sx
+            double sy
+            double sx2
+            double sxy = 
+            for (int i = 0; i < n - 1; i++)
+            {
+                sx += i;
+                sy += arr[i];
+                sx2 += i * 8;
+                sxy += i * arr[i];
+            }
+            double k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
+            return k;
+        }
     }
 }
 
