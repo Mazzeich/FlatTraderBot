@@ -1,10 +1,11 @@
 function main()
-  local openPath 	 = "C:/Projects/Lua/Data/dataOpen.txt"
-  local highPath 	 = "C:/Projects/Lua/Data/dataHigh.txt"
-  local lowPath 	 = "C:/Projects/Lua/Data/dataLow.txt"
-  local closePath  = "C:/Projects/Lua/Data/dataClose.txt"
-  local volumePath = "C:/Projects/Lua/Data/dataVolume.txt"
-
+  
+  local openPath 	 = "C:/Projects/Lua/dataOpen.txt"
+  local closePath  = "C:/Projects/Lua/dataClose.txt"
+  local volumePath = "C:/Projects/Lua/dataVolume.txt"
+  local highPath 	 = "C:/Projects/Lua/dataHigh.txt"
+  local lowPath 	 = "C:/Projects/Lua/dataLow.txt"
+  
   local openIO 	 = io.open(openPath,   "w")
   local highIO 	 = io.open(highPath,   "w")
   local lowIO 	 = io.open(lowPath,    "w")
@@ -42,11 +43,11 @@ function main()
   for i = n - coveredCandles, n - 1 do
   	local dateCandle = tostring(tableCandle[i].datetime.hour)..":"..tostring(tableCandle[i].datetime.min)
 
-  	openIO:write(tableCandle[i].open 	 .."\t["..i.."]\t["..dateCandle.."]\n")
-  	highIO:write(tableCandle[i].high 	 .."\t["..i.."]\t["..dateCandle.."]\n")
-  	lowIO:write(tableCandle[i].low 		 .."\t["..i.."]\t["..dateCandle.."]\n")
-  	closeIO:write(tableCandle[i].close 	 .."\t["..i.."]\t["..dateCandle.."]\n")
-  	volumeIO:write(tableCandle[i].volume .."\t["..i.."]\t["..dateCandle.."]\n")
+  	openIO:write(tableCandle[i].open.."\n")-- 	 .."\t["..i.."]\t["..dateCandle.."]\n")
+  	highIO:write(tableCandle[i].high.."\n")-- 	 .."\t["..i.."]\t["..dateCandle.."]\n")
+  	lowIO:write(tableCandle[i].low.."\n")-- 		 .."\t["..i.."]\t["..dateCandle.."]\n")
+  	closeIO:write(tableCandle[i].close.."\n")-- 	 .."\t["..i.."]\t["..dateCandle.."]\n")
+  	volumeIO:write(tableCandle[i].volume.."\n")-- .."\t["..i.."]\t["..dateCandle.."]\n")
   end
 
   --f:write(data)

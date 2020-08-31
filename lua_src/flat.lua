@@ -20,6 +20,7 @@ end
 function OnConnected()
   if (OnConnected() == false) then
     message('[Cannot connect to the server]')
+  end
 end
 --------------------------------------------------------------
 function main()  
