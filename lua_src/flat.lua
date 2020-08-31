@@ -18,11 +18,8 @@ end
 
 -- Вызывается при установлении соединения с сервером  
 function OnConnected()
-  if (OnConnected()) then
-    message('[Connected to the server]')
-  else
+  if (OnConnected() == false) then
     message('[Cannot connect to the server]')
-  end
 end
 --------------------------------------------------------------
 function main()  
