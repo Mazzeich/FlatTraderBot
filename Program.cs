@@ -67,35 +67,20 @@ namespace Lua
 
             lowAvg /= candles.Length;
             heightAvg /= candles.Length;
-            if ((globalMax - globalMin) < (0.005 * globalMax))
+            
+            if ((globalMax - globalMin) < (0.005 * candles[candles.Length-1].high))
             {
-                Console.WriteLine("[gMin] = {0} [{1}]\n[gMax] = {2} [{3}]", globalMin, idxGMin+1, globalMax, idxGMax+1);
-                Console.WriteLine("[Ширина коридора] = {0}\nБоковик слишком узок", globalMax - globalMin);
-                Console.WriteLine("[0.5% от цены] = {0} у.е.", 0.005 * globalMax);
-                Console.WriteLine();
+                PrintIfNoFlat(globalMin, globalMax, idxGMin, idxGMax, candles);
                 return;
             }
 
             // f(x) = kx + b
             // Нужно найти коэффициент k, стремящийся к 0, при помощи метода линейной интерполяции
             var ks = CandleInterpolation(candles);
-            Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", ks.Item1, ks.Item2);
             double k = (ks.Item1 + ks.Item2) * 0.5;
-            Console.WriteLine("[k] = {0}", k);
-            Console.WriteLine("[gMin] = {0} [{1}]\n[gMax] = {2} [{3}]", globalMin, idxGMin+1, globalMax, idxGMax+1);
-            Console.WriteLine("[Current AVG] = {0}", heightAvg);
-            Console.WriteLine("[arrHigh.Length] = {0}", candles.Length);
-
             double kOffset = 0.05;
-            if(Math.Abs(k) < kOffset)
-            {
-                Console.WriteLine("Интерполяционная линия почти горизонтальна. Цена в боковике");
-            } else if(k < 0) {
-                Console.WriteLine("Интерполяционная линия имеет сильный убывающий тренд");
-            } else {
-                Console.WriteLine("Интерполяционная линия имеет сильный возрастающий тренд");
-            }
-            Console.WriteLine();
+            PrintIfFlat(globalMin, globalMax, idxGMin, idxGMax, ks, k, kOffset, candles);
+
             return;
         }
 
@@ -135,6 +120,32 @@ namespace Lua
             kLow = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
 
             return (kHigh, kLow);
+        }
+
+        private static void PrintIfFlat(double gMin, double gMax, int iGMin, int iGMax, (double, double) ks, double k,
+                                         double kOff, Candle[] cdls)
+        {
+            Console.WriteLine("[gMin] = {0} [{1}]\n[gMax] = {2} [{3}]", gMin, iGMin+1, gMax, iGMax+1);
+            Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", ks.Item1, ks.Item2);
+            Console.WriteLine("[k] = {0}", k);
+            Console.WriteLine("[arrHigh.Length] = {0}", cdls.Length);
+            if(Math.Abs(k) < kOff)
+            {
+                Console.WriteLine("Интерполяционная линия почти горизонтальна. Цена в боковике");
+            } else if(k < 0) {
+                Console.WriteLine("Интерполяционная линия имеет сильный убывающий тренд");
+            } else {
+                Console.WriteLine("Интерполяционная линия имеет сильный возрастающий тренд");
+            }
+            Console.WriteLine();
+        }
+
+        private static void PrintIfNoFlat(double gMin, double gMax, int iGMin, int iGMax, Candle[] cdls)
+        {
+            Console.WriteLine("[gMin] = {0} [{1}]\n[gMax] = {2} [{3}]", gMin, iGMin+1, gMax, iGMax+1);
+            Console.WriteLine("[Ширина коридора] = {0}\nБоковик слишком узок", gMax - gMin);
+            Console.WriteLine("[0.5% от цены] = {0} у.е.", 0.005 * gMax);
+            Console.WriteLine();
         }
     }
 }
