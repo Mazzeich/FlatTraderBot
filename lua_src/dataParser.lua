@@ -12,8 +12,8 @@ function main()
   local closeIO  = io.open(closePath,  "w")
   local volumeIO = io.open(volumePath, "w")
 
-  ds, errorDesk = CreateDataSource("QJSIM", "ROSN", INTERVAL_M1)
-  local tag = "rosprice"
+  ds, errorDesk = CreateDataSource("QJSIM", "SBER", INTERVAL_M1)
+  local tag = "sberprice"
   if ds == nil then
     message('[Connection error]: ' .. errorDesk)
   end

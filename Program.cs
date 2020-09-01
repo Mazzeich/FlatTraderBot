@@ -131,7 +131,7 @@ namespace Lua
             Console.WriteLine("[arrHigh.Length] = {0}", cdls.Length);
             if(Math.Abs(k) < kOff)
             {
-                Console.WriteLine("Интерполяционная линия почти горизонтальна. Цена в боковике");
+                Console.WriteLine("Интерполяционная линия почти горизонтальна. Цена потенциально в боковике");
             } else if(k < 0) {
                 Console.WriteLine("Интерполяционная линия имеет сильный убывающий тренд");
             } else {
