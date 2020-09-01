@@ -67,19 +67,28 @@ namespace Lua
             heightAvg /= candles.Length;
             if ((globalMax - globalMin) < (0.005 * globalMax))
             {
+                Console.WriteLine("[gMin] = {0}\n[gMax] = {1}", globalMin, globalMax);
                 Console.WriteLine("[Ширина коридора] = {0}\nБоковик слишком узок", globalMax - globalMin);
+                Console.WriteLine("[0.5% от цены] = {0} у.е.", 0.005 * globalMax);
+                Console.WriteLine();
                 return;
             }
 
             // f(x) = kx + b
             // Нужно найти коэффициент k, стремящийся к 0, при помощи метода линейной интерполяции
             var ks = CandleInterpolation(candles);
-
             Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", ks.Item1, ks.Item2);
-
+            double k = (ks.Item1 + ks.Item2) * 0.5;
+            Console.WriteLine("[k] = {0}", k);
             Console.WriteLine("[gMin] = {0}\n[gMax] = {1}", globalMin, globalMax);
             Console.WriteLine("[Current AVG] = {0}", heightAvg);
             Console.WriteLine("[arrHigh.Length] = {0}", candles.Length);
+
+            if(Math.Abs(k) < 0.1)
+            {
+                Console.WriteLine("Интерполяционная линия почти горизонтальна. Цена в боковике");
+            }
+            Console.WriteLine();
             return;
         }
 
@@ -117,6 +126,7 @@ namespace Lua
                 sxy += i * cdls[i].low;
             }
             kLow = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
+            
             return (kHigh, kLow);
         }
     }
