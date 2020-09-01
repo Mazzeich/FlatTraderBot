@@ -65,24 +65,8 @@ namespace Lua
 
             // f(x) = kx + b
             // Нужно найти коэффициент k, стремящийся к 0, при помощи метода линейной интерполяции
-
-            // for (int i = 0; i < arrHigh.Length - 1; i++)
-            // {
-            //     sumX += i;
-            //     sumY += arrHigh[i];
-            //     sumX2 += i * i;
-            //     sumXY += i * arrHigh[i];
-            // }
             double kHigh = CandleInterpolation(arrHigh, arrHigh.Length);
-
-            // for (int i = 0; i < arrHigh.Length - 1; i++)
-            // {
-            //     sumX += i;
-            //     sumY += arrLow[i];
-            //     sumX2 += i * i;
-            //     sumXY += i * arrLow[i];
-            // }
-            double kLow = CandleInterpolation(arrLow, arrLow.Length);
+            double kLow  = CandleInterpolation(arrLow, arrLow.Length);
 
             Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", kHigh, kLow);
 
@@ -92,12 +76,13 @@ namespace Lua
             return;
         }
 
-        private static double CandleInterpolation(double sx, double sy, double sx2, double sxy, double[] arr, int n)
+        private static double CandleInterpolation(double[] arr, int n)
         {
-            double sx
-            double sy
-            double sx2
-            double sxy = 
+            double sx = 0;
+            double sy = 0;
+            double sx2 = 0;
+            double sxy = 0;
+
             for (int i = 0; i < n - 1; i++)
             {
                 sx += i;
@@ -105,8 +90,7 @@ namespace Lua
                 sx2 += i * 8;
                 sxy += i * arr[i];
             }
-            double k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
-            return k;
+            return ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
         }
     }
 }
