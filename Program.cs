@@ -19,47 +19,49 @@ namespace Lua
 
         static void Main(string[] args)
         {
-            //string pathOpen = @"C:\Projects\Lua\Data\dataOpen.txt";
-            //string pathClose = @"C:\Projects\Lua\Data\dataClose.txt";
-            //string pathVolume = @"C:\Projects\Lua\Data\dataVolume.txt";
-            string pathHigh = @"C:\Projects\Lua\Data\dataHigh.txt";
-            string pathLow = @"C:\Projects\Lua\Data\dataLow.txt";
+            //string pathOpen = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataOpen.txt");
+            //string pathClose = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataClose.txt");
+            //string pathVolume = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataVolume.txt");
+            string pathHigh = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataHigh.txt");
+            string pathLow  = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataLow.txt");
 
             string[] readHeights = File.ReadAllLines(pathHigh);
-            string[] readLows = File.ReadAllLines(pathLow);
+            string[] readLows    = File.ReadAllLines(pathLow);
 
             Candle[] candles = new Candle[readHeights.Length];
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
                 candles[i].high = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
-                candles[i].low = double.Parse(readLows[i], CultureInfo.InvariantCulture);
+                candles[i].low  = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
             }
 
             double globalMin = double.PositiveInfinity;  // Значение гМина
             double globalMax = double.NegativeInfinity;  // Значение гмакса
 
-            int idxMin = 0;                               // Индекс найденного глобального минимума
-            int idxMax = 0;                               // Индекс найденного глобального максимума
+            int idxGMin = 0;    // Индекс найденного глобального минимума
+            int idxGMax = 0;    // Индекс найденного глобального максимума
+            int idxSMin = 0;    // Индекс вторичного минимума
+            int idxSMax = 0;    // ИНдекс вторичного максимума
 
             double heightAvg = 0;
             double lowAvg = 0;
 
-            for (int i = candles.Length - 1; i > 0; i--)
+            for (int i = 0; i < candles.Length - 1; i++)
             {
                 lowAvg += candles[i].low;
                 if (globalMin > candles[i].low)
                 {
                     globalMin = candles[i].low;
-                    idxMin = i;
+                    idxGMin = i;
                 }
             }
-            for (int i = candles.Length - 1; i > 0; i--)
+            for (int i = 0; i < candles.Length - 1; i++)
             {
                 heightAvg += candles[i].high;
                 if (globalMax < candles[i].high)
                 {
                     globalMax = candles[i].high;
-                    idxMax = i;
+                    idxGMax = i;
                 }
             }
 
@@ -67,7 +69,7 @@ namespace Lua
             heightAvg /= candles.Length;
             if ((globalMax - globalMin) < (0.005 * globalMax))
             {
-                Console.WriteLine("[gMin] = {0}\n[gMax] = {1}", globalMin, globalMax);
+                Console.WriteLine("[gMin] = {0} [{1}]\n[gMax] = {2} [{3}]", globalMin, idxGMin+1, globalMax, idxGMax+1);
                 Console.WriteLine("[Ширина коридора] = {0}\nБоковик слишком узок", globalMax - globalMin);
                 Console.WriteLine("[0.5% от цены] = {0} у.е.", 0.005 * globalMax);
                 Console.WriteLine();
@@ -80,13 +82,18 @@ namespace Lua
             Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", ks.Item1, ks.Item2);
             double k = (ks.Item1 + ks.Item2) * 0.5;
             Console.WriteLine("[k] = {0}", k);
-            Console.WriteLine("[gMin] = {0}\n[gMax] = {1}", globalMin, globalMax);
+            Console.WriteLine("[gMin] = {0} [{1}]\n[gMax] = {2} [{3}]", globalMin, idxGMin+1, globalMax, idxGMax+1);
             Console.WriteLine("[Current AVG] = {0}", heightAvg);
             Console.WriteLine("[arrHigh.Length] = {0}", candles.Length);
 
-            if(Math.Abs(k) < 0.1)
+            double kOffset = 0.05;
+            if(Math.Abs(k) < kOffset)
             {
                 Console.WriteLine("Интерполяционная линия почти горизонтальна. Цена в боковике");
+            } else if(k < 0) {
+                Console.WriteLine("Интерполяционная линия имеет сильный убывающий тренд");
+            } else {
+                Console.WriteLine("Интерполяционная линия имеет сильный возрастающий тренд");
             }
             Console.WriteLine();
             return;
@@ -126,7 +133,7 @@ namespace Lua
                 sxy += i * cdls[i].low;
             }
             kLow = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
-            
+
             return (kHigh, kLow);
         }
     }
