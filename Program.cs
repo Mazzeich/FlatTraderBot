@@ -11,6 +11,12 @@ namespace Lua
     {
         //private static double CandleInterpolation(double sx, double sy, double sx2, double sxy, double[] arr, int n);
 
+        public struct Candle 
+        {
+            public double high;
+            public double low;
+        }
+
         static void Main(string[] args)
         {
             //string pathOpen = @"C:\Projects\Lua\Data\dataOpen.txt";
@@ -22,41 +28,43 @@ namespace Lua
             string[] readHeights = File.ReadAllLines(pathHigh);
             string[] readLows = File.ReadAllLines(pathLow);
 
-            double[] arrHigh = new double[readHeights.Length];
-            double[] arrLow = new double[readLows.Length];
+            Candle[] candles = new Candle[readHeights.Length];
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
-                arrHigh[i] = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
-                arrLow[i] = double.Parse(readLows[i], CultureInfo.InvariantCulture);
+                candles[i].high = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
+                candles[i].low = double.Parse(readLows[i], CultureInfo.InvariantCulture);
             }
 
             double globalMin = double.PositiveInfinity;  // Значение гМина
-            double globalMax = double.NegativeInfinity; // Значение гмакса
+            double globalMax = double.NegativeInfinity;  // Значение гмакса
+
             int idxMin = 0;                               // Индекс найденного глобального минимума
             int idxMax = 0;                               // Индекс найденного глобального максимума
+
             double heightAvg = 0;
             double lowAvg = 0;
-            for (int i = arrLow.Length - 1; i > 0; i--)
+
+            for (int i = candles.Length - 1; i > 0; i--)
             {
-                lowAvg += arrLow[i];
-                if (globalMin > arrLow[i])
+                lowAvg += candles[i].low;
+                if (globalMin > candles[i].low)
                 {
-                    globalMin = arrLow[i];
+                    globalMin = candles[i].low;
                     idxMin = i;
                 }
             }
-            for (int i = arrHigh.Length - 1; i > 0; i--)
+            for (int i = candles.Length - 1; i > 0; i--)
             {
-                heightAvg += arrHigh[i];
-                if (globalMax < arrHigh[i])
+                heightAvg += candles[i].high;
+                if (globalMax < candles[i].high)
                 {
-                    globalMax = arrHigh[i];
+                    globalMax = candles[i].high;
                     idxMax = i;
                 }
             }
 
-            lowAvg /= arrLow.Length;
-            heightAvg /= arrHigh.Length;
+            lowAvg /= candles.Length;
+            heightAvg /= candles.Length;
             if ((globalMax - globalMin) < (0.005 * globalMax))
             {
                 Console.WriteLine("[Ширина коридора] = {0}\nБоковик слишком узок", globalMax - globalMin);
@@ -65,19 +73,23 @@ namespace Lua
 
             // f(x) = kx + b
             // Нужно найти коэффициент k, стремящийся к 0, при помощи метода линейной интерполяции
-            double kHigh = CandleInterpolation(arrHigh, arrHigh.Length);
-            double kLow  = CandleInterpolation(arrLow, arrLow.Length);
+            var ks = CandleInterpolation(candles);
 
-            Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", kHigh, kLow);
+            Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", ks.Item1, ks.Item2);
 
             Console.WriteLine("[gMin] = {0}\n[gMax] = {1}", globalMin, globalMax);
             Console.WriteLine("[Current AVG] = {0}", heightAvg);
-            Console.WriteLine("[arrHigh.Length] = {0}", arrHigh.Length);
+            Console.WriteLine("[arrHigh.Length] = {0}", candles.Length);
             return;
         }
 
-        private static double CandleInterpolation(double[] arr, int n)
+        private static (double, double) CandleInterpolation(Candle[] cdls)
         {
+            double kHigh = 0;
+            double kLow  = 0;
+
+            int n = cdls.Length;
+
             double sx = 0;
             double sy = 0;
             double sx2 = 0;
@@ -86,11 +98,26 @@ namespace Lua
             for (int i = 0; i < n - 1; i++)
             {
                 sx += i;
-                sy += arr[i];
+                sy += cdls[i].high;
                 sx2 += i * 8;
-                sxy += i * arr[i];
+                sxy += i * cdls[i].high;
             }
-            return ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
+            kHigh = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
+
+            sx = 0;
+            sy = 0;
+            sx2 = 0;
+            sxy = 0;
+
+            for (int i = 0; i < n - 1; i++)
+            {
+                sx += i;
+                sy += cdls[i].low;
+                sx2 += i * 8;
+                sxy += i * cdls[i].low;
+            }
+            kLow = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
+            return (kHigh, kLow);
         }
     }
 }
