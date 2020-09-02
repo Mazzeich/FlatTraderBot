@@ -2,7 +2,6 @@
 using System.IO;
 using System.Globalization;
 
-
 namespace Lua
 {
     class Program
@@ -12,54 +11,77 @@ namespace Lua
         /// </summary>
         public struct Candle
         {
+            /// <value> Хай текущей свечи </value>
             public double high;
+            /// <value> Лоу текущей свечи </value>
             public double low;
+            /// <value> Цена закрытия текущей свечи </value>
             public double close;
         }
 
-        // Минимальная ширина коридора (коэфф. от цены инструмента)
+        /// <summary>
+        /// Минимальная ширина коридора (коэфф. от цены инструмента)
+        /// </summary>
         public const double minWidthCoeff = 0.005;
+
+        /// <summary>
+        /// Коэффициент для определения поведения тренда.
+        /// |<kOffset| => цена потенциально в рамках боковика
+        /// |>kOffset| => цена имеет нисходящий или восходящий тренд
+        /// </summary>
+        public const double kOffset = 0.05;
+
 
         static void Main(string[] args)
         {
             //string pathOpen = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataOpen.txt");
             //string pathVolume = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataVolume.txt");
             string pathClose = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataClose.txt");
-            string pathHigh = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataHigh.txt");
-            string pathLow = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataLow.txt");
+            string pathHigh  = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataHigh.txt");
+            string pathLow   = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataLow.txt");
 
             string[] readHeights = File.ReadAllLines(pathHigh);
-            string[] readLows = File.ReadAllLines(pathLow);
-            string[] readCloses = File.ReadAllLines(pathClose);
+            string[] readLows    = File.ReadAllLines(pathLow);
+            string[] readCloses  = File.ReadAllLines(pathClose);
 
             Candle[] candles = new Candle[readHeights.Length];
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
-                candles[i].high = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
-                candles[i].low = double.Parse(readLows[i], CultureInfo.InvariantCulture);
-                candles[i].close = double.Parse(readCloses[i], CultureInfo.InvariantCulture);
+                candles[i].high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
+                candles[i].low   = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
+                candles[i].close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
             }
 
             var lowInfo  = GlobalExtremumsAndMA(candles, false); // Среднее по лоу всего графика
             var highInfo = GlobalExtremumsAndMA(candles, true);  // Среднее по хаям всего графика
-            Console.WriteLine(lowInfo);
-            Console.WriteLine(highInfo);
 
             double globalMin = lowInfo.Item1;   // Значение гМина
             double globalMax = highInfo.Item1;  // Значение гмакса
             int idxGMin = lowInfo.Item2;     // Индекс найденного глобального минимума
             int idxGMax = highInfo.Item2;    // Индекс найденного глобального максимума
-            double lowMA = lowInfo.Item3;
+            double lowMA  = lowInfo.Item3;
             double highMA = highInfo.Item3;
-            double MA = (highMA + lowMA) * 0.5;
+            
+            double MA = (highMA + lowMA) * 0.5; // Скользящая средняя 
 
             // f(x) = kx + b
             // Нужно найти коэффициент k, стремящийся к 0, при помощи метода линейной интерполяции
             var ks = FindKs(candles);
             double k = (ks.Item1 + ks.Item2) * 0.5;
-            double kOffset = 0.05;
 
-            PrintInfo(globalMin, globalMax, idxGMin, idxGMax, ks, k, kOffset, candles, MA);
+            // Нашли среднеквадратичесоке отклонение всех high выше avg
+            // и всех low ниже avg
+            var SD = StandartDeviation(candles, MA, minWidthCoeff);
+            double SDL = SD.Item1;
+            double SDH = SD.Item2;
+
+            // TODO: Функция, определяющая, находится ли текущий локальный экстремум
+            // (возожно, с аннулировав по 3 свечи слева и справа от себя) 
+            // достаточно близко к линии СКО
+            // int ExtremumsNearSD(candles, MA, SDL, SDH);
+
+            PrintInfo(globalMin, globalMax, idxGMin, idxGMax, ks, k, kOffset, candles, MA,
+            SDH, SDL);
 
             return;
         }
@@ -152,18 +174,18 @@ namespace Lua
         }
 
         private static void PrintInfo(double gMin, double gMax, int iGMin, int iGMax, (double, double) ks, double k,
-                                        double kOff, Candle[] cdls, double movAvg)
+                                    double kOff, Candle[] cdls, double movAvg, double SDH, double SDL)
         {
             Console.WriteLine("[gMin] = {0} [{1}]\n[gMax] = {2} [{3}]", gMin, iGMin + 1, gMax, iGMax + 1);
-            Console.WriteLine("[kHigh] = {0}\n[kLow] = {1}", ks.Item1, ks.Item2);
-            Console.WriteLine("[k] = {0}", k);
+            Console.WriteLine("[kLow] = {0}  [kHigh] = {1} [k] = {2}", ks.Item1, ks.Item2, k);
             Console.WriteLine("[Скользаящая средняя] = {0}", movAvg);
-            Console.WriteLine("[arrHigh.Length] = {0}", cdls.Length);
+            Console.WriteLine("[candles.Length] = {0}", cdls.Length);
+            Console.WriteLine("[SDL] = {0}  [SDH] = {1}", SDL, SDH);
 
             if ((gMax - gMin) < (minWidthCoeff * movAvg))
             {
-                Console.WriteLine("[Ширина коридора] = {0}\nБоковик слишком узок", gMax - gMin);
-                Console.WriteLine("[Минимальная ширина коридора] = {0} у.е.", minWidthCoeff * movAvg);
+                Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок\t", gMax - gMin);
+                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
             }
             else
             {
@@ -185,26 +207,39 @@ namespace Lua
         }
 
         /// <summary>
-        /// Функция находит среднеквадратическое отклонение свечей внутри коридора
+        /// Функция находит среднеквадратическое отклонение свечей тех, что выше среднего, 
+        /// и тех, что ниже внутри коридора
         /// </summary>
         /// <param name="cdls">Массив структур свечей</param>
         /// <param name="minWidth">Минимальная ширина коридора для боковика</param>
         /// <param name="movAvg">Скользящая средняя</param>
         /// <param name="widthCoeff">Коэффициент для минимальной ширины коридора</param>
         /// <returns>Среднеквадратические отклоенения по high и по low соответственно</returns>
-        private static (double, double) StandartDeviation(Candle[] cdls, double minWidth, double movAvg,
-                                                          double widthCoeff)
+        private static (double, double) StandartDeviation(Candle[] cdls, double movAvg, double widthCoeff)
         {
+            double sumLow  = 0;
             double sumHigh = 0;
-            double sumLow = 0;
+
+            // Количество low и high, находящихся шире минимальной ширины коридора
+            int lowsCount  = 0;
+            int highsCount = 0;
+
             for (int i = 0; i < cdls.Length - 1; i++)
             {
-                sumHigh += Math.Pow((cdls[i].high - movAvg), 2);
-                sumLow += Math.Pow(cdls[i].low - movAvg, 2);
+                if((cdls[i].low) <= (movAvg - kOffset))
+                {
+                    sumLow += Math.Pow(movAvg - cdls[i].low, 2);
+                    lowsCount++;
+                } else if((cdls[i].high) >= (movAvg + kOffset))
+                {
+                    sumHigh += Math.Pow(cdls[i].high - movAvg, 2);
+                    highsCount++;
+                }
             }
-            double SDHigh = Math.Sqrt(sumHigh / cdls.Length);
-            double SDLow = Math.Sqrt(sumLow / cdls.Length);
-            return (SDHigh, SDLow);
+            double SDLow  = Math.Sqrt(sumLow / lowsCount);
+            double SDHigh = Math.Sqrt(sumHigh / highsCount);
+            
+            return (movAvg - SDLow, SDHigh + movAvg);
         }
     }
 }
