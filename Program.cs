@@ -7,6 +7,9 @@ namespace Lua
 {
     class Program
     {
+        /// <summary>
+        /// Структура свечи
+        /// </summary>
         public struct Candle
         {
             public double high;
@@ -61,6 +64,12 @@ namespace Lua
             return;
         }
 
+        /// <summary>
+        /// Функция поиска глобальных экстремумов в массиве структур свечей
+        /// </summary>
+        /// <param name="cdls">Массив структур свечей</param>
+        /// <param name="onHigh">true - ищем по high. false - по low</param>
+        /// <returns></returns>
         private static (double, int, double) GlobalExtremumsAndMA(Candle[] cdls, bool onHigh)
         {
             // Значение, среднее значение и индекс искомого глобального экстремума
@@ -99,6 +108,11 @@ namespace Lua
             return (globalExtremum, index, MA);
         }
 
+        /// <summary>
+        /// Функция поиска угла наклона аппроксимирующей прямой
+        /// </summary>
+        /// <param name="cdls">Массив структур свечей</param>
+        /// <returns>Углы наклона аппроксимирующих прямых по high и по low</returns>
         private static (double, double) FindKs(Candle[] cdls)
         {
             double kHigh = 0;
@@ -170,7 +184,14 @@ namespace Lua
             Console.WriteLine();
         }
 
-        // Функция находит среднеквадратическое отклонение свечей внутри коридора
+        /// <summary>
+        /// Функция находит среднеквадратическое отклонение свечей внутри коридора
+        /// </summary>
+        /// <param name="cdls">Массив структур свечей</param>
+        /// <param name="minWidth">Минимальная ширина коридора для боковика</param>
+        /// <param name="movAvg">Скользящая средняя</param>
+        /// <param name="widthCoeff">Коэффициент для минимальной ширины коридора</param>
+        /// <returns>Среднеквадратические отклоенения по high и по low соответственно</returns>
         private static (double, double) StandartDeviation(Candle[] cdls, double minWidth, double movAvg,
                                                           double widthCoeff)
         {
