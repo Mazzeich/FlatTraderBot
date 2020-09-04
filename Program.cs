@@ -192,21 +192,20 @@ namespace Lua
                 Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок!\t", gMax - gMin);
                 Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
             }
+
+            if (Math.Abs(k) < kOff)
+            {
+                Console.WriteLine("Аппрокимирующая линия почти горизонтальна. Цена потенциально в боковике");
+            }
+            else if (k < 0)
+            {
+                Console.WriteLine("Аппроксимирующая линия имеет сильный убывающий тренд");
+            }
             else
             {
-                if (Math.Abs(k) < kOff)
-                {
-                    Console.WriteLine("Интерполяционная линия почти горизонтальна. Цена потенциально в боковике");
-                }
-                else if (k < 0)
-                {
-                    Console.WriteLine("Интерполяционная линия имеет сильный убывающий тренд");
-                }
-                else
-                {
-                    Console.WriteLine("Интерполяционная линия имеет сильный возрастающий тренд");
-                }
+                Console.WriteLine("Аппроксимирующая линия имеет сильный возрастающий тренд");
             }
+
 
             Console.WriteLine();
         }
@@ -264,30 +263,32 @@ namespace Lua
             if (!onHigh)
             {
                 Console.WriteLine("[Попавшие в low индексы]:");
-                for (int i = 2; i < cdls.Length - 2; i++)
+                for (int i = cdls.Length - 2; i > 2; i--)
                 {
-                    if ((Math.Abs(cdls[i].low - standartDeviation) <= (neededToReachSD)) && 
-                        (cdls[i].low <= cdls[i-1].low) && 
-                        (cdls[i].low <= cdls[i-2].low) && 
-                        (cdls[i].low <= cdls[i+1].low) && 
+                    if ((Math.Abs(cdls[i].low - standartDeviation) <= (neededToReachSD)) &&
+                        (cdls[i].low <= cdls[i-1].low) &&
+                        (cdls[i].low <= cdls[i-2].low) &&
+                        (cdls[i].low <= cdls[i+1].low) &&
                         (cdls[i].low <= cdls[i+2].low))
                     {
-                        Console.Write("{0}({1}) ", cdls[i].low, i+1);
+                        Console.Write("{0}({1}) ", cdls[i].low, i + 1);
                         extremums++;
                         cdls[i].low -= 0.01; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                     }
                 }
-            } else {
+            }
+            else
+            {
                 Console.WriteLine("[Попавшие в high индексы]:");
-                for (int i = 2; i < cdls.Length - 2; i++)
+                for (int i = cdls.Length - 2; i > 2; i--)
                 {
-                    if ((Math.Abs(cdls[i].high - standartDeviation) <= (neededToReachSD)) && 
-                        (cdls[i].high >= cdls[i-1].high) && 
-                        (cdls[i].high >= cdls[i-2].high) && 
-                        (cdls[i].high >= cdls[i+1].high) && 
+                    if ((Math.Abs(cdls[i].high - standartDeviation) <= (neededToReachSD)) &&
+                        (cdls[i].high >= cdls[i-1].high) &&
+                        (cdls[i].high >= cdls[i-2].high) &&
+                        (cdls[i].high >= cdls[i+1].high) &&
                         (cdls[i].high >= cdls[i+2].high))
                     {
-                        Console.Write("{0}({1}) ", cdls[i].high, i+1);
+                        Console.Write("{0}({1}) ", cdls[i].high, i + 1);
                         extremums++;
                         cdls[i].high += 0.01;
                     }
