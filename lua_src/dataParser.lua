@@ -12,8 +12,8 @@ function main()
   local closeIO  = io.open(closePath,  "w")
   local volumeIO = io.open(volumePath, "w")
 
-  ds, errorDesk = CreateDataSource("QJSIM", "AFLT", INTERVAL_M1)
-  local tag = "aeroprice"
+  ds, errorDesk = CreateDataSource("QJSIM", "LKOH", INTERVAL_M1)
+  local tag = "lukprice"
   if ds == nil then
     message('[Connection error]: ' .. errorDesk)
   end
@@ -37,7 +37,7 @@ function main()
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
   -- Количетство просматриваемых свечей
-  local coveredCandles = 60
+  local coveredCandles = 120
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
 
