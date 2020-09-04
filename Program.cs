@@ -248,6 +248,14 @@ namespace Lua
             return (movAvg - SDLow, SDHigh + movAvg);
         }
 
+        /// <summary>
+        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО
+        /// </summary>
+        /// <param name="cdls">Массив свечей</param>
+        /// <param name="movAvg">Средняя цена</param>
+        /// <param name="standartDeviation">СКО</param>
+        /// <param name="onHigh">Ищем по хаям или по лоу</param>
+        /// <returns>Количество свечей возле значения СКО (оффсет = SDOffset)</returns>
         private static int ExtremumsNearSD(Candle[] cdls, double movAvg, double standartDeviation, bool onHigh)
         {
             int extremums = 0;
