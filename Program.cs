@@ -266,10 +266,10 @@ namespace Lua
                 for (int i = cdls.Length - 2; i > 2; i--)
                 {
                     if ((Math.Abs(cdls[i].low - standartDeviation) <= (neededToReachSD)) &&
-                        (cdls[i].low <= cdls[i - 1].low) &&
-                        (cdls[i].low <= cdls[i - 2].low) &&
-                        (cdls[i].low <= cdls[i + 1].low) &&
-                        (cdls[i].low <= cdls[i + 2].low))
+                        (cdls[i].low <= cdls[i-1].low) &&
+                        (cdls[i].low <= cdls[i-2].low) &&
+                        (cdls[i].low <= cdls[i+1].low) &&
+                        (cdls[i].low <= cdls[i+2].low))
                     {
                         Console.Write("{0}({1}) ", cdls[i].low, i + 1);
                         extremums++;
@@ -283,10 +283,10 @@ namespace Lua
                 for (int i = cdls.Length - 2; i > 2; i--)
                 {
                     if ((Math.Abs(cdls[i].high - standartDeviation) <= (neededToReachSD)) &&
-                        (cdls[i].high >= cdls[i - 1].high) &&
-                        (cdls[i].high >= cdls[i - 2].high) &&
-                        (cdls[i].high >= cdls[i + 1].high) &&
-                        (cdls[i].high >= cdls[i + 2].high))
+                        (cdls[i].high >= cdls[i-1].high) &&
+                        (cdls[i].high >= cdls[i-2].high) &&
+                        (cdls[i].high >= cdls[i+1].high) &&
+                        (cdls[i].high >= cdls[i+2].high))
                     {
                         Console.Write("{0}({1}) ", cdls[i].high, i + 1);
                         extremums++;
