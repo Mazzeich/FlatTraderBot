@@ -258,14 +258,14 @@ namespace Lua
         private static int ExtremumsNearSD(Candle[] cdls, double movAvg, double standartDeviation, bool onHigh)
         {
             int extremums = 0;
-            double neededToReachSD = movAvg * SDOffset;
+            double rangeToReachSD = movAvg * SDOffset;
 
             if (!onHigh)
             {
                 Console.WriteLine("[Попавшие в low индексы]:");
                 for (int i = cdls.Length - 2; i > 2; i--)
                 {
-                    if ((Math.Abs(cdls[i].low - standartDeviation) <= (neededToReachSD)) &&
+                    if ((Math.Abs(cdls[i].low - standartDeviation) <= (rangeToReachSD)) &&
                         (cdls[i].low <= cdls[i-1].low) &&
                         (cdls[i].low <= cdls[i-2].low) &&
                         (cdls[i].low <= cdls[i+1].low) &&
@@ -276,13 +276,15 @@ namespace Lua
                         cdls[i].low -= 0.01; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                     }
                 }
+                Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+                Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
             else
             {
                 Console.WriteLine("[Попавшие в high индексы]:");
                 for (int i = cdls.Length - 2; i > 2; i--)
                 {
-                    if ((Math.Abs(cdls[i].high - standartDeviation) <= (neededToReachSD)) &&
+                    if ((Math.Abs(cdls[i].high - standartDeviation) <= (rangeToReachSD)) &&
                         (cdls[i].high >= cdls[i-1].high) &&
                         (cdls[i].high >= cdls[i-2].high) &&
                         (cdls[i].high >= cdls[i+1].high) &&
@@ -293,9 +295,10 @@ namespace Lua
                         cdls[i].high += 0.01;
                     }
                 }
+                
+                Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+                Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
-            Console.WriteLine("\n[neededToReachSD] =  {0}", neededToReachSD);
-            Console.WriteLine("[neededToReachSD + standartDeviation] = {0}", neededToReachSD + standartDeviation);
 
             return extremums;
         }
