@@ -17,6 +17,9 @@ namespace Lua
             public double low;
             /// <value> Цена закрытия текущей свечи </value>
             public double close;
+
+           /// <value> Средняя цена по свече (= (хай - лоу)/*0.5) </value>
+            public double avg;
         }
 
         /// <summary>
@@ -40,19 +43,22 @@ namespace Lua
             //string pathOpen = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataOpen.txt");
             //string pathVolume = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataVolume.txt");
             string pathClose = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataClose.txt");
-            string pathHigh = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataHigh.txt");
-            string pathLow = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataLow.txt");
+            string pathHigh  = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataHigh.txt");
+            string pathLow   = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataLow.txt");
+            string pathAvg   = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataAvg.txt");
 
             string[] readHeights = File.ReadAllLines(pathHigh);
-            string[] readLows = File.ReadAllLines(pathLow);
-            string[] readCloses = File.ReadAllLines(pathClose);
+            string[] readLows    = File.ReadAllLines(pathLow);
+            string[] readCloses  = File.ReadAllLines(pathClose);
+            string[] readAvgs    = File.ReadAllLines(pathAvg);
 
             Candle[] candles = new Candle[readHeights.Length];
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
-                candles[i].high = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
-                candles[i].low = double.Parse(readLows[i], CultureInfo.InvariantCulture);
-                candles[i].close = double.Parse(readCloses[i], CultureInfo.InvariantCulture);
+                candles[i].high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
+                candles[i].low   = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
+                candles[i].close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
+                candles[i].avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
             }
 
             var lowInfo = GlobalExtremumsAndMA(candles, false); // Среднее по лоу всего графика
@@ -69,8 +75,7 @@ namespace Lua
 
             // f(x) = kx + b
             // Нужно найти коэффициент k, стремящийся к 0, при помощи метода линейной интерполяции
-            var ks = FindKs(candles);
-            double k = (ks.Item1 + ks.Item2) * 0.5;
+            double k = FindK(candles);
 
             // Нашли среднеквадратичесоке отклонение всех high выше avg
             // и всех low ниже avg
@@ -84,7 +89,7 @@ namespace Lua
             int extremumsNearSDL = ExtremumsNearSD(candles, MA, SDL, false);
             int extremumsNearSDH = ExtremumsNearSD(candles, MA, SDH, true);
 
-            PrintInfo(globalMin, globalMax, idxGMin, idxGMax, ks, k, kOffset, candles, MA,
+            PrintInfo(globalMin, globalMax, idxGMin, idxGMax, k, candles, MA,
             SDH, SDL, extremumsNearSDL, extremumsNearSDH);
 
             return;
@@ -139,10 +144,9 @@ namespace Lua
         /// </summary>
         /// <param name="cdls">Массив структур свечей</param>
         /// <returns>Углы наклона аппроксимирующих прямых по high и по low</returns>
-        private static (double, double) FindKs(Candle[] cdls)
+        private static double FindK(Candle[] cdls)
         {
-            double kHigh = 0;
-            double kLow = 0;
+            double k = 0;
 
             int n = cdls.Length;
 
@@ -151,37 +155,23 @@ namespace Lua
             double sx2 = 0;
             double sxy = 0;
 
-            for (int i = 0; i < n - 1; i++)
+            for (int i = 0; i < n; i++)
             {
                 sx += i;
-                sy += cdls[i].high;
+                sy += cdls[i].avg;
                 sx2 += i * 8;
-                sxy += i * cdls[i].high;
+                sxy += i * cdls[i].avg;
             }
-            kHigh = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
+            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
 
-            sx = 0;
-            sy = 0;
-            sx2 = 0;
-            sxy = 0;
-
-            for (int i = 0; i < n - 1; i++)
-            {
-                sx += i;
-                sy += cdls[i].low;
-                sx2 += i * 8;
-                sxy += i * cdls[i].low;
-            }
-            kLow = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
-
-            return (kHigh, kLow);
+            return k;
         }
 
-        private static void PrintInfo(double gMin, double gMax, int iGMin, int iGMax, (double, double) ks, double k,
-                                    double kOff, Candle[] cdls, double movAvg, double SDH, double SDL, int exsNearSDL, int exsNearSDH)
+        private static void PrintInfo(double gMin, double gMax, int iGMin, int iGMax, double k,
+                                    Candle[] cdls, double movAvg, double SDH, double SDL, int exsNearSDL, int exsNearSDH)
         {
             Console.WriteLine("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", gMin, iGMin + 1, gMax, iGMax + 1);
-            Console.WriteLine("[kLow] = {0}  [kHigh] = {1} [k] = {2}", ks.Item1, ks.Item2, k);
+            Console.WriteLine("[k] = {0}", k);
             Console.WriteLine("[Скользаящая средняя] = {0}", movAvg);
             Console.WriteLine("[candles.Length] = {0}", cdls.Length);
             Console.WriteLine("[SDL] = {0}  [SDH] = {1}", SDL, SDH);
@@ -193,7 +183,7 @@ namespace Lua
                 Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
             }
 
-            if (Math.Abs(k) < kOff)
+            if (Math.Abs(k) < kOffset)
             {
                 Console.WriteLine("Аппрокимирующая линия почти горизонтальна. Цена потенциально в боковике");
             }
@@ -263,7 +253,7 @@ namespace Lua
             if (!onHigh)
             {
                 Console.WriteLine("[Попавшие в low индексы]:");
-                for (int i = cdls.Length - 2; i > 2; i--)
+                for (int i = cdls.Length - 3; i > 1; i--) // Кажется, здесь есть проблема индексаций Lua и C#
                 {
                     if ((Math.Abs(cdls[i].low - standartDeviation) <= (rangeToReachSD)) &&
                         (cdls[i].low <= cdls[i-1].low) &&
@@ -282,7 +272,7 @@ namespace Lua
             else
             {
                 Console.WriteLine("[Попавшие в high индексы]:");
-                for (int i = cdls.Length - 2; i > 2; i--)
+                for (int i = cdls.Length - 3; i > 1; i--)
                 {
                     if ((Math.Abs(cdls[i].high - standartDeviation) <= (rangeToReachSD)) &&
                         (cdls[i].high >= cdls[i-1].high) &&
