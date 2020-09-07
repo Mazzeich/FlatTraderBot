@@ -5,15 +5,17 @@ function main()
   local volumePath = "C:/Projects/Lua/Data/dataVolume.txt"
   local highPath 	 = "C:/Projects/Lua/Data/dataHigh.txt"
   local lowPath 	 = "C:/Projects/Lua/Data/dataLow.txt"
+  local avgPath    = "C:/Projects/Lua/Data/dataAvg.txt"
   
-  local openIO 	 = io.open(openPath,   "w")
-  local highIO 	 = io.open(highPath,   "w")
-  local lowIO 	 = io.open(lowPath,    "w")
-  local closeIO  = io.open(closePath,  "w")
+  local openIO 	 = io.open(openPath  , "w")
+  local highIO 	 = io.open(highPath  , "w")
+  local lowIO 	 = io.open(lowPath   , "w")
+  local closeIO  = io.open(closePath , "w")
   local volumeIO = io.open(volumePath, "w")
+  local avgIO    = io.open(avgPath   , "w")
 
-  ds, errorDesk = CreateDataSource("QJSIM", "LKOH", INTERVAL_M1)
-  local tag = "lukprice"
+  ds, errorDesk = CreateDataSource("SPBFUT", "SiU0", INTERVAL_M1)
+  local tag = "siu0price"
   if ds == nil then
     message('[Connection error]: ' .. errorDesk)
   end
@@ -37,7 +39,7 @@ function main()
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
   -- Количетство просматриваемых свечей
-  local coveredCandles = 120
+  local coveredCandles = 60
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
 
@@ -48,7 +50,8 @@ function main()
   	highIO:write(tableCandle[i].high.."\n")-- 	 .."\t["..i.."]\t["..dateCandle.."]\n")
   	lowIO:write(tableCandle[i].low.."\n")-- 		 .."\t["..i.."]\t["..dateCandle.."]\n")
   	closeIO:write(tableCandle[i].close.."\n")-- 	 .."\t["..i.."]\t["..dateCandle.."]\n")
-  	volumeIO:write(tableCandle[i].volume.."\n")-- .."\t["..i.."]\t["..dateCandle.."]\n")
+    volumeIO:write(tableCandle[i].volume.."\n")-- .."\t["..i.."]\t["..dateCandle.."]\n")
+    avgIO:write((tableCandle[i].high + tableCandle[i].low)*0.5 .."\n")
   end
 
   --f:write(data)
@@ -58,4 +61,5 @@ function main()
   lowIO:close()
   closeIO:close()
   volumeIO:close()
+  avgIO:close()
 end

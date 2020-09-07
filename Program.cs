@@ -17,6 +17,9 @@ namespace Lua
             public double low;
             /// <value> Цена закрытия текущей свечи </value>
             public double close;
+
+           /// <value> Средняя цена по свече (= (хай - лоу)/*0.5) </value>
+            public double avg;
         }
 
         /// <summary>
@@ -42,10 +45,12 @@ namespace Lua
             string pathClose = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataClose.txt");
             string pathHigh  = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataHigh.txt");
             string pathLow   = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataLow.txt");
+            string pathAvg   = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataAvg.txt");
 
             string[] readHeights = File.ReadAllLines(pathHigh);
             string[] readLows    = File.ReadAllLines(pathLow);
             string[] readCloses  = File.ReadAllLines(pathClose);
+            string[] readAvgs    = File.ReadAllLines(pathAvg);
 
             Candle[] candles = new Candle[readHeights.Length];
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
@@ -53,6 +58,7 @@ namespace Lua
                 candles[i].high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
                 candles[i].low   = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
                 candles[i].close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
+                candles[i].avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
             }
 
             var lowInfo = GlobalExtremumsAndMA(candles, false); // Среднее по лоу всего графика
@@ -62,7 +68,7 @@ namespace Lua
             double globalMax = highInfo.Item1;  // Значение гмакса
             int idxGMin = lowInfo.Item2;     // Индекс найденного глобального минимума
             int idxGMax = highInfo.Item2;    // Индекс найденного глобального максимума
-            double lowMA  = lowInfo.Item3;
+            double lowMA = lowInfo.Item3;
             double highMA = highInfo.Item3;
 
             double MA = (highMA + lowMA) * 0.5; // Скользящая средняя 
@@ -152,9 +158,9 @@ namespace Lua
             for (int i = 0; i < n; i++)
             {
                 sx += i;
-                sy += cdls[i].close;
+                sy += cdls[i].avg;
                 sx2 += i * 8;
-                sxy += i * cdls[i].close;
+                sxy += i * cdls[i].avg;
             }
             k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
 
@@ -247,7 +253,7 @@ namespace Lua
             if (!onHigh)
             {
                 Console.WriteLine("[Попавшие в low индексы]:");
-                for (int i = cdls.Length - 2; i > 2; i--)
+                for (int i = cdls.Length - 3; i > 1; i--) // Кажется, здесь есть проблема индексаций Lua и C#
                 {
                     if ((Math.Abs(cdls[i].low - standartDeviation) <= (rangeToReachSD)) &&
                         (cdls[i].low <= cdls[i-1].low) &&
@@ -266,7 +272,7 @@ namespace Lua
             else
             {
                 Console.WriteLine("[Попавшие в high индексы]:");
-                for (int i = cdls.Length - 2; i > 2; i--)
+                for (int i = cdls.Length - 3; i > 1; i--)
                 {
                     if ((Math.Abs(cdls[i].high - standartDeviation) <= (rangeToReachSD)) &&
                         (cdls[i].high >= cdls[i-1].high) &&
