@@ -61,14 +61,14 @@ namespace Lua
                 candles[i].avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
             }
 
-            var lowInfo = GlobalExtremumsAndMA(candles, false); // Среднее по лоу всего графика
+            var lowInfo  = GlobalExtremumsAndMA(candles, false); // Среднее по лоу всего графика
             var highInfo = GlobalExtremumsAndMA(candles, true);  // Среднее по хаям всего графика
 
             double globalMin = lowInfo.Item1;   // Значение гМина
             double globalMax = highInfo.Item1;  // Значение гмакса
             int idxGMin = lowInfo.Item2;     // Индекс найденного глобального минимума
             int idxGMax = highInfo.Item2;    // Индекс найденного глобального максимума
-            double lowMA = lowInfo.Item3;
+            double lowMA  = lowInfo.Item3;
             double highMA = highInfo.Item3;
 
             double MA = (highMA + lowMA) * 0.5; // Скользящая средняя 
@@ -104,6 +104,7 @@ namespace Lua
         private static (double, int, double) GlobalExtremumsAndMA(Candle[] cdls, bool onHigh)
         {
             // Значение, среднее значение и индекс искомого глобального экстремума
+            // Итерация будет с конца массива
             double globalExtremum = 0;
             double MA = 0;
             int index = 0;
@@ -111,7 +112,7 @@ namespace Lua
             if (onHigh)
             {
                 globalExtremum = double.NegativeInfinity;
-                for (int i = 0; i < cdls.Length; i++)
+                for (int i = cdls.Length-1; i >= 0; i--)
                 {
                     MA += cdls[i].high;
                     if (globalExtremum < cdls[i].high)
@@ -124,7 +125,7 @@ namespace Lua
             else
             {
                 globalExtremum = double.PositiveInfinity;
-                for (int i = 0; i < cdls.Length; i++)
+                for (int i = cdls.Length-1; i >= 0; i--)
                 {
                     MA += cdls[i].low;
                     if (globalExtremum > cdls[i].low)
@@ -147,6 +148,8 @@ namespace Lua
         private static double FindK(Candle[] cdls)
         {
             double k = 0;
+            double b = cdls[0].avg;
+            double[] regressionLine = new double[cdls.Length];
 
             int n = cdls.Length;
 
@@ -162,7 +165,7 @@ namespace Lua
                 sx2 += i * 8;
                 sxy += i * cdls[i].avg;
             }
-            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
+            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); // TODO: см. статью http://xn-----7kcbakcjfdd9ab3avfoelp4b2ar8dzd9e.xn--p1ai/
 
             return k;
         }
@@ -172,24 +175,19 @@ namespace Lua
         {
             Console.WriteLine("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", gMin, iGMin + 1, gMax, iGMax + 1);
             Console.WriteLine("[k] = {0}", k);
-            Console.WriteLine("[Скользаящая средняя] = {0}", movAvg);
+            Console.WriteLine("[Скользящая средняя] = {0}", movAvg);
             Console.WriteLine("[candles.Length] = {0}", cdls.Length);
-            Console.WriteLine("[SDL] = {0}  [SDH] = {1}", SDL, SDH);
+            Console.WriteLine("[SDL] = {0}\t\t[SDH] = {1}", SDL, SDH);
             Console.WriteLine("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", exsNearSDL, exsNearSDH);
-
-            if ((gMax - gMin) < (minWidthCoeff * movAvg))
-            {
-                Console.Write("Боковик слишком узок!");
-            }
 
             if (Math.Abs(k) < kOffset)
             {
                 Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
-                Console.WriteLine("Аппрокимирующая линия почти горизонтальна. Цена потенциально в боковике");
-                if(exsNearSDL < 2 && exsNearSDH < 2) 
+                Console.WriteLine("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
+                Console.WriteLine("Аппроксимирующая линия почти горизонтальна. Цена потенциально в боковике");
+                if(exsNearSDL < 2 || exsNearSDH < 2) 
                 {
-                    Console.WriteLine("Недостаточно вершин возле СДО");
+                    Console.WriteLine("Недостаточно вершин возле СДО!");
                 } else {
                             Console.WriteLine("Цена, вероятно, формирует боковик...");
                        }
@@ -197,18 +195,20 @@ namespace Lua
             else if (k < 0)
             {
                 Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
+                Console.Write("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппроксимирующая линия имеет сильный убывающий тренд");
             }
             else
             {
                 Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок!\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
+                Console.Write("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппроксимирующая линия имеет сильный возрастающий тренд");
             }
 
-
-            Console.WriteLine();
+            if ((gMax - gMin) < (minWidthCoeff * movAvg))
+            {
+                Console.WriteLine("Боковик слишком узок!");
+            }
         }
 
         /// <summary>
