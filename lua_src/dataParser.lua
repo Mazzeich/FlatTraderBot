@@ -1,3 +1,9 @@
+Settings = {}
+Settings.Name = "dataParser"
+Settings['idChart'] = "sberprice"
+Settings['class_code'] = "QJSIM"
+Settings['sec_code'] = "SBER"
+
 function main()
 
   local openPath 	 = "C:/Projects/Lua/Data/dataOpen.txt"
@@ -14,17 +20,17 @@ function main()
   local volumeIO = io.open(volumePath, "w")
   local avgIO    = io.open(avgPath   , "w")
 
-  ds, errorDesk = CreateDataSource("SPBFUT", "SiU0", INTERVAL_M1)
-  local tag = "siu0price"
+  ds, errorDesk = CreateDataSource(Settings['class_code'], Settings['sec_code'], INTERVAL_M1)
+  local tag = Settings['idChart']
   if ds == nil then
-    message('[Connection error]: ' .. errorDesk)
+    message('[DataParser]Connection error: ' .. errorDesk)
   end
 
   while (errorDesk == "" or errorDesk == nil) and ds:Size() == 0 do
     sleep(1)
   end
   if ((errorDesk ~= "") and (errorDesk ~= nil)) then 
-    message ('[Unable to connect to the chart...]: ' .. errorDesk)
+    message ('[DataParser]: Unable to connect to the chart: ' .. errorDesk)
     return 0
   end
 

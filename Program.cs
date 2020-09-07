@@ -179,20 +179,31 @@ namespace Lua
 
             if ((gMax - gMin) < (minWidthCoeff * movAvg))
             {
-                Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок!\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
+                Console.Write("Боковик слишком узок!");
             }
 
             if (Math.Abs(k) < kOffset)
             {
+                Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
+                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппрокимирующая линия почти горизонтальна. Цена потенциально в боковике");
+                if(exsNearSDL < 2 && exsNearSDH < 2) 
+                {
+                    Console.WriteLine("Недостаточно вершин возле СДО");
+                } else {
+                            Console.WriteLine("Цена, вероятно, формирует боковик...");
+                       }
             }
             else if (k < 0)
             {
+                Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
+                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппроксимирующая линия имеет сильный убывающий тренд");
             }
             else
             {
+                Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок!\t", gMax - gMin);
+                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппроксимирующая линия имеет сильный возрастающий тренд");
             }
 
@@ -252,7 +263,7 @@ namespace Lua
 
             if (!onHigh)
             {
-                Console.WriteLine("[Попавшие в low индексы]:");
+                Console.Write("[Попавшие в low индексы]: ");
                 for (int i = cdls.Length - 3; i > 1; i--) // Кажется, здесь есть проблема индексаций Lua и C#
                 {
                     if ((Math.Abs(cdls[i].low - standartDeviation) <= (rangeToReachSD)) &&
@@ -271,7 +282,7 @@ namespace Lua
             }
             else
             {
-                Console.WriteLine("[Попавшие в high индексы]:");
+                Console.Write("[Попавшие в high индексы]: ");
                 for (int i = cdls.Length - 3; i > 1; i--)
                 {
                     if ((Math.Abs(cdls[i].high - standartDeviation) <= (rangeToReachSD)) &&
