@@ -30,7 +30,7 @@ namespace Lua
         /// <summary>
         /// Коэффициент для определения поведения тренда
         /// </summary>
-        public const double kOffset = 0.05;
+        public const double kOffset = 0.01;
 
         /// <summary>
         /// Возможное отклонение экстремума от линии СКО (коэфф * цену)
@@ -162,7 +162,7 @@ namespace Lua
                 sx2 += i * 8;
                 sxy += i * cdls[i].avg;
             }
-            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx));
+            k = -((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); // !!!!!!! РАЗОБРАТЬСЯ С МИНУСОМ !!!!!!!!!
 
             return k;
         }
@@ -170,22 +170,20 @@ namespace Lua
         private static void PrintInfo(double gMin, double gMax, int iGMin, int iGMax, double k,
                                     Candle[] cdls, double movAvg, double SDH, double SDL, int exsNearSDL, int exsNearSDH)
         {
-            Console.WriteLine("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", gMin, iGMin + 1, gMax, iGMax + 1);
-            Console.WriteLine("[k] = {0}", k);
-            Console.WriteLine("[Скользаящая средняя] = {0}", movAvg);
-            Console.WriteLine("[candles.Length] = {0}", cdls.Length);
-            Console.WriteLine("[SDL] = {0}  [SDH] = {1}", SDL, SDH);
+            Console.WriteLine("[gMin] = {0} [{1}]\t\t\t[gMax] = {2} [{3}]", gMin, iGMin + 1, gMax, iGMax + 1);
+            Console.WriteLine("[k] = {0}\t\t[Скользаящая средняя] = {0}", k, movAvg);
+            Console.WriteLine("[SDL] = {0}\t\t[SDH] = {1}", SDL, SDH);
             Console.WriteLine("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", exsNearSDL, exsNearSDH);
 
             if ((gMax - gMin) < (minWidthCoeff * movAvg))
             {
-                Console.Write("Боковик слишком узок!");
+                Console.WriteLine("Боковик слишком узок!");
             }
 
             if (Math.Abs(k) < kOffset)
             {
-                Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
+                Console.Write("[Ширина коридора] = {0}\t\t", gMax - gMin);
+                Console.Write("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппрокимирующая линия почти горизонтальна. Цена потенциально в боковике");
                 if(exsNearSDL < 2 && exsNearSDH < 2) 
                 {
@@ -196,14 +194,14 @@ namespace Lua
             }
             else if (k < 0)
             {
-                Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
+                Console.Write("[Ширина коридора] = {0}\t\t", gMax - gMin);
+                Console.WriteLine("[Минимальная ширина коридора] = {0}", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппроксимирующая линия имеет сильный убывающий тренд");
             }
             else
             {
-                Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок!\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0} у.е.\n", minWidthCoeff * movAvg);
+                Console.Write("[Ширина коридора] = {0}\t\t", gMax - gMin);
+                Console.WriteLine("[Минимальная ширина коридора] = {0}", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппроксимирующая линия имеет сильный возрастающий тренд");
             }
 
@@ -277,7 +275,7 @@ namespace Lua
                         cdls[i].low -= 0.01; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                     }
                 }
-                Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+                Console.Write("\n[rangeToReachSD] =  {0}\t", rangeToReachSD);
                 Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
             else
@@ -297,7 +295,7 @@ namespace Lua
                     }
                 }
                 
-                Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+                Console.Write("\n[rangeToReachSD] =  {0}\t", rangeToReachSD);
                 Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
 

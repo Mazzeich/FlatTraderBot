@@ -1,17 +1,19 @@
 Settings = {}
 Settings.Name = "dataParser"
-Settings['idChart'] = "sberprice"
-Settings['class_code'] = "QJSIM"
-Settings['sec_code'] = "SBER"
+Settings['idChart'] = "rostelprice"
+Settings['class_code'] = "TQBR" --TQTF - ETF, TQBR - акции, QJSIM - акции в симуляторе, SPBFUT - фьючерсы в симуляторе
+Settings['sec_code'] = "RTKM"
 
 function main()
 
-  local openPath 	 = "C:/Projects/Lua/Data/dataOpen.txt"
-  local closePath  = "C:/Projects/Lua/Data/dataClose.txt"
-  local volumePath = "C:/Projects/Lua/Data/dataVolume.txt"
-  local highPath 	 = "C:/Projects/Lua/Data/dataHigh.txt"
-  local lowPath 	 = "C:/Projects/Lua/Data/dataLow.txt"
-  local avgPath    = "C:/Projects/Lua/Data/dataAvg.txt"
+  local openPath 	 = "X:/Coding/lua/Candles/Data/dataOpen.txt"
+  local closePath  = "X:/Coding/lua/Candles/Data/dataClose.txt"
+  local volumePath = "X:/Coding/lua/Candles/Data/dataVolume.txt"
+  local highPath 	 = "X:/Coding/lua/Candles/Data/dataHigh.txt"
+  local lowPath 	 = "X:/Coding/lua/Candles/Data/dataLow.txt"
+  local avgPath    = "X:/Coding/lua/Candles/Data/dataAvg.txt"
+  --C:/Projects/Lua/Data/
+  --X:/Coding/lua/Candles/Data/
   
   local openIO 	 = io.open(openPath  , "w")
   local highIO 	 = io.open(highPath  , "w")
@@ -45,7 +47,7 @@ function main()
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
   -- Количетство просматриваемых свечей
-  local coveredCandles = 60
+  local coveredCandles = 10
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
 
