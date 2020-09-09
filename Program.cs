@@ -144,7 +144,7 @@ namespace Lua
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <param name="cdls">Массив структур свечей</param>
-        /// <returns>Угол наклона аппроксимирующей прямой по avg</returns>
+        /// <returns>Угловой коэффициент аппроксимирующей прямой по avg</returns>
         private static double FindK(Candle[] cdls)
         {
             double k = 0;
