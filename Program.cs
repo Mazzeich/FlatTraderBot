@@ -35,7 +35,7 @@ namespace Lua
         /// <summary>
         /// Возможное отклонение экстремума от линии СКО (коэфф * цену)
         /// </summary>
-        public const double SDOffset = 0.00025;
+        public const double SDOffset = 0.0006;
 
 
         static void Main(string[] args)

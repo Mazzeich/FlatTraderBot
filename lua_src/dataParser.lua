@@ -1,8 +1,8 @@
 Settings = {}
 Settings.Name = "dataParser"
-Settings['idChart'] = "rostelprice"
-Settings['class_code'] = "QJSIM" -- QJSIM SPBFUT
-Settings['sec_code'] = "RTKM"
+Settings['idChart'] = "nlmkchart"
+Settings['class_code'] = "TQBR" -- QJSIM/TQBR SPBFUT CETS
+Settings['sec_code'] = "NLMK"
 
 function main()
 
@@ -45,7 +45,7 @@ function main()
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
   -- Количетство просматриваемых свечей
-  local coveredCandles = 60
+  local coveredCandles = 120
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
 
