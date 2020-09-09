@@ -7,25 +7,16 @@ namespace Lua
     {
         static void Main(string[] args)
         {
-            //string pathOpen = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataOpen.txt");
-            //string pathVolume = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataVolume.txt");
-            string pathClose = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataClose.txt");
-            string pathHigh  = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataHigh.txt");
-            string pathLow   = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataLow.txt");
-            string pathAvg   = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataAvg.txt");
+            Reader reader = new Reader();
+            reader.GetAllData();
 
-            string[] readHeights = File.ReadAllLines(pathHigh);
-            string[] readLows    = File.ReadAllLines(pathLow);
-            string[] readCloses  = File.ReadAllLines(pathClose);
-            string[] readAvgs    = File.ReadAllLines(pathAvg);
-
-            _CandleStruct[] candles = new _CandleStruct[readHeights.Length];
-            for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
+            _CandleStruct[] candles = new _CandleStruct[reader.readHeights.Length];
+            for (int i = 0; i < reader.readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
-                candles[i].high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
-                candles[i].low   = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
-                candles[i].close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
-                candles[i].avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
+                candles[i].high  = double.Parse(reader.readHeights[i], CultureInfo.InvariantCulture);
+                candles[i].low   = double.Parse(reader.readLows[i]   , CultureInfo.InvariantCulture);
+                candles[i].close = double.Parse(reader.readCloses[i] , CultureInfo.InvariantCulture);
+                candles[i].avg   = double.Parse(reader.readAvgs[i]   , CultureInfo.InvariantCulture);
             }
 
             var lowInfo  = GlobalExtremumsAndMA(candles, false); // Среднее по лоу всего графика
@@ -139,8 +130,6 @@ namespace Lua
             return k;
         }
 
-    
-
         /// <summary>
         /// Функция находит среднеквадратическое отклонение свечей тех, что выше среднего, 
         /// и тех, что ниже внутри коридора
@@ -207,13 +196,8 @@ namespace Lua
                         cdls[i].low -= 0.01; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                     }
                 }
-<<<<<<< HEAD
                 //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
                 //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
-=======
-                Console.Write("\n[rangeToReachSD] =  {0}\t", rangeToReachSD);
-                Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
->>>>>>> ea0a197e13ee7c83e1066b03ad1e83404c3e6630
             }
             else
             {
@@ -232,13 +216,8 @@ namespace Lua
                     }
                 }
                 
-<<<<<<< HEAD
                 //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
                 //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
-=======
-                Console.Write("\n[rangeToReachSD] =  {0}\t", rangeToReachSD);
-                Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
->>>>>>> ea0a197e13ee7c83e1066b03ad1e83404c3e6630
             }
 
             return extremums;
