@@ -1,8 +1,8 @@
 Settings = {}
 Settings.Name = "dataParser"
-Settings['idChart'] = "siu0price"
-Settings['class_code'] = "SPBFUT"
-Settings['sec_code'] = "SiU0"
+Settings['idChart'] = "yaprice"
+Settings['class_code'] = "QJSIM" -- QJSIM SPBFUT
+Settings['sec_code'] = "YNDX"
 
 function main()
 
