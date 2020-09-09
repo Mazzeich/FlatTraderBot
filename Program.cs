@@ -35,7 +35,7 @@ namespace Lua
         /// <summary>
         /// Возможное отклонение экстремума от линии СКО (коэфф * цену)
         /// </summary>
-        public const double SDOffset = 0.00025;
+        public const double SDOffset = 0.0006;
 
 
         static void Main(string[] args)
@@ -61,14 +61,14 @@ namespace Lua
                 candles[i].avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
             }
 
-            var lowInfo = GlobalExtremumsAndMA(candles, false); // Среднее по лоу всего графика
+            var lowInfo  = GlobalExtremumsAndMA(candles, false); // Среднее по лоу всего графика
             var highInfo = GlobalExtremumsAndMA(candles, true);  // Среднее по хаям всего графика
 
             double globalMin = lowInfo.Item1;   // Значение гМина
             double globalMax = highInfo.Item1;  // Значение гмакса
             int idxGMin = lowInfo.Item2;     // Индекс найденного глобального минимума
             int idxGMax = highInfo.Item2;    // Индекс найденного глобального максимума
-            double lowMA = lowInfo.Item3;
+            double lowMA  = lowInfo.Item3;
             double highMA = highInfo.Item3;
 
             double MA = (highMA + lowMA) * 0.5; // Скользящая средняя 
@@ -104,6 +104,7 @@ namespace Lua
         private static (double, int, double) GlobalExtremumsAndMA(Candle[] cdls, bool onHigh)
         {
             // Значение, среднее значение и индекс искомого глобального экстремума
+            // Итерация будет с конца массива
             double globalExtremum = 0;
             double MA = 0;
             int index = 0;
@@ -111,7 +112,7 @@ namespace Lua
             if (onHigh)
             {
                 globalExtremum = double.NegativeInfinity;
-                for (int i = 0; i < cdls.Length; i++)
+                for (int i = cdls.Length-1; i >= 0; i--)
                 {
                     MA += cdls[i].high;
                     if (globalExtremum < cdls[i].high)
@@ -124,7 +125,7 @@ namespace Lua
             else
             {
                 globalExtremum = double.PositiveInfinity;
-                for (int i = 0; i < cdls.Length; i++)
+                for (int i = cdls.Length-1; i >= 0; i--)
                 {
                     MA += cdls[i].low;
                     if (globalExtremum > cdls[i].low)
@@ -143,12 +144,14 @@ namespace Lua
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <param name="cdls">Массив структур свечей</param>
-        /// <returns>Углы наклона аппроксимирующих прямых по high и по low</returns>
+        /// <returns>Угол наклона аппроксимирующей прямой по avg</returns>
         private static double FindK(Candle[] cdls)
         {
             double k = 0;
 
-            int n = cdls.Length;
+            // Не учитывать первые и последние 3 свечей
+            int phaseCandlesNum = 3;
+            int n = cdls.Length - phaseCandlesNum;
 
             double sx = 0;
             double sy = 0;
@@ -159,10 +162,11 @@ namespace Lua
             {
                 sx += i;
                 sy += cdls[i].avg;
-                sx2 += i * 8;
+                sx2 += i * i;
                 sxy += i * cdls[i].avg;
             }
-            k = -((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); // !!!!!!! РАЗОБРАТЬСЯ С МИНУСОМ !!!!!!!!!
+            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
+            Console.WriteLine("[Atan]: {0}", Math.Atan(k));
 
             return k;
         }
@@ -170,43 +174,42 @@ namespace Lua
         private static void PrintInfo(double gMin, double gMax, int iGMin, int iGMax, double k,
                                     Candle[] cdls, double movAvg, double SDH, double SDL, int exsNearSDL, int exsNearSDH)
         {
-            Console.WriteLine("[gMin] = {0} [{1}]\t\t\t[gMax] = {2} [{3}]", gMin, iGMin + 1, gMax, iGMax + 1);
-            Console.WriteLine("[k] = {0}\t\t[Скользаящая средняя] = {0}", k, movAvg);
+            Console.WriteLine("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", gMin, iGMin + 1, gMax, iGMax + 1);
+            Console.WriteLine("[k] = {0}", k);
+            Console.WriteLine("[Скользящая средняя] = {0}", movAvg);
+            Console.WriteLine("[candles.Length] = {0}", cdls.Length);
             Console.WriteLine("[SDL] = {0}\t\t[SDH] = {1}", SDL, SDH);
             Console.WriteLine("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", exsNearSDL, exsNearSDH);
 
-            if ((gMax - gMin) < (minWidthCoeff * movAvg))
-            {
-                Console.WriteLine("Боковик слишком узок!");
-            }
-
             if (Math.Abs(k) < kOffset)
             {
-                Console.Write("[Ширина коридора] = {0}\t\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
-                Console.WriteLine("Аппрокимирующая линия почти горизонтальна. Цена потенциально в боковике");
-                if(exsNearSDL < 2 && exsNearSDH < 2) 
+                Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
+                Console.WriteLine("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
+                Console.WriteLine("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный");
+                if(exsNearSDL < 2 || exsNearSDH < 2) 
                 {
-                    Console.WriteLine("Недостаточно вершин возле СДО");
+                    Console.WriteLine("Недостаточно вершин возле СДО!");
                 } else {
                             Console.WriteLine("Цена, вероятно, формирует боковик...");
                        }
             }
             else if (k < 0)
             {
-                Console.Write("[Ширина коридора] = {0}\t\t", gMax - gMin);
-                Console.WriteLine("[Минимальная ширина коридора] = {0}", minWidthCoeff * movAvg);
+                Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
+                Console.Write("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппроксимирующая линия имеет сильный убывающий тренд");
             }
             else
             {
-                Console.Write("[Ширина коридора] = {0}\t\t", gMax - gMin);
-                Console.WriteLine("[Минимальная ширина коридора] = {0}", minWidthCoeff * movAvg);
+                Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок!\t", gMax - gMin);
+                Console.Write("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
                 Console.WriteLine("Аппроксимирующая линия имеет сильный возрастающий тренд");
             }
 
-
-            Console.WriteLine();
+            if ((gMax - gMin) < (minWidthCoeff * movAvg))
+            {
+                Console.WriteLine("Боковик слишком узок!");
+            }
         }
 
         /// <summary>

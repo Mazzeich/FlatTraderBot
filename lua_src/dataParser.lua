@@ -1,8 +1,8 @@
 Settings = {}
 Settings.Name = "dataParser"
-Settings['idChart'] = "rostelprice"
-Settings['class_code'] = "TQBR" --TQTF - ETF, TQBR - акции, QJSIM - акции в симуляторе, SPBFUT - фьючерсы в симуляторе
-Settings['sec_code'] = "RTKM"
+Settings['idChart'] = "nlmkchart"
+Settings['class_code'] = "TQBR" -- QJSIM/TQBR SPBFUT CETS
+Settings['sec_code'] = "NLMK"
 
 function main()
 
@@ -47,7 +47,7 @@ function main()
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
   -- Количетство просматриваемых свечей
-  local coveredCandles = 10
+  local coveredCandles = 120
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
 
