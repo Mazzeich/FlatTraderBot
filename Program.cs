@@ -164,9 +164,9 @@ namespace Lua
                 sy += cdls[i].avg;
                 sx2 += i * i;
                 sxy += i * cdls[i].avg;
-                Console.Write("{0} ", i);
             }
             k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
+            Console.WriteLine("[Atan]: {0}", Math.Atan(k));
 
             return k;
         }
