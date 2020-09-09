@@ -1,17 +1,17 @@
 Settings = {}
 Settings.Name = "dataParser"
-Settings['idChart'] = "nlmkchart"
+Settings['idChart'] = "sberchart"
 Settings['class_code'] = "TQBR" -- QJSIM/TQBR SPBFUT CETS
-Settings['sec_code'] = "NLMK"
+Settings['sec_code'] = "SBER"
 
 function main()
 
-  local openPath 	 = "C:/Projects/Lua/Data/dataOpen.txt"
-  local closePath  = "C:/Projects/Lua/Data/dataClose.txt"
-  local volumePath = "C:/Projects/Lua/Data/dataVolume.txt"
-  local highPath 	 = "C:/Projects/Lua/Data/dataHigh.txt"
-  local lowPath 	 = "C:/Projects/Lua/Data/dataLow.txt"
-  local avgPath    = "C:/Projects/Lua/Data/dataAvg.txt"
+  local openPath 	 = "../Data/dataOpen.txt"
+  local closePath  = "../Data/dataClose.txt"
+  local volumePath = "../Data/dataVolume.txt"
+  local highPath 	 = "../Data/dataHigh.txt"
+  local lowPath 	 = "../Data/dataLow.txt"
+  local avgPath    = "../Data/dataAvg.txt"
   
   local openIO 	 = io.open(openPath  , "w")
   local highIO 	 = io.open(highPath  , "w")
