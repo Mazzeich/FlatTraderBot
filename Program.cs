@@ -3,41 +3,8 @@ using System.IO;
 using System.Globalization;
 
 namespace Lua
-{
-    class Program
+{    class Program
     {
-        /// <summary>
-        /// Структура свечи (high, low, close...)
-        /// </summary>
-        public struct Candle
-        {
-            /// <value> Хай текущей свечи </value>
-            public double high;
-            /// <value> Лоу текущей свечи </value>
-            public double low;
-            /// <value> Цена закрытия текущей свечи </value>
-            public double close;
-
-           /// <value> Средняя цена по свече (= (хай - лоу)/*0.5) </value>
-            public double avg;
-        }
-
-        /// <summary>
-        /// Минимальная ширина коридора (коэфф. от цены инструмента)
-        /// </summary>
-        public const double minWidthCoeff = 0.005;
-
-        /// <summary>
-        /// Коэффициент для определения поведения тренда
-        /// </summary>
-        public const double kOffset = 0.01;
-
-        /// <summary>
-        /// Возможное отклонение экстремума от линии СКО (коэфф * цену)
-        /// </summary>
-        public const double SDOffset = 0.0006;
-
-
         static void Main(string[] args)
         {
             //string pathOpen = Path.Combine(Directory.GetCurrentDirectory(), @"Data\dataOpen.txt");
@@ -52,7 +19,7 @@ namespace Lua
             string[] readCloses  = File.ReadAllLines(pathClose);
             string[] readAvgs    = File.ReadAllLines(pathAvg);
 
-            Candle[] candles = new Candle[readHeights.Length];
+            _CandleStruct[] candles = new _CandleStruct[readHeights.Length];
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
                 candles[i].high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
@@ -79,7 +46,7 @@ namespace Lua
 
             // Нашли среднеквадратичесоке отклонение всех high выше avg
             // и всех low ниже avg
-            var SD = StandartDeviation(candles, MA, minWidthCoeff);
+            var SD = StandartDeviation(candles, MA, _Constants.minWidthCoeff);
             double SDL = SD.Item1;
             double SDH = SD.Item2;
 
@@ -89,8 +56,10 @@ namespace Lua
             int extremumsNearSDL = ExtremumsNearSD(candles, MA, SDL, false);
             int extremumsNearSDH = ExtremumsNearSD(candles, MA, SDH, true);
 
-            PrintInfo(globalMin, globalMax, idxGMin, idxGMax, k, candles, MA,
-            SDH, SDL, extremumsNearSDL, extremumsNearSDH);
+            //PrintInfo(globalMin, globalMax, idxGMin, idxGMax, k, candles, MA,
+            //SDH, SDL, extremumsNearSDL, extremumsNearSDH);
+            Printer printer = new Printer(candles, globalMin, globalMax, idxGMin, idxGMax, MA, k, SDL, SDH, extremumsNearSDL, extremumsNearSDH);
+            printer.OutputInfo();
 
             return;
         }
@@ -101,7 +70,7 @@ namespace Lua
         /// <param name="cdls">Массив структур свечей</param>
         /// <param name="onHigh">true - ищем по high. false - по low</param>
         /// <returns></returns>
-        private static (double, int, double) GlobalExtremumsAndMA(Candle[] cdls, bool onHigh)
+        private static (double, int, double) GlobalExtremumsAndMA(_CandleStruct[] cdls, bool onHigh)
         {
             // Значение, среднее значение и индекс искомого глобального экстремума
             // Итерация будет с конца массива
@@ -145,7 +114,7 @@ namespace Lua
         /// </summary>
         /// <param name="cdls">Массив структур свечей</param>
         /// <returns>Угловой коэффициент аппроксимирующей прямой по avg</returns>
-        private static double FindK(Candle[] cdls)
+        private static double FindK(_CandleStruct[] cdls)
         {
             double k = 0;
 
@@ -166,51 +135,11 @@ namespace Lua
                 sxy += i * cdls[i].avg;
             }
             k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
-            Console.WriteLine("[Atan]: {0}", Math.Atan(k));
 
             return k;
         }
 
-        private static void PrintInfo(double gMin, double gMax, int iGMin, int iGMax, double k,
-                                    Candle[] cdls, double movAvg, double SDH, double SDL, int exsNearSDL, int exsNearSDH)
-        {
-            Console.WriteLine("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", gMin, iGMin + 1, gMax, iGMax + 1);
-            Console.WriteLine("[k] = {0}", k);
-            Console.WriteLine("[Скользящая средняя] = {0}", movAvg);
-            Console.WriteLine("[candles.Length] = {0}", cdls.Length);
-            Console.WriteLine("[SDL] = {0}\t\t[SDH] = {1}", SDL, SDH);
-            Console.WriteLine("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", exsNearSDL, exsNearSDH);
-
-            if (Math.Abs(k) < kOffset)
-            {
-                Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
-                Console.WriteLine("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
-                Console.WriteLine("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный");
-                if(exsNearSDL < 2 || exsNearSDH < 2) 
-                {
-                    Console.WriteLine("Недостаточно вершин возле СДО!");
-                } else {
-                            Console.WriteLine("Цена, вероятно, формирует боковик...");
-                       }
-            }
-            else if (k < 0)
-            {
-                Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
-                Console.WriteLine("Аппроксимирующая линия имеет сильный убывающий тренд");
-            }
-            else
-            {
-                Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок!\t", gMax - gMin);
-                Console.Write("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
-                Console.WriteLine("Аппроксимирующая линия имеет сильный возрастающий тренд");
-            }
-
-            if ((gMax - gMin) < (minWidthCoeff * movAvg))
-            {
-                Console.WriteLine("Боковик слишком узок!");
-            }
-        }
+    
 
         /// <summary>
         /// Функция находит среднеквадратическое отклонение свечей тех, что выше среднего, 
@@ -221,7 +150,7 @@ namespace Lua
         /// <param name="movAvg">Скользящая средняя</param>
         /// <param name="widthCoeff">Коэффициент для минимальной ширины коридора</param>
         /// <returns>Среднеквадратические отклоенения по high и по low соответственно</returns>
-        private static (double, double) StandartDeviation(Candle[] cdls, double movAvg, double widthCoeff)
+        private static (double, double) StandartDeviation(_CandleStruct[] cdls, double movAvg, double widthCoeff)
         {
             double sumLow = 0;
             double sumHigh = 0;
@@ -232,12 +161,12 @@ namespace Lua
 
             for (int i = 0; i < cdls.Length - 1; i++)
             {
-                if ((cdls[i].low) <= (movAvg - kOffset))
+                if ((cdls[i].low) <= (movAvg - _Constants.kOffset))
                 {
                     sumLow += Math.Pow(movAvg - cdls[i].low, 2);
                     lowsCount++;
                 }
-                else if ((cdls[i].high) >= (movAvg + kOffset))
+                else if ((cdls[i].high) >= (movAvg + _Constants.kOffset))
                 {
                     sumHigh += Math.Pow(cdls[i].high - movAvg, 2);
                     highsCount++;
@@ -257,14 +186,14 @@ namespace Lua
         /// <param name="standartDeviation">СКО</param>
         /// <param name="onHigh">Ищем по хаям или по лоу</param>
         /// <returns>Количество свечей возле значения СКО (оффсет = SDOffset)</returns>
-        private static int ExtremumsNearSD(Candle[] cdls, double movAvg, double standartDeviation, bool onHigh)
+        private static int ExtremumsNearSD(_CandleStruct[] cdls, double movAvg, double standartDeviation, bool onHigh)
         {
             int extremums = 0;
-            double rangeToReachSD = movAvg * SDOffset;
+            double rangeToReachSD = movAvg * _Constants.SDOffset;
 
             if (!onHigh)
             {
-                Console.Write("[Попавшие в low индексы]: ");
+                //Console.Write("[Попавшие в low индексы]: ");
                 for (int i = cdls.Length - 3; i > 1; i--) // Кажется, здесь есть проблема индексаций Lua и C#
                 {
                     if ((Math.Abs(cdls[i].low - standartDeviation) <= (rangeToReachSD)) &&
@@ -273,17 +202,17 @@ namespace Lua
                         (cdls[i].low <= cdls[i+1].low) &&
                         (cdls[i].low <= cdls[i+2].low))
                     {
-                        Console.Write("{0}({1}) ", cdls[i].low, i + 1);
+                        //Console.Write("{0}({1}) ", cdls[i].low, i + 1);
                         extremums++;
                         cdls[i].low -= 0.01; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                     }
                 }
-                Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
-                Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
+                //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+                //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
             else
             {
-                Console.Write("[Попавшие в high индексы]: ");
+                //Console.Write("[Попавшие в high индексы]: ");
                 for (int i = cdls.Length - 3; i > 1; i--)
                 {
                     if ((Math.Abs(cdls[i].high - standartDeviation) <= (rangeToReachSD)) &&
@@ -292,14 +221,14 @@ namespace Lua
                         (cdls[i].high >= cdls[i+1].high) &&
                         (cdls[i].high >= cdls[i+2].high))
                     {
-                        Console.Write("{0}({1}) ", cdls[i].high, i + 1);
+                        //Console.Write("{0}({1}) ", cdls[i].high, i + 1);
                         extremums++;
                         cdls[i].high += 0.01;
                     }
                 }
                 
-                Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
-                Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
+                //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+                //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
 
             return extremums;
