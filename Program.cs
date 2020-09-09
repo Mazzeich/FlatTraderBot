@@ -30,7 +30,7 @@ namespace Lua
         /// <summary>
         /// Коэффициент для определения поведения тренда
         /// </summary>
-        public const double kOffset = 0.05;
+        public const double kOffset = 0.01;
 
         /// <summary>
         /// Возможное отклонение экстремума от линии СКО (коэфф * цену)
@@ -144,14 +144,14 @@ namespace Lua
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <param name="cdls">Массив структур свечей</param>
-        /// <returns>Углы наклона аппроксимирующих прямых по high и по low</returns>
+        /// <returns>Угол наклона аппроксимирующей прямой по avg</returns>
         private static double FindK(Candle[] cdls)
         {
             double k = 0;
-            double b = cdls[0].avg;
-            double[] regressionLine = new double[cdls.Length];
 
-            int n = cdls.Length;
+            // Не учитывать первые и последние 3 свечей
+            int phaseCandlesNum = 3;
+            int n = cdls.Length - phaseCandlesNum;
 
             double sx = 0;
             double sy = 0;
@@ -162,10 +162,11 @@ namespace Lua
             {
                 sx += i;
                 sy += cdls[i].avg;
-                sx2 += i * 8;
+                sx2 += i * i;
                 sxy += i * cdls[i].avg;
+                Console.Write("{0} ", i);
             }
-            k = -((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); // TODO: разобраться, почему нужен "-"
+            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
 
             return k;
         }
@@ -184,7 +185,7 @@ namespace Lua
             {
                 Console.Write("[Ширина коридора] = {0}\t", gMax - gMin);
                 Console.WriteLine("[Минимальная ширина коридора] = {0}\n", minWidthCoeff * movAvg);
-                Console.WriteLine("Аппроксимирующая линия почти горизонтальна. Цена потенциально в боковике");
+                Console.WriteLine("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный");
                 if(exsNearSDL < 2 || exsNearSDH < 2) 
                 {
                     Console.WriteLine("Недостаточно вершин возле СДО!");
