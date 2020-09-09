@@ -278,7 +278,7 @@ namespace Lua
                         cdls[i].low -= 0.01; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                     }
                 }
-                Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+                Console.Write("\n[rangeToReachSD] =  {0}\t", rangeToReachSD);
                 Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
             else
@@ -298,7 +298,7 @@ namespace Lua
                     }
                 }
                 
-                Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+                Console.Write("\n[rangeToReachSD] =  {0}\t", rangeToReachSD);
                 Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
 
