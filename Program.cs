@@ -165,7 +165,7 @@ namespace Lua
                 sx2 += i * 8;
                 sxy += i * cdls[i].avg;
             }
-            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); // TODO: см. статью http://xn-----7kcbakcjfdd9ab3avfoelp4b2ar8dzd9e.xn--p1ai/
+            k = -((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); // TODO: разобраться, почему нужен "-"
 
             return k;
         }
