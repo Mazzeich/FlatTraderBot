@@ -6,12 +6,13 @@ Settings['sec_code'] = "MTSS"
 
 function main()
 
-  local openPath 	 = "../Lua/Data/dataOpen.txt"
-  local closePath  = "../Lua/Data/dataClose.txt"
-  local volumePath = "../Lua/Data/dataVolume.txt"
-  local highPath 	 = "../Lua/Data/dataHigh.txt"
-  local lowPath 	 = "../Lua/Data/dataLow.txt"
-  local avgPath    = "../Lua/Data/dataAvg.txt"
+  local openPath 	 = "C:/Projects/Lua/Data/dataOpen.txt"
+  local closePath  = "C:/Projects/Lua/Data/dataClose.txt"
+  local volumePath = "C:/Projects/Lua/Data/dataVolume.txt"
+  local highPath 	 = "C:/Projects/Lua/Data/dataHigh.txt"
+  local lowPath 	 = "C:/Projects/Lua/Data/dataLow.txt"
+  local avgPath    = "C:/Projects/Lua/Data/dataAvg.txt"
+  local timePath   = "C:/Projects/Lua/Data/dataTime.txt"
   
   local openIO 	 = io.open(openPath  , "w")
   local highIO 	 = io.open(highPath  , "w")
@@ -19,6 +20,7 @@ function main()
   local closeIO  = io.open(closePath , "w")
   local volumeIO = io.open(volumePath, "w")
   local avgIO    = io.open(avgPath   , "w")
+  local timeIO   = io.open(timePath  , "w")
 
   ds, errorDesk = CreateDataSource(Settings['class_code'], Settings['sec_code'], INTERVAL_M1)
   local tag = Settings['idChart']
@@ -52,12 +54,13 @@ function main()
   for i = n - coveredCandles, n - 1 do
   	local dateCandle = tostring(tableCandle[i].datetime.hour)..":"..tostring(tableCandle[i].datetime.min)
 
-  	openIO:write(tableCandle[i].open.."\n")-- 	 .."\t["..i.."]\t["..dateCandle.."]\n")
-  	highIO:write(tableCandle[i].high.."\n")-- 	 .."\t["..i.."]\t["..dateCandle.."]\n")
-  	lowIO:write(tableCandle[i].low.."\n")-- 		 .."\t["..i.."]\t["..dateCandle.."]\n")
-  	closeIO:write(tableCandle[i].close.."\n")-- 	 .."\t["..i.."]\t["..dateCandle.."]\n")
-    volumeIO:write(tableCandle[i].volume.."\n")-- .."\t["..i.."]\t["..dateCandle.."]\n")
+  	openIO:write(tableCandle[i].open.."\n")
+  	highIO:write(tableCandle[i].high.."\n")
+  	lowIO:write(tableCandle[i].low.."\n")
+  	closeIO:write(tableCandle[i].close.."\n")
+    volumeIO:write(tableCandle[i].volume.."\n")
     avgIO:write((tableCandle[i].high + tableCandle[i].low)*0.5 .."\n")
+    timeIO:write((dateCandle).."\n")
   end
 
   --f:write(data)
@@ -68,4 +71,5 @@ function main()
   closeIO:close()
   volumeIO:close()
   avgIO:close()
+  timeIO:close()
 end
