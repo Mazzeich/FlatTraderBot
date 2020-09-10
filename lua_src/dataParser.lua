@@ -6,23 +6,12 @@ Settings['sec_code'] = "MTSS"
 
 function main()
 
-<<<<<<< HEAD
   local openPath 	 = "../Lua/Data/dataOpen.txt"
   local closePath  = "../Lua/Data/dataClose.txt"
   local volumePath = "../Lua/Data/dataVolume.txt"
   local highPath 	 = "../Lua/Data/dataHigh.txt"
   local lowPath 	 = "../Lua/Data/dataLow.txt"
   local avgPath    = "../Lua/Data/dataAvg.txt"
-=======
-  local openPath 	 = "X:/Coding/lua/Candles/Data/dataOpen.txt"
-  local closePath  = "X:/Coding/lua/Candles/Data/dataClose.txt"
-  local volumePath = "X:/Coding/lua/Candles/Data/dataVolume.txt"
-  local highPath 	 = "X:/Coding/lua/Candles/Data/dataHigh.txt"
-  local lowPath 	 = "X:/Coding/lua/Candles/Data/dataLow.txt"
-  local avgPath    = "X:/Coding/lua/Candles/Data/dataAvg.txt"
-  --C:/Projects/Lua/Data/
-  --X:/Coding/lua/Candles/Data/
->>>>>>> ea0a197e13ee7c83e1066b03ad1e83404c3e6630
   
   local openIO 	 = io.open(openPath  , "w")
   local highIO 	 = io.open(highPath  , "w")
