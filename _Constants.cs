@@ -13,4 +13,7 @@ public struct _Constants
 
     /// <value> Возможное отклонение экстремума от линии СКО</value>
     public const double SDOffset = 0.0006;
+
+    /// <value> Количество фазовых свечей, которые не нужно учитывать при вычислении уголового коэффициента </value>
+    public const double phaseCandlesCoeff = 0.05;
 }

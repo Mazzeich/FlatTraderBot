@@ -74,7 +74,7 @@ namespace Lua
             double k = 0;
 
             // Не учитывать первые и последние 3 свечей
-            int phaseCandlesNum = 3;
+            int phaseCandlesNum = (int)((double)candles.Length * _Constants.phaseCandlesCoeff);
             int n = candles.Length - phaseCandlesNum;
 
             double sx = 0;
