@@ -34,6 +34,9 @@ namespace Lua
             pathVolume  = Path.Combine(currentDirectory, @"Data\dataVolume.txt");
         }
 
+        /// <summary>
+        /// Считать все строки из файлов распарсенных данных
+        /// </summary>
         public void GetAllData()
         {
             readHeights  = File.ReadAllLines(pathHigh);
