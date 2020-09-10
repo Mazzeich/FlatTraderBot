@@ -8,9 +8,19 @@ namespace Lua
         /// Массив структур свечей
         /// </summary>
         public _CandleStruct[] candles = new _CandleStruct[1000];
+        /// <summary>
+        /// Минимум, его индекс, среднее по лоу
+        /// </summary>
+        public (double, int, double) lowInfo;
+        /// <summary>
+        /// Максимум, его индекс, среднее по хай
+        /// </summary>
+        public (double, int, double) highInfo;
         public FlatIdentifier(_CandleStruct[] _candles)
         {
-            candles = _candles;
+            candles  = _candles;
+            lowInfo  = GlobalExtremumsAndMA(false);
+            highInfo = GlobalExtremumsAndMA(true);
         }
 
         /// <summary>

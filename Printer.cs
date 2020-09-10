@@ -5,18 +5,18 @@ namespace Lua
     class Printer
     {
         private static _CandleStruct[] candles = new _CandleStruct[1000];
-        private static double GMin;
-        private static double GMax;
-        private static int idxGmin;
-        private static int idxGmax;
-        private static double movAvg;
-        private static double k;
-        private static double SDL;
-        private static double SDH;
-        private static int exsNearSDL;
-        private static int exsNearSDH;
+        private static double GMin;     // Глобальный минимум
+        private static double GMax;     // Глобальный максимум 
+        private static int idxGmin;     // Индекс гМина
+        private static int idxGmax;     // Индекс гМакса
+        private static double movAvg;   // Скользящая средняя
+        private static double k;        // Угловой коэффициент апп. прямой
+        private static double SDL;      // СКО по лоу
+        private static double SDH;      // СКО по хай
+        private static int exsNearSDL;  // Разворотов на уровне СКО-лоу
+        private static int exsNearSDH;  // Разворотов на уровне СКО-хай
 
-        private static double flatWidth;
+        private static double flatWidth; // Ширина коридора текущего периода
 
         public Printer(_CandleStruct[] _candles, double _GMin, double _GMax, int _idxGMin, int _idxGMax, double _movAvg, 
                         double _k, double _SDL, double _SDH, int _exsNearSDL, int _exsNearSDH)
@@ -74,6 +74,8 @@ namespace Lua
             {
                 Console.WriteLine("Боковик слишком узок!");
             }
+
+            Console.WriteLine();
         }
     }
 }
