@@ -44,7 +44,8 @@ namespace Lua
                     Console.WriteLine("Цена, вероятно, формирует боковик...");
                     break;
                 }
-                default: break;
+                default: 
+                    break;
             }
 
             if ((fi.flatWidth) < (_Constants.minWidthCoeff * fi.movAvg))
