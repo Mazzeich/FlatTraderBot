@@ -66,6 +66,11 @@ namespace Lua
                 {
                     _isFlat = true;
                 }
+            } else if(k < 0)
+            {
+                trend = Trend.Down;
+            } else {
+                trend = Trend.Up;
             }
 
             return _isFlat;
