@@ -10,7 +10,6 @@ public struct _CandleStruct
     public double low;
     /// <value> Цена закрытия текущей свечи </value>
     public double close;
-
     /// <value> Средняя цена по свече (= (хай - лоу)/*0.5) </value>
     public double avg;
 }

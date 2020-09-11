@@ -1,8 +1,8 @@
 Settings = {}
 Settings.Name = "dataParser"
-Settings['idChart'] = "mtschart"
+Settings['idChart'] = "yachart"
 Settings['class_code'] = "TQBR" -- QJSIM/TQBR SPBFUT CETS
-Settings['sec_code'] = "MTSS"
+Settings['sec_code'] = "YNDX"
 
 function main()
 
@@ -47,7 +47,7 @@ function main()
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
   -- Количетство просматриваемых свечей
-  local coveredCandles = 120
+  local coveredCandles = 1000
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
 
@@ -72,4 +72,5 @@ function main()
   volumeIO:close()
   avgIO:close()
   timeIO:close()
+
 end
