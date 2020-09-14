@@ -7,19 +7,13 @@ namespace Lua
     {
         static void Main(string[] args)
         {
-            Reader reader = new Reader();
-            reader.GetAllData();
+            _CandleStruct[] candles = new _CandleStruct[_Constants.n];
 
-            _CandleStruct[] candles = new _CandleStruct[reader.readHeights.Length];
-            for (int i = 0; i < reader.readHeights.Length; i++) //readHeights.Length = readLows.Length
-            {
-                candles[i].high  = double.Parse(reader.readHeights[i], CultureInfo.InvariantCulture);
-                candles[i].low   = double.Parse(reader.readLows[i]   , CultureInfo.InvariantCulture);
-                candles[i].close = double.Parse(reader.readCloses[i] , CultureInfo.InvariantCulture);
-                candles[i].avg   = double.Parse(reader.readAvgs[i]   , CultureInfo.InvariantCulture);
-            }
+            Reader reader = new Reader(candles);
+            candles = reader.GetAllData();
             
             FlatIdentifier flatIdentifier = new FlatIdentifier(candles);
+            
             Printer printer = new Printer(flatIdentifier);
             printer.OutputApertureInfo();
 

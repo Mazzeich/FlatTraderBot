@@ -5,6 +5,8 @@ using System;
 /// </summary>
 public struct _Constants
 {
+    /// <value> Максимальный размер массива </value>
+    public const int n = 12000;
     /// <value> Минимальная ширина коридора (коэфф. от цены инструмента)</value>
     public const double minWidthCoeff = 0.005;
 

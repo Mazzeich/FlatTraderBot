@@ -42,13 +42,14 @@ namespace Lua
         {
             bool _isFlat = false;
 
-            lowInfo = GlobalExtremumsAndMA(false);
+            lowInfo  = GlobalExtremumsAndMA(false);
             highInfo = GlobalExtremumsAndMA(true);
             GMin = lowInfo.Item1;
             GMax = highInfo.Item1;
             idxGmin = lowInfo.Item2;
             idxGmax = highInfo.Item2;
             movAvg = (highInfo.Item3 + lowInfo.Item3) * 0.5;
+            flatWidth = GMax - GMin;
 
             k = FindK();
 
@@ -235,7 +236,5 @@ namespace Lua
 
             return extremums;
         }
-
-
     }
 }

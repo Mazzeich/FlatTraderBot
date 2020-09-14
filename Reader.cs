@@ -6,6 +6,8 @@ namespace Lua
 {
     public class Reader
     {
+        _CandleStruct[] candleStruct;
+
         private static string currentDirectory;
         private string pathHigh;
         private string pathLow;
@@ -22,8 +24,9 @@ namespace Lua
         public string[] readOpens;
         public string[] readVolumes;
 
-        public Reader()
+        public Reader(_CandleStruct[] _candleStruct)
         {
+            candleStruct = _candleStruct;
             currentDirectory = Directory.GetCurrentDirectory();
             
             pathHigh    = Path.Combine(currentDirectory, @"Data\dataHigh.txt");
@@ -37,7 +40,7 @@ namespace Lua
         /// <summary>
         /// Считать все строки из файлов распарсенных данных
         /// </summary>
-        public void GetAllData()
+        public _CandleStruct[] GetAllData()
         {
             readHeights  = File.ReadAllLines(pathHigh);
             readLows     = File.ReadAllLines(pathLow);
@@ -45,6 +48,18 @@ namespace Lua
             readOpens    = File.ReadAllLines(pathOpen);
             readCloses   = File.ReadAllLines(pathClose);
             readVolumes  = File.ReadAllLines(pathVolume);
+
+            for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
+            {
+                candleStruct[i].high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
+                candleStruct[i].low   = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
+                candleStruct[i].close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
+                candleStruct[i].avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
+            }
+
+            System.Array.Resize<_CandleStruct>(ref candleStruct, readHeights.Length);
+
+            return candleStruct;
         }
     }
 }

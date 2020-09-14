@@ -8,7 +8,6 @@ namespace Lua
         public Printer(FlatIdentifier _flatIdentifier)
         {
             fi = _flatIdentifier;
-            OutputApertureInfo();
         }
 
         public void OutputApertureInfo()
