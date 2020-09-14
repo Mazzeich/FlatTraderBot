@@ -5,10 +5,9 @@ using System.Globalization;
 namespace Lua
 {    class Program
     {
-        public const int n = 12000;
         static void Main(string[] args)
         {
-            _CandleStruct[] candles = new _CandleStruct[n];
+            _CandleStruct[] candles = new _CandleStruct[_Constants.n];
 
             Reader reader = new Reader(candles);
             candles = reader.GetAllData();
