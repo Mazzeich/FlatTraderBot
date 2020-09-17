@@ -1,6 +1,6 @@
 *.txt
-*.mdb
 *.xlsx
+*.csv
 
 /.idea/
 /bin/

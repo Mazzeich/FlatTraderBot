@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Globalization;
+using CsvHelper;
+using System.Data;
 
 namespace Lua
 {
@@ -15,6 +17,7 @@ namespace Lua
         private string pathOpen;
         private string pathClose;
         private string pathVolume;
+        private string pathHistoricalData;
 
 
         public string[] readHeights;
@@ -24,17 +27,12 @@ namespace Lua
         public string[] readOpens;
         public string[] readVolumes;
 
+        public string[] readAllData;
+
         public Reader(_CandleStruct[] _candleStruct)
         {
             candleStruct = _candleStruct;
             currentDirectory = Directory.GetCurrentDirectory();
-            
-            pathHigh    = Path.Combine(currentDirectory, @"Data\dataHigh.txt");
-            pathLow     = Path.Combine(currentDirectory, @"Data\dataLow.txt");
-            pathAvg     = Path.Combine(currentDirectory, @"Data\dataAvg.txt");
-            pathOpen    = Path.Combine(currentDirectory, @"Data\dataOpen.txt");
-            pathClose   = Path.Combine(currentDirectory, @"Data\dataClose.txt");
-            pathVolume  = Path.Combine(currentDirectory, @"Data\dataVolume.txt");
         }
 
         /// <summary>
@@ -42,6 +40,13 @@ namespace Lua
         /// </summary>
         public _CandleStruct[] GetAllData()
         {
+            pathHigh    = Path.Combine(currentDirectory, @"Data\dataHigh.txt");
+            pathLow     = Path.Combine(currentDirectory, @"Data\dataLow.txt");
+            pathAvg     = Path.Combine(currentDirectory, @"Data\dataAvg.txt");
+            pathOpen    = Path.Combine(currentDirectory, @"Data\dataOpen.txt");
+            pathClose   = Path.Combine(currentDirectory, @"Data\dataClose.txt");
+            pathVolume  = Path.Combine(currentDirectory, @"Data\dataVolume.txt");
+
             readHeights  = File.ReadAllLines(pathHigh);
             readLows     = File.ReadAllLines(pathLow);
             readAvgs     = File.ReadAllLines(pathAvg);
@@ -60,6 +65,34 @@ namespace Lua
             System.Array.Resize<_CandleStruct>(ref candleStruct, readHeights.Length);
 
             return candleStruct;
+        }
+
+        public void GetHistoricalData()
+        {
+            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataSBERcomma.csv");
+
+            using (StreamReader reader = new StreamReader(pathHistoricalData))
+            using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                using (CsvDataReader dr = new CsvDataReader(csv))
+                {
+                    // readAllData[0] - "<DATE>;<TIME>;<OPEN>;<HIGH>;<LOW>;<CLOSE>;<VOL>"
+                    // readAllData.Length = 18901
+                    readAllData = File.ReadAllLines(pathHistoricalData);
+                    string[] row = new string[7];
+                    
+                    System.Array.Resize<_CandleStruct>(ref candleStruct, readAllData.Length);
+
+                    for (int i = 1; i < readAllData.Length; i++)
+                    {
+                        row = readAllData[i].Split(",");
+                        candleStruct[i-1].high  = double.Parse(row[3], CultureInfo.InvariantCulture);
+                        candleStruct[i-1].low   = double.Parse(row[4], CultureInfo.InvariantCulture);
+                        candleStruct[i-1].close = double.Parse(row[5], CultureInfo.InvariantCulture);
+                        candleStruct[i-1].avg   = (candleStruct[i-1].high + candleStruct[i-1].low) * 0.5;
+                    }                    
+                }
+            }
         }
     }
 }

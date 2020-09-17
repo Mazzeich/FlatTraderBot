@@ -13,9 +13,11 @@ namespace Lua
             candles = reader.GetAllData();
             
             FlatIdentifier flatIdentifier = new FlatIdentifier(candles);
+
             
             Printer printer = new Printer(flatIdentifier);
             printer.OutputApertureInfo();
+            //reader.GetHistoricalData();
 
             return;
         }
