@@ -16,17 +16,69 @@ namespace Lua
         /// Максимум, его индекс, среднее по хай
         /// </summary>
         public  (double, int, double) highInfo;
-        public  double GMin;     // Глобальный минимум
-        public  double GMax;     // Глобальный максимум 
-        public  int idxGmin;     // Индекс гМина
-        public  int idxGmax;     // Индекс гМакса
-        public  double movAvg;   // Скользящая средняя
-        public  double k;        // Угловой коэффициент апп. прямой
-        public  double SDL;      // СКО по лоу
-        public  double SDH;      // СКО по хай
-        public  int exsNearSDL;  // Разворотов на уровне СКО-лоу
-        public  int exsNearSDH;  // Разворотов на уровне СКО-хай
+        private  double gMin;     // Глобальный минимум
+        private  double gMax;     // Глобальный максимум 
+        private  int idxGmin;     // Индекс гМина
+        private  int idxGmax;     // Индекс гМакса
+        private  double movAvg;   // Скользящая средняя
+        private  double k;        // Угловой коэффициент апп. прямой
+        private  double sdLow;    // СКО по лоу
+        private  double sdHigh;   // СКО по хай
+        private  int exsNearSDL;  // Разворотов на уровне СКО-лоу
+        private  int exsNearSDH;  // Разворотов на уровне СКО-хай
         public  double flatWidth; // Ширина коридора текущего периода
+
+        public double GMin 
+        {
+            get { return gMin; }
+            set { this.gMin = value; }
+        }
+        public double GMax
+        {
+            get { return gMax ;}
+            set { this.GMax = value; }
+        }
+        public int IdxGmin
+        {
+            get { return idxGmin; }
+            set { this.idxGmin = value; }
+        }
+        public int IdxGmax
+        {
+            get {return idxGmax; }
+            set {this.idxGmax = value; }
+        }
+        public double MovAvg
+        {
+            get { return movAvg; }
+            set { this.movAvg = value; }
+        }
+        public double K
+        {
+            get { return k; }
+            set { this.movAvg = value; }
+        }
+        public double SDL
+        {
+            get { return sdLow; }
+            set { this.sdLow = value; }
+        }   
+        public double SDH
+        {
+            get { return sdHigh; }
+            set { this.sdHigh = value; }
+        }
+        public int ExsNearSDL
+        {
+            get { return exsNearSDL; }
+            set { this.exsNearSDL = value; }
+        }
+        public int ExsNearSDH
+        {
+            get { return exsNearSDH; }
+            set { this.exsNearSDH = value; }
+        }
+
         /// <summary>
         /// Действительно ли мы нашли боковик в заданном окне
         /// </summary>
@@ -44,21 +96,21 @@ namespace Lua
 
             lowInfo  = GlobalExtremumsAndMA(false);
             highInfo = GlobalExtremumsAndMA(true);
-            GMin = lowInfo.Item1;
-            GMax = highInfo.Item1;
+            gMin = lowInfo.Item1;
+            gMax = highInfo.Item1;
             idxGmin = lowInfo.Item2;
             idxGmax = highInfo.Item2;
             movAvg = (highInfo.Item3 + lowInfo.Item3) * 0.5;
-            flatWidth = GMax - GMin;
+            flatWidth = gMax - gMin;
 
             k = FindK();
 
             (double, double) SD = StandartDeviation(movAvg);
-            SDL = SD.Item1;
-            SDH = SD.Item2;
+            sdLow = SD.Item1;
+            sdHigh = SD.Item2;
 
-            exsNearSDL = ExtremumsNearSD(movAvg, SDL, false);
-            exsNearSDH = ExtremumsNearSD(movAvg, SDH, true);
+            exsNearSDL = ExtremumsNearSD(movAvg, sdLow, false);
+            exsNearSDH = ExtremumsNearSD(movAvg, sdHigh, true);
 
             if(Math.Abs(k) < _Constants.kOffset)
             {

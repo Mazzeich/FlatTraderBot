@@ -17,7 +17,7 @@ namespace Lua
             
             Printer printer = new Printer(flatIdentifier);
             printer.OutputApertureInfo();
-            reader.GetHistoricalData();
+            //reader.GetHistoricalData();
 
             return;
         }
