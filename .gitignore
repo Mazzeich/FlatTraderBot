@@ -1,5 +1,6 @@
 *.txt
 *.xlsx
+*.csv
 
 /.idea/
 /bin/
