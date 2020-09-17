@@ -47,7 +47,7 @@ function main()
   local tLines = getLinesCount(tag)
   local candlesTotal = getNumCandles(tag)
   -- Количетство просматриваемых свечей
-  local coveredCandles = 1000
+  local coveredCandles = 5001
 
   tableCandle, n, lgnd = getCandlesByIndex(tag, 0, 0, candlesTotal)
 
