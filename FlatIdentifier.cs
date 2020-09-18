@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Lua
 {
@@ -7,7 +8,7 @@ namespace Lua
         /// <summary>
         /// Массив структур свечей
         /// </summary>
-        public  _CandleStruct[] candles = new _CandleStruct[1000];
+        public  _CandleStruct[] candles = new _CandleStruct[_Constants.nAperture];
         /// <summary>
         /// Минимум, его индекс, среднее по лоу
         /// </summary>
@@ -84,15 +85,22 @@ namespace Lua
         /// </summary>
         public bool isFlat;
         public Enum trend;
+        public FlatIdentifier() {}
         public FlatIdentifier(_CandleStruct[] _candles)
         {
             candles  = _candles;
-            isFlat = Identify();
+            Identify();
+        }
+
+        public FlatIdentifier(List<_CandleStruct> _candles)
+        {
+            candles = _candles.ToArray();
+            Identify();
         }
 
         private  bool Identify()
         {
-            bool _isFlat = false;
+            isFlat = false;
 
             lowInfo  = GlobalExtremumsAndMA(false);
             highInfo = GlobalExtremumsAndMA(true);
@@ -117,7 +125,7 @@ namespace Lua
                 trend = Trend.Neutral;
                 if(exsNearSDL > 1 && exsNearSDH > 1)
                 {
-                    _isFlat = true;
+                    isFlat = true;
                 }
             } else if(k < 0)
             {
@@ -126,7 +134,7 @@ namespace Lua
                 trend = Trend.Up;
             }
 
-            return _isFlat;
+            return isFlat;
         }
 
         /// <summary>

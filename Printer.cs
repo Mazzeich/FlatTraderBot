@@ -5,9 +5,16 @@ namespace Lua
     class Printer
     {
         private FlatIdentifier fi;
+        private HistoricalFlatFinder historicalFF;
+        public Printer() {}
         public Printer(FlatIdentifier _flatIdentifier)
         {
             fi = _flatIdentifier;
+        }
+
+        public Printer(HistoricalFlatFinder _historicalFF)
+        {
+            historicalFF = _historicalFF;
         }
 
         public void OutputApertureInfo()
@@ -53,6 +60,11 @@ namespace Lua
             }
 
             Console.WriteLine();
+        }
+
+        public void OutputHistoricalInfo()
+        {
+            
         }
     }
 }
