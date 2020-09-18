@@ -1,6 +1,6 @@
 using System;
 /// <summary>
-/// Структура свечи (high, low, close...)
+/// Структура свечи (high, low, close, avg, date)
 /// </summary>
 public struct _CandleStruct
 {
@@ -12,4 +12,8 @@ public struct _CandleStruct
     public double close;
     /// <value> Средняя цена по свече (= (хай - лоу)/*0.5) </value>
     public double avg;
+
+    
+    /// <value> Дата закрытия свечи </value>
+    public string date;
 }

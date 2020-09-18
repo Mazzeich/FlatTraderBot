@@ -7,17 +7,12 @@ namespace Lua
     {
         static void Main(string[] args)
         {
-            _CandleStruct[] candles = new _CandleStruct[_Constants.n];
+            _CandleStruct[] candles = new _CandleStruct[_Constants.nGlobal];
 
             Reader reader = new Reader(candles);
-            candles = reader.GetAllData();
-            
-            FlatIdentifier flatIdentifier = new FlatIdentifier(candles);
-
-            
-            Printer printer = new Printer(flatIdentifier);
-            printer.OutputApertureInfo();
-            //reader.GetHistoricalData();
+           
+            candles = reader.GetHistoricalData();
+            HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
 
             return;
         }

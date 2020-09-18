@@ -67,32 +67,35 @@ namespace Lua
             return candleStruct;
         }
 
-        public void GetHistoricalData()
+        public _CandleStruct[] GetHistoricalData()
         {
-            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataSBERcomma.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataSBER3days.csv");
 
             using (StreamReader reader = new StreamReader(pathHistoricalData))
             using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
                 using (CsvDataReader dr = new CsvDataReader(csv))
                 {
-                    // readAllData[0] - "<DATE>;<TIME>;<OPEN>;<HIGH>;<LOW>;<CLOSE>;<VOL>"
+                    // readAllData[0] - "<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>"
                     // readAllData.Length = 18901
                     readAllData = File.ReadAllLines(pathHistoricalData);
                     string[] row = new string[7];
-                    
-                    System.Array.Resize<_CandleStruct>(ref candleStruct, readAllData.Length);
 
                     for (int i = 1; i < readAllData.Length; i++)
                     {
                         row = readAllData[i].Split(",");
+                        
                         candleStruct[i-1].high  = double.Parse(row[3], CultureInfo.InvariantCulture);
                         candleStruct[i-1].low   = double.Parse(row[4], CultureInfo.InvariantCulture);
                         candleStruct[i-1].close = double.Parse(row[5], CultureInfo.InvariantCulture);
                         candleStruct[i-1].avg   = (candleStruct[i-1].high + candleStruct[i-1].low) * 0.5;
+                        candleStruct[i-1].date  = row[0] + " " + row[1];
                     }                    
                 }
             }
+            System.Array.Resize<_CandleStruct>(ref candleStruct, readAllData.Length);
+
+            return candleStruct;
         }
     }
 }
