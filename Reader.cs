@@ -69,7 +69,7 @@ namespace Lua
 
         public _CandleStruct[] GetHistoricalData()
         {
-            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataSBER.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataSBER3days.csv");
 
             using (StreamReader reader = new StreamReader(pathHistoricalData))
             using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
@@ -77,7 +77,7 @@ namespace Lua
                 using (CsvDataReader dr = new CsvDataReader(csv))
                 {
                     // readAllData[0] - "<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>"
-                    // readAllData.Length = 18901;
+                    // readAllData.Length = 18901
                     readAllData = File.ReadAllLines(pathHistoricalData);
                     string[] row = new string[7];
 

@@ -89,16 +89,20 @@ namespace Lua
         public FlatIdentifier(_CandleStruct[] _candles)
         {
             candles  = _candles;
-            Identify();
         }
 
         public FlatIdentifier(List<_CandleStruct> _candles)
         {
             candles = _candles.ToArray();
-            Identify();
         }
 
-        private  bool Identify()
+        public void Expand(_CandleStruct temp)
+        {
+            System.Array.Resize<_CandleStruct>(ref candles, candles.Length + 1);
+            candles[candles.Length + 1] = temp;
+        }
+
+        public bool Identify()
         {
             isFlat = false;
 
