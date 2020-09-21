@@ -8,7 +8,7 @@ namespace Lua
         /// <summary>
         /// Массив структур свечей
         /// </summary>
-        public  _CandleStruct[] candles = new _CandleStruct[_Constants.nAperture];
+        public  List<_CandleStruct> candles = new List<_CandleStruct>();
         /// <summary>
         /// Минимум, его индекс, среднее по лоу
         /// </summary>
@@ -86,20 +86,9 @@ namespace Lua
         public bool isFlat;
         public Enum trend;
         public FlatIdentifier() {}
-        public FlatIdentifier(_CandleStruct[] _candles)
-        {
-            candles  = _candles;
-        }
-
         public FlatIdentifier(List<_CandleStruct> _candles)
         {
-            candles = _candles.ToArray();
-        }
-
-        public void Expand(_CandleStruct temp)
-        {
-            System.Array.Resize<_CandleStruct>(ref candles, candles.Length + 1);
-            candles[candles.Length + 1] = temp;
+            candles  = _candles;
         }
 
         public bool Identify()
@@ -155,7 +144,7 @@ namespace Lua
             if (onHigh)
             {
                 globalExtremum = double.NegativeInfinity;
-                for (int i = candles.Length - 1; i >= 0; i--)
+                for (int i = candles.Count - 1; i >= 0; i--)
                 {
                     MA += candles[i].high;
                     if (globalExtremum < candles[i].high)
@@ -168,7 +157,7 @@ namespace Lua
             else
             {
                 globalExtremum = double.PositiveInfinity;
-                for (int i = candles.Length - 1; i >= 0; i--)
+                for (int i = candles.Count - 1; i >= 0; i--)
                 {
                     MA += candles[i].low;
                     if (globalExtremum > candles[i].low)
@@ -178,7 +167,7 @@ namespace Lua
                     }
                 }
             }
-            MA /= candles.Length;
+            MA /= candles.Count;
 
             return (globalExtremum, index, MA);
         }
@@ -192,8 +181,8 @@ namespace Lua
             double k = 0;
 
             // Не учитывать первые и последние несколько свечей
-            int phaseCandlesNum = (int)((double)candles.Length * _Constants.phaseCandlesCoeff);
-            int n = candles.Length - phaseCandlesNum;
+            //`int phaseCandlesNum = (int)((double)candles.Length * _Constants.phaseCandlesCoeff);`
+            int n = candles.Count; // `-phaseCandlesNum`
 
             double sx = 0;
             double sy = 0;
@@ -227,7 +216,7 @@ namespace Lua
             int lowsCount = 0;
             int highsCount = 0;
 
-            for (int i = 0; i < candles.Length - 1; i++)
+            for (int i = 0; i < candles.Count - 1; i++)
             {
                 if ((candles[i].low) <= (movAvg - _Constants.kOffset))
                 {
@@ -261,7 +250,7 @@ namespace Lua
             if (!onHigh)
             {
                 //Console.Write("[Попавшие в low индексы]: ");
-                for (int i = candles.Length - 3; i > 1; i--) // Кажется, здесь есть проблема индексаций Lua и C#
+                for (int i = candles.Count - 3; i > 1; i--) // Кажется, здесь есть проблема индексаций Lua и C#
                 {
                     if ((Math.Abs(candles[i].low - standartDeviation) <= (rangeToReachSD)) &&
                         (candles[i].low <= candles[i-1].low) &&
@@ -271,7 +260,10 @@ namespace Lua
                     {
                         //Console.Write("{0}({1}) ", cdls[i].low, i + 1);
                         extremums++;
-                        candles[i].low -= 0.01; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
+                        _CandleStruct temp;
+                        temp = candles[i];
+                        temp.low -= 0.01;
+                        candles[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                     }
                 }
                 //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
@@ -280,7 +272,7 @@ namespace Lua
             else
             {
                 //Console.Write("[Попавшие в high индексы]: ");
-                for (int i = candles.Length - 3; i > 1; i--)
+                for (int i = candles.Count - 3; i > 1; i--)
                 {
                     if ((Math.Abs(candles[i].high - standartDeviation) <= (rangeToReachSD)) &&
                         (candles[i].high >= candles[i-1].high) &&
@@ -290,7 +282,10 @@ namespace Lua
                     {
                         //Console.Write("{0}({1}) ", cdls[i].high, i + 1);
                         extremums++;
-                        candles[i].high += 0.01;
+                        _CandleStruct temp;
+                        temp = candles[i];
+                        temp.high += 0.01;
+                        candles[i] = temp;
                     }
                 }
                 

@@ -6,7 +6,7 @@ using System;
 public struct _Constants
 {
     /// <value> Максимальный размер массива </value>
-    public const int nGlobal = 2000;
+    public const int nGlobal = 20000;
     /// <value> Размер окна </value>
     public const int nAperture = 120;
     /// <value> Минимальная ширина коридора (коэфф. от цены инструмента)</value>

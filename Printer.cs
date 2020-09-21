@@ -5,7 +5,7 @@ namespace Lua
     class Printer
     {
         private FlatIdentifier fi;
-        private HistoricalFlatFinder historicalFF;
+        private HistoricalFlatFinder hFF;
         public Printer() {}
         public Printer(FlatIdentifier _flatIdentifier)
         {
@@ -14,7 +14,7 @@ namespace Lua
 
         public Printer(HistoricalFlatFinder _historicalFF)
         {
-            historicalFF = _historicalFF;
+            hFF = _historicalFF;
         }
 
         public void OutputApertureInfo()
@@ -22,7 +22,7 @@ namespace Lua
             Console.WriteLine("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", fi.GMin, fi.IdxGmin + 1, fi.GMax, fi.IdxGmax + 1);
             Console.WriteLine("[k] = {0}", fi.K);
             Console.WriteLine("[Скользящая средняя] = {0}", fi.MovAvg);
-            Console.WriteLine("[candles.Length] = {0}", fi.candles.Length);
+            Console.WriteLine("[candles.Length] = {0}", fi.candles.Count);
             Console.WriteLine("[SDL] = {0}\t\t[SDH] = {1}", fi.SDL, fi.SDH);
             Console.WriteLine("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", fi.ExsNearSDL, fi.ExsNearSDH);
 
@@ -64,7 +64,7 @@ namespace Lua
 
         public void OutputHistoricalInfo()
         {
-            
+            Console.WriteLine("Боковиков найдено: {0}", hFF.FlatsFound);
         }
     }
 }
