@@ -5,7 +5,7 @@ namespace Lua
     class Printer
     {
         private FlatIdentifier fi;
-        private HistoricalFlatFinder historicalFF;
+        private HistoricalFlatFinder hFF;
         public Printer() {}
         public Printer(FlatIdentifier _flatIdentifier)
         {
@@ -14,7 +14,7 @@ namespace Lua
 
         public Printer(HistoricalFlatFinder _historicalFF)
         {
-            historicalFF = _historicalFF;
+            hFF = _historicalFF;
         }
 
         public void OutputApertureInfo()
@@ -64,7 +64,7 @@ namespace Lua
 
         public void OutputHistoricalInfo()
         {
-            
+            Console.WriteLine("Боковиков найдено: {0}", hFF.FlatsFound);
         }
     }
 }

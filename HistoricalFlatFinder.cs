@@ -8,6 +8,17 @@ namespace Lua
         private List<_CandleStruct> globalCandles = new List<_CandleStruct>(_Constants.nGlobal);
         private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.nAperture);
 
+        /// <summary>
+        /// Сколько боковиков было найдено
+        /// </summary>
+        private int flatsFound;
+
+
+        public int FlatsFound
+        {
+            get { return flatsFound; }
+            set { this.flatsFound = value; }
+        }
 
         public HistoricalFlatFinder(List<_CandleStruct> _candles)
         {
@@ -30,8 +41,6 @@ namespace Lua
             int overallAdded = 0;
             int addedCandles = 0;
             int step = 0;
-
-            int flats = 0;
 
             for (int i = 0; i < globalCandles.Count - 1; i += (_Constants.nAperture * step) + overallAdded) // От 0 до 18977
             {
@@ -58,7 +67,7 @@ namespace Lua
                         // TODO: Обработка результата
                         Console.WriteLine("+1 боковик!");
                         Console.WriteLine(globalCandles[i].date);
-                        flats++;
+                        flatsFound++;
                     }
                 }
 
@@ -68,8 +77,6 @@ namespace Lua
                 flatIdentifier.isFlat = false;
                 Console.WriteLine(flatIdentifier.isFlat + " " + overallAdded);
             }
-
-            Console.WriteLine("Найдено боковиков = {0}", flats);
         }
 
         /// <summary>
@@ -80,6 +87,7 @@ namespace Lua
         /// <returns>Новое окно свечей</returns>
         private List<_CandleStruct> MoveAperture(int _candlesToAdd, int _step)
         {
+            Console.WriteLine("[MoveAperture()]");
             aperture.Clear();
             for (int i = (_Constants.nAperture * _step) + _candlesToAdd; i < _Constants.nGlobal; i++)
             {
