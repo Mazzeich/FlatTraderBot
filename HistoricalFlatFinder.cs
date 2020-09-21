@@ -47,13 +47,15 @@ namespace Lua
                 step++;
                 localAddedCandles = 0;
                 Console.WriteLine("[i] = {0}\t[aperture.Count] = {1}", i, aperture.Count);
-                if (globalCandles.Count - i <= _Constants.nAperture - 1) // Если в конце осталось меньше свечей, чем вмещает окно
+                if (globalCandles.Count - i <= _Constants.nAperture) // Если в конце осталось меньше свечей, чем вмещает окно
                 {
                     break;
                 }
 
 
                 FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
+                flatIdentifier.isFlat = false;
+
                 flatIdentifier.Identify();
 
                 while (flatIdentifier.isFlat)
@@ -68,12 +70,10 @@ namespace Lua
                 {
                     // TODO: Обработка результата
                     Console.WriteLine("+1 боковик!");
-                    Console.WriteLine(globalCandles[i].date);
                     flatsFound++;
                 }
 
                 overallAdded += localAddedCandles;
-                flatIdentifier.isFlat = false;
                 Console.WriteLine(flatIdentifier.isFlat + " " + overallAdded);
                 aperture = MoveAperture(overallAdded, step);
             }
@@ -88,11 +88,18 @@ namespace Lua
         private List<_CandleStruct> MoveAperture(int _candlesToAdd, int _step)
         {
             Console.WriteLine("[MoveAperture()]");
-            aperture.Clear();
+            aperture.Clear(); // ъъъъъъъъъъъъъъъъъъ что происходит
+            
             int startPosition = (_Constants.nAperture * _step) + _candlesToAdd + 1;
-            for (int i = startPosition; i < startPosition + _Constants.nAperture; i++)
+            Console.WriteLine(startPosition + " " + (startPosition + _Constants.nAperture - 1));
+            Console.WriteLine(globalCandles[121].high);
+            for (int i = startPosition; i < startPosition + _Constants.nAperture - 1; i++)
             {
+                Console.WriteLine(startPosition + " " + (startPosition + _Constants.nAperture - 1));
+                Console.WriteLine(globalCandles[i] + " " + aperture[i]);
+                
                 aperture.Add(globalCandles[i]);
+                Console.WriteLine("{0}|{1}|{2}", i, aperture[i], globalCandles[i]);
             }
 
             return aperture;

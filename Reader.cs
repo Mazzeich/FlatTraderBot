@@ -41,19 +41,19 @@ namespace Lua
         /// </summary>
         public List<_CandleStruct> GetAllData()
         {
-            pathHigh    = Path.Combine(currentDirectory, @"Data\dataHigh.txt");
-            pathLow     = Path.Combine(currentDirectory, @"Data\dataLow.txt");
-            pathAvg     = Path.Combine(currentDirectory, @"Data\dataAvg.txt");
-            pathOpen    = Path.Combine(currentDirectory, @"Data\dataOpen.txt");
-            pathClose   = Path.Combine(currentDirectory, @"Data\dataClose.txt");
-            pathVolume  = Path.Combine(currentDirectory, @"Data\dataVolume.txt");
+            pathHigh = Path.Combine(currentDirectory, @"Data\dataHigh.txt");
+            pathLow = Path.Combine(currentDirectory, @"Data\dataLow.txt");
+            pathAvg = Path.Combine(currentDirectory, @"Data\dataAvg.txt");
+            pathOpen = Path.Combine(currentDirectory, @"Data\dataOpen.txt");
+            pathClose = Path.Combine(currentDirectory, @"Data\dataClose.txt");
+            pathVolume = Path.Combine(currentDirectory, @"Data\dataVolume.txt");
 
-            readHeights  = File.ReadAllLines(pathHigh);
-            readLows     = File.ReadAllLines(pathLow);
-            readAvgs     = File.ReadAllLines(pathAvg);
-            readOpens    = File.ReadAllLines(pathOpen);
-            readCloses   = File.ReadAllLines(pathClose);
-            readVolumes  = File.ReadAllLines(pathVolume);
+            readHeights = File.ReadAllLines(pathHigh);
+            readLows = File.ReadAllLines(pathLow);
+            readAvgs = File.ReadAllLines(pathAvg);
+            readOpens = File.ReadAllLines(pathOpen);
+            readCloses = File.ReadAllLines(pathClose);
+            readVolumes = File.ReadAllLines(pathVolume);
 
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
@@ -72,7 +72,7 @@ namespace Lua
 
         public List<_CandleStruct> GetHistoricalData()
         {
-            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataSBER3days.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataNDAQ.csv");
 
             using (StreamReader reader = new StreamReader(pathHistoricalData))
             using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
@@ -93,9 +93,9 @@ namespace Lua
                         temp.close = double.Parse(row[5], CultureInfo.InvariantCulture);
                         temp.avg = (temp.high + temp.low) * 0.5;
                         temp.date = row[0] + " " + row[1];
-                        
+
                         candleStruct.Add(temp);
-                    }                    
+                    }
                 }
             }
 
