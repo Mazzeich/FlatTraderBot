@@ -5,11 +5,11 @@ namespace Lua
 {
     public class HistoricalFlatFinder
     {
-        private _CandleStruct[] globalCandles;
+        private List<_CandleStruct> globalCandles = new List<_CandleStruct>();
         private List<_CandleStruct> aperture = new List<_CandleStruct>();
 
 
-        public HistoricalFlatFinder(_CandleStruct[] _candles)
+        public HistoricalFlatFinder(List<_CandleStruct> _candles)
         {
             Console.WriteLine("[HistoricalFlatFinder()]");
             globalCandles = _candles;
@@ -18,7 +18,7 @@ namespace Lua
             {
                 aperture.Add(globalCandles[i]);
             }
-            Console.WriteLine("globalCandles.Length = {0}\taperture.Count = {1}", globalCandles.Length, aperture.Count);
+            Console.WriteLine("globalCandles.Length = {0}\taperture.Count = {1}", globalCandles.Count, aperture.Count);
 
             FindAllFlats();
         }
@@ -33,13 +33,13 @@ namespace Lua
 
             int flats = 0;
 
-            for (int i = 0; i < globalCandles.Length - 1; i += (_Constants.nAperture * step) + overallAdded) // От 0 до 18977
+            for (int i = 0; i < globalCandles.Count - 1; i += (_Constants.nAperture * step) + overallAdded) // От 0 до 18977
             {
                 FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
 
                 addedCandles = 0;
                 Console.WriteLine("[i] = {0}\t[aperture.Count] = {1}", i, aperture.Count);
-                if (globalCandles.Length - i <= _Constants.nAperture - 1) // Если в конце осталось меньше свечей, чем вмещает окно
+                if (globalCandles.Count - i <= _Constants.nAperture - 1) // Если в конце осталось меньше свечей, чем вмещает окно
                 {
                     break;
                 }
@@ -51,7 +51,7 @@ namespace Lua
                     addedCandles++;
                     aperture.Add(globalCandles[i + addedCandles]);
                     Console.WriteLine(aperture.Count + " " + (i + addedCandles));
-                    flatIdentifier.Expand(aperture[aperture.Count - 1]);
+                    //flatIdentifier.Expand(aperture[aperture.Count - 1]);
                     flatIdentifier.Identify();
                     if (flatIdentifier.isFlat == false)
                     {
