@@ -39,43 +39,43 @@ namespace Lua
             Console.WriteLine("[FindAllFlats()]");
 
             int overallAdded = 0;
-            int addedCandles = 0;
+            int localAddedCandles = 0;
             int step = 0;
 
             for (int i = 0; i < globalCandles.Count - 1; i += (_Constants.nAperture * step) + overallAdded) // От 0 до 18977
             {
-                FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
-
-                addedCandles = 0;
+                step++;
+                localAddedCandles = 0;
                 Console.WriteLine("[i] = {0}\t[aperture.Count] = {1}", i, aperture.Count);
                 if (globalCandles.Count - i <= _Constants.nAperture - 1) // Если в конце осталось меньше свечей, чем вмещает окно
                 {
                     break;
                 }
 
+
+                FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
                 flatIdentifier.Identify();
 
                 while (flatIdentifier.isFlat)
                 {
-                    addedCandles++;
-                    aperture.Add(globalCandles[i + addedCandles]);
-                    Console.WriteLine(aperture.Count + " " + (i + addedCandles));
-                    //flatIdentifier.Expand(aperture[aperture.Count - 1]);
+                    localAddedCandles++;
+                    aperture.Add(globalCandles[(aperture.Count * step) - 1 + localAddedCandles]);
+                    Console.WriteLine(aperture.Count + " " + (i + localAddedCandles));
                     flatIdentifier.Identify();
-                    if (flatIdentifier.isFlat == false)
-                    {
-                        // TODO: Обработка результата
-                        Console.WriteLine("+1 боковик!");
-                        Console.WriteLine(globalCandles[i].date);
-                        flatsFound++;
-                    }
                 }
 
+                if (flatIdentifier.isFlat == false)
+                {
+                    // TODO: Обработка результата
+                    Console.WriteLine("+1 боковик!");
+                    Console.WriteLine(globalCandles[i].date);
+                    flatsFound++;
+                }
 
-                step++;
-                overallAdded += addedCandles;
+                overallAdded += localAddedCandles;
                 flatIdentifier.isFlat = false;
                 Console.WriteLine(flatIdentifier.isFlat + " " + overallAdded);
+                aperture = MoveAperture(overallAdded, step);
             }
         }
 
@@ -89,7 +89,8 @@ namespace Lua
         {
             Console.WriteLine("[MoveAperture()]");
             aperture.Clear();
-            for (int i = (_Constants.nAperture * _step) + _candlesToAdd; i < _Constants.nGlobal; i++)
+            int startPosition = (_Constants.nAperture * _step) + _candlesToAdd + 1;
+            for (int i = startPosition; i < startPosition + _Constants.nAperture; i++)
             {
                 aperture.Add(globalCandles[i]);
             }
