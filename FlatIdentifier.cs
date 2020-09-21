@@ -93,13 +93,13 @@ namespace Lua
 
         public FlatIdentifier(List<_CandleStruct> _candles)
         {
-            candles = _candles.ToArray();
+            candles = _candles.ToArray(); // Спорный момент
         }
 
-        public void Expand(_CandleStruct temp)
+        public void Expand(_CandleStruct temp) // Ещё более спорный момент
         {
             System.Array.Resize<_CandleStruct>(ref candles, candles.Length + 1);
-            candles[candles.Length + 1] = temp;
+            candles[candles.Length-1] = temp;
         }
 
         public bool Identify()
@@ -192,8 +192,8 @@ namespace Lua
             double k = 0;
 
             // Не учитывать первые и последние несколько свечей
-            int phaseCandlesNum = (int)((double)candles.Length * _Constants.phaseCandlesCoeff);
-            int n = candles.Length - phaseCandlesNum;
+            //`int phaseCandlesNum = (int)((double)candles.Length * _Constants.phaseCandlesCoeff);`
+            int n = candles.Length; // `-phaseCandlesNum`
 
             double sx = 0;
             double sy = 0;

@@ -26,27 +26,50 @@ namespace Lua
         private void FindAllFlats()
         {
             Console.WriteLine("[FindAllFlats()]");
-            FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
-            for (int i = 0; i < globalCandles.Length - 1; i += aperture.Count) // От 0 до 18977
+
+            int overallAdded = 0;
+            int addedCandles = 0;
+            int step = 0;
+
+            int flats = 0;
+
+            for (int i = 0; i < globalCandles.Length - 1; i += (_Constants.nAperture * step) + overallAdded) // От 0 до 18977
             {
-                Console.WriteLine("for loop({0})", i);
-                int candlesToAdd = 0;
+                FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
+
+                addedCandles = 0;
+                Console.WriteLine("[i] = {0}\t[aperture.Count] = {1}", i, aperture.Count);
                 if (globalCandles.Length - i <= _Constants.nAperture - 1) // Если в конце осталось меньше свечей, чем вмещает окно
                 {
                     break;
                 }
+
                 flatIdentifier.Identify();
 
                 while (flatIdentifier.isFlat)
                 {
-                    Console.WriteLine(flatIdentifier.isFlat);
-                    candlesToAdd++;
-                    aperture.Add(globalCandles[]);
-                    flatIdentifier.Expand(aperture[aperture.Count]);
+                    addedCandles++;
+                    aperture.Add(globalCandles[i + addedCandles]);
+                    Console.WriteLine(aperture.Count + " " + (i + addedCandles));
+                    flatIdentifier.Expand(aperture[aperture.Count - 1]);
                     flatIdentifier.Identify();
+                    if (flatIdentifier.isFlat == false)
+                    {
+                        // TODO: Обработка результата
+                        Console.WriteLine("+1 боковик!");
+                        Console.WriteLine(globalCandles[i].date);
+                        flats++;
+                    }
                 }
 
+
+                step++;
+                overallAdded += addedCandles;
+                flatIdentifier.isFlat = false;
+                Console.WriteLine(flatIdentifier.isFlat + " " + overallAdded);
             }
+
+            Console.WriteLine("Найдено боковиков = {0}", flats);
         }
     }
 }
