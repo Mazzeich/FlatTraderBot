@@ -5,8 +5,8 @@ namespace Lua
 {
     public class HistoricalFlatFinder
     {
-        private List<_CandleStruct> globalCandles = new List<_CandleStruct>();
-        private List<_CandleStruct> aperture = new List<_CandleStruct>();
+        private List<_CandleStruct> globalCandles = new List<_CandleStruct>(_Constants.nGlobal);
+        private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.nAperture);
 
 
         public HistoricalFlatFinder(List<_CandleStruct> _candles)
@@ -70,6 +70,23 @@ namespace Lua
             }
 
             Console.WriteLine("Найдено боковиков = {0}", flats);
+        }
+
+        /// <summary>
+        /// Функция перемещения окна в следующую позцию
+        /// </summary>
+        /// <param name="_candlesToAdd">Всего свечей, которые были добавлены ранее</param>
+        /// <param name="_step">Текущий шаг прохода алгоритма</param>
+        /// <returns>Новое окно свечей</returns>
+        private List<_CandleStruct> MoveAperture(int _candlesToAdd, int _step)
+        {
+            aperture.Clear();
+            for (int i = (_Constants.nAperture * _step) + _candlesToAdd; i < _Constants.nGlobal; i++)
+            {
+                aperture.Add(globalCandles[i]);
+            }
+
+            return aperture;
         }
     }
 }
