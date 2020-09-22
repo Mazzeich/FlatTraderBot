@@ -74,6 +74,7 @@ namespace Lua
         {
             pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataSBER.csv");
 
+
             using (StreamReader reader = new StreamReader(pathHistoricalData))
             {
                 using CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture);
