@@ -72,7 +72,7 @@ namespace Lua
 
         public List<_CandleStruct> GetHistoricalData()
         {
-            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataRTKM.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataSBER.csv");
 
             using (StreamReader reader = new StreamReader(pathHistoricalData))
             {

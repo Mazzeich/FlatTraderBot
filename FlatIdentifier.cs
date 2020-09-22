@@ -14,11 +14,11 @@ namespace Lua
         /// <summary>
         /// Минимум, его индекс, среднее по лоу
         /// </summary>
-        public  (double, int, double) lowInfo;
+        private (double, int, double) lowInfo;
         /// <summary>
         /// Максимум, его индекс, среднее по хай
         /// </summary>
-        public  (double, int, double) highInfo;
+        private (double, int, double) highInfo;
         private  double gMin;     // Глобальный минимум
         private  double gMax;     // Глобальный максимум 
         private  int idxGmin;     // Индекс гМина
@@ -147,6 +147,7 @@ namespace Lua
         /// </summary>
         /// <param name="onHigh">true - ищем по high, false - по low</param>
         /// <returns></returns>
+        // ReSharper disable once InconsistentNaming
         private (double, int, double) GlobalExtremumsAndMA(bool onHigh)
         {
             double globalExtremum = 0;
