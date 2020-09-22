@@ -101,12 +101,14 @@ namespace Lua
         {
             Console.WriteLine("[MoveAperture()]");
             aperture.Clear();
+
             
             int startPosition = (_Constants.NAperture * _step) + _candlesToAdd + 1;
             for (int i = startPosition; i < startPosition + _Constants.NAperture; i++)
             {
                 aperture.Add(globalCandles[i]);
             }
+
 
             return aperture;
         }

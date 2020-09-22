@@ -4,7 +4,8 @@ using System.Globalization;
 using System.Collections.Generic;
 
 namespace Lua
-{    class Program
+{
+    static class Program
     {
         static void Main(string[] args)
         {
@@ -16,6 +17,7 @@ namespace Lua
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
+
             return;
         }
     }

@@ -74,6 +74,7 @@ namespace Lua
         {
             pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataRTKM.csv");
 
+
             using (StreamReader reader = new StreamReader(pathHistoricalData))
             {
                 using CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture);
