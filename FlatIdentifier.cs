@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Lua
 {
+    [SuppressMessage("ReSharper", "CommentTypo")]
     public class FlatIdentifier
     {
         /// <summary>
@@ -12,11 +14,11 @@ namespace Lua
         /// <summary>
         /// Минимум, его индекс, среднее по лоу
         /// </summary>
-        public  (double, int, double) lowInfo;
+        private (double, int, double) lowInfo;
         /// <summary>
         /// Максимум, его индекс, среднее по хай
         /// </summary>
-        public  (double, int, double) highInfo;
+        private (double, int, double) highInfo;
         private  double gMin;     // Глобальный минимум
         private  double gMax;     // Глобальный максимум 
         private  int idxGmin;     // Индекс гМина
@@ -27,6 +29,8 @@ namespace Lua
         private  double sdHigh;   // СКО по хай
         private  int exsNearSDL;  // Разворотов на уровне СКО-лоу
         private  int exsNearSDH;  // Разворотов на уровне СКО-хай
+        private Edges edges;
+        
         public  double flatWidth; // Ширина коридора текущего периода
 
         public double GMin 
@@ -80,6 +84,12 @@ namespace Lua
             set { this.exsNearSDH = value; }
         }
 
+        public Edges _Edges
+        {
+            get { return edges; }
+            set { this.edges = value;  }
+        }
+
         /// <summary>
         /// Действительно ли мы нашли боковик в заданном окне
         /// </summary>
@@ -89,6 +99,8 @@ namespace Lua
         public FlatIdentifier(List<_CandleStruct> _candles)
         {
             candles  = _candles;
+            edges.start = candles[0];
+            edges.end = candles[candles.Count-1];
         }
 
         public bool Identify()
@@ -113,7 +125,7 @@ namespace Lua
             exsNearSDL = ExtremumsNearSD(movAvg, sdLow, false);
             exsNearSDH = ExtremumsNearSD(movAvg, sdHigh, true);
 
-            if(Math.Abs(k) < _Constants.kOffset)
+            if(Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
                 if(exsNearSDL > 1 && exsNearSDH > 1)
@@ -135,7 +147,8 @@ namespace Lua
         /// </summary>
         /// <param name="onHigh">true - ищем по high, false - по low</param>
         /// <returns></returns>
-        public  (double, int, double) GlobalExtremumsAndMA(bool onHigh)
+        // ReSharper disable once InconsistentNaming
+        private (double, int, double) GlobalExtremumsAndMA(bool onHigh)
         {
             double globalExtremum = 0;
             double MA = 0;
@@ -176,12 +189,12 @@ namespace Lua
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        public  double FindK()
+        private double FindK()
         {
             double k = 0;
 
             // Не учитывать первые и последние несколько свечей
-            //`int phaseCandlesNum = (int)((double)candles.Length * _Constants.phaseCandlesCoeff);`
+            //`int phaseCandlesNum = (int)((double)candles.Length * _Constants.PhaseCandlesCoeff);`
             int n = candles.Count; // `-phaseCandlesNum`
 
             double sx = 0;
@@ -207,7 +220,7 @@ namespace Lua
         /// </summary>
         /// <param name="movAvg">Скользящая средняя</param>
         /// <returns></returns>
-        public  (double, double) StandartDeviation(double movAvg)
+        private (double, double) StandartDeviation(double movAvg)
         {
             double sumLow = 0;
             double sumHigh = 0;
@@ -218,12 +231,12 @@ namespace Lua
 
             for (int i = 0; i < candles.Count - 1; i++)
             {
-                if ((candles[i].low) <= (movAvg - _Constants.kOffset))
+                if ((candles[i].low) <= (movAvg - _Constants.KOffset))
                 {
                     sumLow += Math.Pow(movAvg - candles[i].low, 2);
                     lowsCount++;
                 }
-                else if ((candles[i].high) >= (movAvg + _Constants.kOffset))
+                else if ((candles[i].high) >= (movAvg + _Constants.KOffset))
                 {
                     sumHigh += Math.Pow(candles[i].high - movAvg, 2);
                     highsCount++;
@@ -242,7 +255,7 @@ namespace Lua
         /// <param name="standartDeviation">Среднеквадратическое отклонение</param>
         /// <param name="onHigh">true - ищем по high, false - по low</param>
         /// <returns></returns>
-        public  int ExtremumsNearSD(double movAvg, double standartDeviation, bool onHigh)
+        private int ExtremumsNearSD(double movAvg, double standartDeviation, bool onHigh)
         {
             int extremums = 0;
             double rangeToReachSD = movAvg * _Constants.SDOffset;

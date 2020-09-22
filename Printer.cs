@@ -1,4 +1,5 @@
 using System;
+// ReSharper disable StringLiteralTypo
 
 namespace Lua
 {
@@ -31,21 +32,21 @@ namespace Lua
                 case Trend.Down:
                 {
                     Console.Write("[Ширина коридора] = {0}\t", fi.flatWidth);
-                    Console.Write("[Минимальная ширина коридора] = {0}\n", _Constants.minWidthCoeff * fi.MovAvg);
+                    Console.Write("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.MovAvg);
                     Console.WriteLine("Аппроксимирующая линия имеет сильный убывающий тренд");
                     break;
                 }
                 case Trend.Up:
                 {
                     Console.Write("[Ширина коридора] = {0}\nБоковик слишком узок!\t", fi.flatWidth);
-                    Console.Write("[Минимальная ширина коридора] = {0}\n", _Constants.minWidthCoeff * fi.MovAvg);
+                    Console.Write("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.MovAvg);
                     Console.WriteLine("Аппроксимирующая линия имеет сильный возрастающий тренд");
                     break;
                 }
                 case Trend.Neutral:
                 {
                     Console.Write("[Ширина коридора] = {0}\t", fi.flatWidth);
-                    Console.WriteLine("[Минимальная ширина коридора] = {0}\n", _Constants.minWidthCoeff * fi.MovAvg);
+                    Console.WriteLine("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.MovAvg);
                     Console.WriteLine("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный");
                     Console.WriteLine("Цена, вероятно, формирует боковик...");
                     break;
@@ -54,7 +55,7 @@ namespace Lua
                     break;
             }
 
-            if ((fi.flatWidth) < (_Constants.minWidthCoeff * fi.MovAvg))
+            if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.MovAvg))
             {
                 Console.WriteLine("Боковик слишком узок!");
             }
