@@ -72,11 +72,11 @@ namespace Lua
 
         public List<_CandleStruct> GetHistoricalData()
         {
-            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataNDAQ.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"Data\dataRTKM.csv");
 
             using (StreamReader reader = new StreamReader(pathHistoricalData))
-            using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
+                using CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture);
                 using (CsvDataReader dr = new CsvDataReader(csv))
                 {
                     // readAllData[0] - "<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>"
