@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime;
+
+// ReSharper disable CommentTypo
 
 namespace Lua
 {
     public class HistoricalFlatFinder
     {
-        private List<_CandleStruct> globalCandles = new List<_CandleStruct>(_Constants.nGlobal);
-        private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.nAperture);
+        private List<_CandleStruct> globalCandles = new List<_CandleStruct>(_Constants.NGlobal);
+        private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
+        private List<Edges> apertureEdges = new List<Edges>();
 
         /// <summary>
         /// Сколько боковиков было найдено
@@ -16,8 +20,14 @@ namespace Lua
 
         public int FlatsFound
         {
-            get { return flatsFound; }
-            set { this.flatsFound = value; }
+            get => flatsFound;
+            set => this.flatsFound = value;
+        }
+
+        public List<Edges> ApertureEdges
+        {
+            get => apertureEdges;
+            set => apertureEdges = value;
         }
 
         public HistoricalFlatFinder(List<_CandleStruct> _candles)
@@ -25,11 +35,11 @@ namespace Lua
             Console.WriteLine("[HistoricalFlatFinder()]");
             globalCandles = _candles;
 
-            for (int i = 0; i < _Constants.nAperture; i++) // Формируем стартовое окно
+            for (int i = 0; i < _Constants.NAperture; i++) // Формируем стартовое окно
             {
                 aperture.Add(globalCandles[i]);
             }
-            Console.WriteLine("globalCandles.Length = {0}\taperture.Count = {1}", globalCandles.Count, aperture.Count);
+            Console.WriteLine("Стартовое окно: globalCandles.Length = {0}\taperture.Count = {1}", globalCandles.Count, aperture.Count);
 
             FindAllFlats();
         }
@@ -42,12 +52,12 @@ namespace Lua
             int localAddedCandles = 0;
             int step = 0;
 
-            for (int i = 0; i < globalCandles.Count - 1; i += (_Constants.nAperture * step) + overallAdded) // От 0 до 18977
+            for (int i = 0; i < globalCandles.Count - 1; i += (_Constants.NAperture * step) + overallAdded)
             {
                 step++;
                 localAddedCandles = 0;
                 Console.WriteLine("[i] = {0}\t[aperture.Count] = {1}", i, aperture.Count);
-                if (globalCandles.Count - i <= _Constants.nAperture) // Если в конце осталось меньше свечей, чем вмещает окно
+                if (globalCandles.Count - i <= _Constants.NAperture) // Если в конце осталось меньше свечей, чем вмещает окно
                 {
                     break;
                 }
@@ -62,19 +72,21 @@ namespace Lua
                 {
                     localAddedCandles++;
                     aperture.Add(globalCandles[(aperture.Count * step) - 1 + localAddedCandles]);
-                    Console.WriteLine(aperture.Count + " " + (i + localAddedCandles));
+                    Console.WriteLine("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
                     flatIdentifier.Identify();
+                    
+                    if (flatIdentifier.isFlat == false)
+                    {
+                        // TODO: Обработка результата
+                        flatsFound++;
+                        overallAdded += localAddedCandles;
+
+                        Console.WriteLine("+1 боковик!");
+                        Console.WriteLine("[overallAdded] = {0}", overallAdded);
+                        Console.WriteLine("Боковик определён в [{0}] [{1}]", flatIdentifier._Edges.start.date, flatIdentifier._Edges.end.date);
+                    }
                 }
 
-                if (flatIdentifier.isFlat == false)
-                {
-                    // TODO: Обработка результата
-                    Console.WriteLine("+1 боковик!");
-                    flatsFound++;
-                }
-
-                overallAdded += localAddedCandles;
-                Console.WriteLine(flatIdentifier.isFlat + " " + overallAdded);
                 aperture = MoveAperture(overallAdded, step);
             }
         }
@@ -88,18 +100,12 @@ namespace Lua
         private List<_CandleStruct> MoveAperture(int _candlesToAdd, int _step)
         {
             Console.WriteLine("[MoveAperture()]");
-            aperture.Clear(); // ъъъъъъъъъъъъъъъъъъ что происходит
+            aperture.Clear();
             
-            int startPosition = (_Constants.nAperture * _step) + _candlesToAdd + 1;
-            Console.WriteLine(startPosition + " " + (startPosition + _Constants.nAperture - 1));
-            Console.WriteLine(globalCandles[121].high);
-            for (int i = startPosition; i < startPosition + _Constants.nAperture - 1; i++)
+            int startPosition = (_Constants.NAperture * _step) + _candlesToAdd + 1;
+            for (int i = startPosition; i < startPosition + _Constants.NAperture; i++)
             {
-                Console.WriteLine(startPosition + " " + (startPosition + _Constants.nAperture - 1));
-                Console.WriteLine(globalCandles[i] + " " + aperture[i]);
-                
                 aperture.Add(globalCandles[i]);
-                Console.WriteLine("{0}|{1}|{2}", i, aperture[i], globalCandles[i]);
             }
 
             return aperture;
