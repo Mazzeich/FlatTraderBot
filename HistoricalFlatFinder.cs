@@ -88,7 +88,7 @@ namespace Lua
         private List<_CandleStruct> MoveAperture(int _candlesToAdd, int _step)
         {
             Console.WriteLine("[MoveAperture()]");
-            aperture.Clear(); // ъъъъъъъъъъъъъъъъъъ что происходит
+            aperture.Clear(); 
             
             int startPosition = (_Constants.nAperture * _step) + _candlesToAdd + 1;
             Console.WriteLine(startPosition + " " + (startPosition + _Constants.nAperture - 1));
@@ -96,11 +96,10 @@ namespace Lua
             for (int i = startPosition; i < startPosition + _Constants.nAperture - 1; i++)
             {
                 Console.WriteLine(startPosition + " " + (startPosition + _Constants.nAperture - 1));
-                Console.WriteLine(globalCandles[i] + " " + aperture[i]);
                 
                 aperture.Add(globalCandles[i]);
-                Console.WriteLine("{0}|{1}|{2}", i, aperture[i], globalCandles[i]);
             }
+
 
             return aperture;
         }
