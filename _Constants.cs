@@ -9,7 +9,7 @@ public struct _Constants
     public const int NGlobal = 20000;
     
     /// <value> Размер окна </value>
-    public const int NAperture = 120;
+    public const int NAperture = 40;
     
     /// <value> Минимальная ширина коридора (коэфф. от цены инструмента)</value>
     public const double MinWidthCoeff = 0.002;
