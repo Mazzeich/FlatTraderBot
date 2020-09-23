@@ -66,6 +66,11 @@ namespace Lua
         public void OutputHistoricalInfo()
         {
             Console.WriteLine("Боковиков найдено: {0}", hFF.FlatsFound);
+            Console.WriteLine("Боковики определены в: ");
+            for (int i = 0; i < hFF.ApertureBounds.Count; i++)
+            {
+                Console.WriteLine("[{0}]\t[{1}]", hFF.ApertureBounds[i].start, hFF.ApertureBounds[i].end);
+            }
         }
     }
 }

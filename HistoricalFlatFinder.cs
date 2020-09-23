@@ -10,7 +10,7 @@ namespace Lua
     {
         private List<_CandleStruct> globalCandles = new List<_CandleStruct>(_Constants.NGlobal);
         private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
-        private List<Edges> apertureEdges = new List<Edges>();
+        private List<Bounds> apertureBounds = new List<Bounds>();
 
         /// <summary>
         /// Сколько боковиков было найдено
@@ -24,10 +24,10 @@ namespace Lua
             set => this.flatsFound = value;
         }
 
-        public List<Edges> ApertureEdges
+        public List<Bounds> ApertureBounds
         {
-            get => apertureEdges;
-            set => apertureEdges = value;
+            get => apertureBounds;
+            set => apertureBounds = value;
         }
 
         public HistoricalFlatFinder(List<_CandleStruct> _candles)
@@ -83,7 +83,11 @@ namespace Lua
 
                         Console.WriteLine("+1 боковик!");
                         Console.WriteLine("[overallAdded] = {0}", overallAdded);
-                        Console.WriteLine("Боковик определён в [{0}] [{1}]", flatIdentifier._Edges.start.date, flatIdentifier._Edges.end.date);
+                        //Console.WriteLine("Боковик определён в [{0}] [{1}]", flatIdentifier._Boudns.start.date, flatIdentifier._Boudns.end.date);
+                        Bounds bounds;
+                        bounds.start = flatIdentifier._Boudns.start;
+                        bounds.end = flatIdentifier._Boudns.end;
+                        apertureBounds.Add(bounds);
                     }
                 }
 
