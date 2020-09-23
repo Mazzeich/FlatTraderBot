@@ -85,8 +85,8 @@ namespace Lua
                         Console.WriteLine("[overallAdded] = {0}", overallAdded);
                         //Console.WriteLine("Боковик определён в [{0}] [{1}]", flatIdentifier._Boudns.start.date, flatIdentifier._Boudns.end.date);
                         Bounds bounds;
-                        bounds.start = flatIdentifier._Boudns.start;
-                        bounds.end = flatIdentifier._Boudns.end;
+                        bounds.start = flatIdentifier.Bounds.start;
+                        bounds.end = flatIdentifier.Bounds.end;
                         apertureBounds.Add(bounds);
                     }
                 }

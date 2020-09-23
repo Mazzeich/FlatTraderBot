@@ -29,7 +29,7 @@ namespace Lua
         private  double sdHigh;   // СКО по хай
         private  int exsNearSDL;  // Разворотов на уровне СКО-лоу
         private  int exsNearSDH;  // Разворотов на уровне СКО-хай
-        private Edges edges;
+        private Bounds bounds;
         
         public  double flatWidth; // Ширина коридора текущего периода
 
@@ -84,10 +84,10 @@ namespace Lua
             set { this.exsNearSDH = value; }
         }
 
-        public Edges _Edges
+        public Bounds Bounds
         {
-            get { return edges; }
-            set { this.edges = value;  }
+            get { return bounds; }
+            set { this.bounds = value;  }
         }
 
         /// <summary>
@@ -99,8 +99,8 @@ namespace Lua
         public FlatIdentifier(List<_CandleStruct> _candles)
         {
             candles  = _candles;
-            edges.start = candles[0];
-            edges.end = candles[candles.Count-1];
+            bounds.start = candles[0];
+            bounds.end = candles[candles.Count-1];
         }
 
         public bool Identify()
