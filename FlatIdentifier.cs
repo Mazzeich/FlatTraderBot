@@ -61,7 +61,7 @@ namespace Lua
         public double K
         {
             get { return k; }
-            set { this.movAvg = value; }
+            set { this.k = value; }
         }
         public double SDL
         {
