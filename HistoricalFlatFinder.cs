@@ -8,7 +8,8 @@ namespace Lua
 {
     public class HistoricalFlatFinder
     {
-        private List<_CandleStruct> globalCandles = new List<_CandleStruct>(_Constants.NGlobal);
+        private readonly List<_CandleStruct> globalCandles;
+        
         private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
         private List<Bounds> apertureBounds = new List<Bounds>();
 
@@ -77,13 +78,11 @@ namespace Lua
                     
                     if (flatIdentifier.isFlat == false)
                     {
-                        // TODO: Обработка результата
                         flatsFound++;
                         overallAdded += localAddedCandles;
 
                         Console.WriteLine("+1 боковик!");
                         Console.WriteLine("[overallAdded] = {0}", overallAdded);
-                        //Console.WriteLine("Боковик определён в [{0}] [{1}]", flatIdentifier._Boudns.start.date, flatIdentifier._Boudns.end.date);
                         Bounds bounds;
                         bounds.start = flatIdentifier.Bounds.start;
                         bounds.end = flatIdentifier.Bounds.end;

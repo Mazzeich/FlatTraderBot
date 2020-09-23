@@ -69,7 +69,7 @@ namespace Lua
             Console.WriteLine("Боковики определены в: ");
             for (int i = 0; i < hFF.ApertureBounds.Count; i++)
             {
-                Console.WriteLine("[{0}]\t[{1}]", hFF.ApertureBounds[i].start, hFF.ApertureBounds[i].end);
+                Console.WriteLine("[{0}]\t[{1}]", hFF.ApertureBounds[i].start.date, hFF.ApertureBounds[i].end.date);
             }
         }
     }
