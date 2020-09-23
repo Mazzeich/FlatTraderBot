@@ -23,7 +23,7 @@ namespace Lua
         private  double gMax;     // Глобальный максимум 
         private  int idxGmin;     // Индекс гМина
         private  int idxGmax;     // Индекс гМакса
-        private  double movAvg;   // Скользящая средняя
+        private  double median;   // Скользящая средняя
         private  double k;        // Угловой коэффициент апп. прямой
         private  double sdLow;    // СКО по лоу
         private  double sdHigh;   // СКО по хай
@@ -53,10 +53,10 @@ namespace Lua
             get {return idxGmax; }
             set {this.idxGmax = value; }
         }
-        public double MovAvg
+        public double Median
         {
-            get { return movAvg; }
-            set { this.movAvg = value; }
+            get { return median; }
+            set { this.median = value; }
         }
         public double K
         {
@@ -113,17 +113,17 @@ namespace Lua
             gMax = highInfo.Item1;
             idxGmin = lowInfo.Item2;
             idxGmax = highInfo.Item2;
-            movAvg = (highInfo.Item3 + lowInfo.Item3) * 0.5;
+            median = (highInfo.Item3 + lowInfo.Item3) * 0.5;
             flatWidth = gMax - gMin;
 
             k = FindK();
 
-            (double, double) SD = StandartDeviation(movAvg);
+            (double, double) SD = StandartDeviation(median);
             sdLow = SD.Item1;
             sdHigh = SD.Item2;
 
-            exsNearSDL = ExtremumsNearSD(movAvg, sdLow, false);
-            exsNearSDH = ExtremumsNearSD(movAvg, sdHigh, true);
+            exsNearSDL = ExtremumsNearSD(median, sdLow, false);
+            exsNearSDH = ExtremumsNearSD(median, sdHigh, true);
 
             if(Math.Abs(k) < _Constants.KOffset)
             {
