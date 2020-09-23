@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection.PortableExecutable;
 
 namespace Lua
 {
@@ -29,7 +30,8 @@ namespace Lua
         private  double sdHigh;   // СКО по хай
         private  int exsNearSDL;  // Разворотов на уровне СКО-лоу
         private  int exsNearSDH;  // Разворотов на уровне СКО-хай
-        private Bounds bounds;
+        private Bounds flatBounds;
+        private bool isFlat;
         
         public  double flatWidth; // Ширина коридора текущего периода
 
@@ -84,31 +86,35 @@ namespace Lua
             set { this.exsNearSDH = value; }
         }
 
-        public Bounds Bounds
+        public Bounds FlatBounds
         {
-            get { return bounds; }
-            set { this.bounds = value;  }
+            get { return flatBounds; }
+            set { this.flatBounds = value;  }
         }
 
         /// <summary>
         /// Действительно ли мы нашли боковик в заданном окне
         /// </summary>
-        public bool isFlat;
+        public bool IsFlat
+        {
+            get { return isFlat; }
+            set { this.isFlat = value;  }
+        }
+        
         public Enum trend;
         public FlatIdentifier() {}
         public FlatIdentifier(List<_CandleStruct> _candles)
         {
             candles  = _candles;
-            bounds.start = candles[0];
-            bounds.end = candles[candles.Count-1];
+            isFlat = false;
         }
 
         public bool Identify()
         {
             isFlat = false;
-
-            lowInfo  = GlobalExtremumsAndMA(false);
-            highInfo = GlobalExtremumsAndMA(true);
+            
+            lowInfo  = GlobalExtremumsAndMedian(false);
+            highInfo = GlobalExtremumsAndMedian(true);
             gMin = lowInfo.Item1;
             gMax = highInfo.Item1;
             idxGmin = lowInfo.Item2;
@@ -119,23 +125,25 @@ namespace Lua
             k = FindK();
 
             (double, double) SD = StandartDeviation(median);
-            sdLow = SD.Item1;
+            sdLow  = SD.Item1;
             sdHigh = SD.Item2;
 
-            exsNearSDL = ExtremumsNearSD(median, sdLow, false);
+            exsNearSDL = ExtremumsNearSD(median, sdLow , false);
             exsNearSDH = ExtremumsNearSD(median, sdHigh, true);
-
-            if(Math.Abs(k) < _Constants.KOffset)
+            
+            if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if(exsNearSDL > 1 && exsNearSDH > 1)
+                if ((exsNearSDL > 1) && (exsNearSDH > 1) && (flatWidth > (_Constants.MinWidthCoeff * median)))
                 {
                     isFlat = true;
                 }
-            } else if(k < 0)
+            } else if (k < 0)
             {
                 trend = Trend.Down;
-            } else {
+            }
+            else
+            {
                 trend = Trend.Up;
             }
 
@@ -148,18 +156,18 @@ namespace Lua
         /// <param name="onHigh">true - ищем по high, false - по low</param>
         /// <returns></returns>
         // ReSharper disable once InconsistentNaming
-        private (double, int, double) GlobalExtremumsAndMA(bool onHigh)
+        private (double, int, double) GlobalExtremumsAndMedian(bool onHigh)
         {
             double globalExtremum = 0;
-            double MA = 0;
+            double med = 0;
             int index = 0;
 
             if (onHigh)
             {
                 globalExtremum = double.NegativeInfinity;
-                for (int i = candles.Count - 1; i >= 0; i--)
+                for (int i = 0; i < candles.Count; i++)
                 {
-                    MA += candles[i].high;
+                    med += candles[i].high;
                     if (globalExtremum < candles[i].high)
                     {
                         globalExtremum = candles[i].high;
@@ -170,9 +178,9 @@ namespace Lua
             else
             {
                 globalExtremum = double.PositiveInfinity;
-                for (int i = candles.Count - 1; i >= 0; i--)
+                for (int i = 0; i < candles.Count; i++)
                 {
-                    MA += candles[i].low;
+                    med += candles[i].low;
                     if (globalExtremum > candles[i].low)
                     {
                         globalExtremum = candles[i].low;
@@ -180,9 +188,9 @@ namespace Lua
                     }
                 }
             }
-            MA /= candles.Count;
+            med /= candles.Count;
 
-            return (globalExtremum, index, MA);
+            return (globalExtremum, index, med);
         }
 
         /// <summary>
@@ -251,19 +259,19 @@ namespace Lua
         /// <summary>
         /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО
         /// </summary>
-        /// <param name="movAvg">Скользящая средняя</param>
+        /// <param name="_median">Скользящая средняя</param>
         /// <param name="standartDeviation">Среднеквадратическое отклонение</param>
         /// <param name="onHigh">true - ищем по high, false - по low</param>
         /// <returns></returns>
-        private int ExtremumsNearSD(double movAvg, double standartDeviation, bool onHigh)
+        private int ExtremumsNearSD(double _median, double standartDeviation, bool onHigh)
         {
             int extremums = 0;
-            double rangeToReachSD = movAvg * _Constants.SDOffset;
+            double rangeToReachSD = _median * _Constants.SDOffset;
 
             if (!onHigh)
             {
                 //Console.Write("[Попавшие в low индексы]: ");
-                for (int i = candles.Count - 3; i > 1; i--) // Кажется, здесь есть проблема индексаций Lua и C#
+                for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
                 {
                     if ((Math.Abs(candles[i].low - standartDeviation) <= (rangeToReachSD)) &&
                         (candles[i].low <= candles[i-1].low) &&
@@ -285,7 +293,7 @@ namespace Lua
             else
             {
                 //Console.Write("[Попавшие в high индексы]: ");
-                for (int i = candles.Count - 3; i > 1; i--)
+                for (int i = 2; i < candles.Count - 2; i++)
                 {
                     if ((Math.Abs(candles[i].high - standartDeviation) <= (rangeToReachSD)) &&
                         (candles[i].high >= candles[i-1].high) &&
@@ -307,6 +315,13 @@ namespace Lua
             }
 
             return extremums;
+        }
+
+        public Bounds SetBounds(_CandleStruct left, _CandleStruct right)
+        {
+            flatBounds.left = left;
+            flatBounds.right = right;
+            return FlatBounds;
         }
     }
 }
