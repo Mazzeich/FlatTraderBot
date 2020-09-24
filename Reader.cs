@@ -39,7 +39,7 @@ namespace Lua
         /// <summary>
         /// Считать все строки из файлов распарсенных данных
         /// </summary>
-        public List<_CandleStruct> GetAllData()
+        public List<_CandleStruct> GetSeparatedData()
         {
             pathHigh   = Path.Combine(currentDirectory, @"..\..\..\Data\dataHigh.txt");
             pathLow    = Path.Combine(currentDirectory, @"..\..\..\Data\dataLow.txt");
