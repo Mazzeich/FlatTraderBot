@@ -8,6 +8,7 @@ namespace Lua
 {
     public class HistoricalFlatFinder
     {
+        // TODO: Коллекция окон, чтобы можно было итерироваться по каждому и выводить информацию адекватнее
         private readonly List<_CandleStruct> globalCandles;
         
         private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
@@ -70,6 +71,8 @@ namespace Lua
                 if (flatIdentifier.IsFlat == false)
                 {
                     // Двигаем окно в следующую позицию
+                    Printer printer = new Printer(flatIdentifier);
+                    printer.WhyIsNotFlat();
                     aperture = MoveAperture(overallAdded, step);
                     continue;
                 }
@@ -86,6 +89,7 @@ namespace Lua
                     
                     if (flatIdentifier.IsFlat == false)
                     {
+                        printer.WhyIsNotFlat();
                         flatsFound++;
                         overallAdded += localAddedCandles;
 

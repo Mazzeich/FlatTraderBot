@@ -67,6 +67,70 @@ namespace Lua
             Console.WriteLine();
         }
 
+        public void WhyIsNotFlat()
+        {
+            string reason = "";
+            Console.WriteLine("Окно с {0} по {1}", fi.FlatBounds.left.date, fi.FlatBounds.right.date);
+            Console.WriteLine("В окне не определено боковое движение.\nВозможные причины:");
+            
+            switch (fi.trend)
+            {
+                case Trend.Down:
+                {
+                    reason += "Нисходящий тренд. ";
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (fi.ExsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (fi.ExsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+                case Trend.Up:
+                {
+                    reason += "Восходящий тренд. ";
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (fi.ExsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (fi.ExsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+                case Trend.Neutral:
+                {
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (fi.ExsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (fi.ExsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+            }
+
+            Console.WriteLine(reason);
+            Console.WriteLine();
+        }
+
         public void OutputHistoricalInfo()
         {
             Console.WriteLine("Боковиков найдено: {0}", hFF.FlatsFound);
