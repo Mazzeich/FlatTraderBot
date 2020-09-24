@@ -67,10 +67,10 @@ namespace Lua
             Console.WriteLine();
         }
 
-        public void WhyIsNotFlat()
+        public void WhyIsNotFlat(_CandleStruct leftBound, _CandleStruct rightBound)
         {
             string reason = "";
-            Console.WriteLine("Окно с {0} по {1}", fi.FlatBounds.left.date, fi.FlatBounds.right.date);
+            Console.WriteLine("Окно с {0} по {1}", leftBound.date, rightBound.date);
             Console.WriteLine("В окне не определено боковое движение.\nВозможные причины:");
             
             switch (fi.trend)

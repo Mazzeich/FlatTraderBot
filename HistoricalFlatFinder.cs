@@ -72,7 +72,7 @@ namespace Lua
                 {
                     // Двигаем окно в следующую позицию
                     Printer printer = new Printer(flatIdentifier);
-                    printer.WhyIsNotFlat();
+                    printer.WhyIsNotFlat(aperture[0], aperture[^1]);
                     aperture = MoveAperture(overallAdded, step);
                     continue;
                 }
@@ -89,7 +89,7 @@ namespace Lua
                     
                     if (flatIdentifier.IsFlat == false)
                     {
-                        printer.WhyIsNotFlat();
+                        printer.WhyIsNotFlat(aperture[0], aperture[^1]);
                         flatsFound++;
                         overallAdded += localAddedCandles;
 
