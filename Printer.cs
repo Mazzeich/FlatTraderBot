@@ -23,7 +23,7 @@ namespace Lua
             Console.WriteLine("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", fi.GMin, fi.IdxGmin + 1, fi.GMax, fi.IdxGmax + 1);
             Console.WriteLine("[k] = {0}", fi.K);
             Console.WriteLine("[Median] = {0}", fi.Median);
-            Console.WriteLine("[candles.Length] = {0}", fi.candles.Count);
+            Console.WriteLine("[candles.Count] = {0}", fi.candles.Count);
             Console.WriteLine("[SDL] = {0}\t\t[SDH] = {1}", fi.SDL, fi.SDH);
             Console.WriteLine("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", fi.ExsNearSDL, fi.ExsNearSDH);
             Console.WriteLine("[Границы окна]: [{0}]\t[{1}]", fi.FlatBounds.left.date, fi.FlatBounds.right.date);
@@ -64,6 +64,70 @@ namespace Lua
                 Console.WriteLine("Боковик слишком узок");
             }
 
+            Console.WriteLine();
+        }
+
+        public void WhyIsNotFlat(_CandleStruct leftBound, _CandleStruct rightBound)
+        {
+            string reason = "";
+            Console.WriteLine("Окно с {0} по {1}", leftBound.date, rightBound.date);
+            Console.WriteLine("В окне не определено боковое движение.\nВозможные причины:");
+            
+            switch (fi.trend)
+            {
+                case Trend.Down:
+                {
+                    reason += "Нисходящий тренд. ";
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (fi.ExsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (fi.ExsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+                case Trend.Up:
+                {
+                    reason += "Восходящий тренд. ";
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (fi.ExsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (fi.ExsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+                case Trend.Neutral:
+                {
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (fi.ExsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (fi.ExsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+            }
+
+            Console.WriteLine(reason);
             Console.WriteLine();
         }
 

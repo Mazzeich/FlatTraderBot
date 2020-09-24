@@ -37,59 +37,59 @@ namespace Lua
 
         public double GMin 
         {
-            get { return gMin; }
-            set { this.gMin = value; }
+            get => gMin;
+            set => this.gMin = value;
         }
         public double GMax
         {
-            get { return gMax ;}
-            set { this.GMax = value; }
+            get => gMax;
+            set => this.GMax = value;
         }
         public int IdxGmin
         {
-            get { return idxGmin; }
-            set { this.idxGmin = value; }
+            get => idxGmin;
+            set => this.idxGmin = value;
         }
         public int IdxGmax
         {
-            get {return idxGmax; }
-            set {this.idxGmax = value; }
+            get => idxGmax;
+            set => this.idxGmax = value;
         }
         public double Median
         {
-            get { return median; }
-            set { this.median = value; }
+            get => median;
+            set => this.median = value;
         }
         public double K
         {
-            get { return k; }
-            set { this.k = value; }
+            get => k;
+            set => this.k = value;
         }
         public double SDL
         {
-            get { return sdLow; }
-            set { this.sdLow = value; }
+            get => sdLow;
+            set => this.sdLow = value;
         }   
         public double SDH
         {
-            get { return sdHigh; }
-            set { this.sdHigh = value; }
+            get => sdHigh;
+            set => this.sdHigh = value;
         }
         public int ExsNearSDL
         {
-            get { return exsNearSDL; }
-            set { this.exsNearSDL = value; }
+            get => exsNearSDL;
+            set => this.exsNearSDL = value;
         }
         public int ExsNearSDH
         {
-            get { return exsNearSDH; }
-            set { this.exsNearSDH = value; }
+            get => exsNearSDH;
+            set => this.exsNearSDH = value;
         }
 
         public Bounds FlatBounds
         {
-            get { return flatBounds; }
-            set { this.flatBounds = value;  }
+            get => flatBounds;
+            set => this.flatBounds = value;
         }
 
         /// <summary>
@@ -97,8 +97,8 @@ namespace Lua
         /// </summary>
         public bool IsFlat
         {
-            get { return isFlat; }
-            set { this.isFlat = value;  }
+            get => isFlat;
+            set => this.isFlat = value;
         }
         
         public Enum trend;
@@ -226,9 +226,9 @@ namespace Lua
         /// Функция находит среднеквадратическое отклонение свечей тех, что выше среднего, 
         /// и тех, что ниже внутри коридора
         /// </summary>
-        /// <param name="movAvg">Скользящая средняя</param>
+        /// <param name="_median">Скользящая средняя</param>
         /// <returns></returns>
-        private (double, double) StandartDeviation(double movAvg)
+        private (double, double) StandartDeviation(double _median)
         {
             double sumLow = 0;
             double sumHigh = 0;
@@ -239,21 +239,21 @@ namespace Lua
 
             for (int i = 0; i < candles.Count - 1; i++)
             {
-                if ((candles[i].low) <= (movAvg - _Constants.KOffset))
+                if ((candles[i].low) <= (_median - _Constants.KOffset)) // `_median - _Constants.KOffset` ??? 
                 {
-                    sumLow += Math.Pow(movAvg - candles[i].low, 2);
+                    sumLow += Math.Pow(_median - candles[i].low, 2);
                     lowsCount++;
                 }
-                else if ((candles[i].high) >= (movAvg + _Constants.KOffset))
+                else if ((candles[i].high) >= (_median + _Constants.KOffset))
                 {
-                    sumHigh += Math.Pow(candles[i].high - movAvg, 2);
+                    sumHigh += Math.Pow(candles[i].high - _median, 2);
                     highsCount++;
                 }
             }
             double SDLow = Math.Sqrt(sumLow / lowsCount);
             double SDHigh = Math.Sqrt(sumHigh / highsCount);
 
-            return (movAvg - SDLow, SDHigh + movAvg);
+            return (_median - SDLow, _median + SDHigh);
         }
 
         /// <summary>
