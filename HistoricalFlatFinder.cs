@@ -76,12 +76,13 @@ namespace Lua
                 
                 while (flatIdentifier.IsFlat == true)
                 {                
-
+                    Printer printer  = new Printer(flatIdentifier);
                     localAddedCandles++;
                     // Расширяем окно
-                    aperture.Add(globalCandles[(aperture.Count * step) - 1 + localAddedCandles]);
+                    aperture.Add(globalCandles[(_Constants.NAperture * step) - 1 + localAddedCandles]);
                     Console.WriteLine("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
                     flatIdentifier.Identify();
+
                     
                     if (flatIdentifier.IsFlat == false)
                     {
@@ -93,12 +94,11 @@ namespace Lua
                         Console.WriteLine("+1 боковик!");
                         aperture.RemoveAt(aperture.Count - 1);
                         Console.WriteLine("[overallAdded] = {0}", overallAdded);
-                        Bounds bounds;
                         // bounds.left = flatIdentifier.FlatBounds.left;
                         // bounds.right = flatIdentifier.FlatBounds.right;
-                        bounds = flatIdentifier.SetBounds(aperture[0], aperture[^1]);
+                        Bounds bounds = flatIdentifier.SetBounds(aperture[0], aperture[^1]);
                         apertureBounds.Add(bounds);
-                        Printer printer  = new Printer(flatIdentifier);
+                        flatIdentifier.Identify();
                         printer.OutputApertureInfo();
                         // Двигаем окно в следующую позицию
                         aperture = MoveAperture(overallAdded, step);
