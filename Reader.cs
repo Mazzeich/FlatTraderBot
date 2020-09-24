@@ -72,7 +72,7 @@ namespace Lua
 
         public List<_CandleStruct> GetHistoricalData()
         {
-            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataSBER.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataSBER.txt");
 
             using (StreamReader reader = new StreamReader(pathHistoricalData))
             {
@@ -92,6 +92,7 @@ namespace Lua
                         temp.close = double.Parse(row[5], CultureInfo.InvariantCulture);
                         temp.avg   = (temp.high + temp.low) * 0.5;
                         temp.date  = row[0] + " " + row[1];
+                        //temp.date = i.ToString();
 
                         candleStruct.Add(temp);
                     }

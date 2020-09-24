@@ -23,7 +23,7 @@ namespace Lua
             Console.WriteLine("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", fi.GMin, fi.IdxGmin + 1, fi.GMax, fi.IdxGmax + 1);
             Console.WriteLine("[k] = {0}", fi.K);
             Console.WriteLine("[Median] = {0}", fi.Median);
-            Console.WriteLine("[candles.Length] = {0}", fi.candles.Count);
+            Console.WriteLine("[candles.Count] = {0}", fi.candles.Count);
             Console.WriteLine("[SDL] = {0}\t\t[SDH] = {1}", fi.SDL, fi.SDH);
             Console.WriteLine("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", fi.ExsNearSDL, fi.ExsNearSDH);
             Console.WriteLine("[Границы окна]: [{0}]\t[{1}]", fi.FlatBounds.left.date, fi.FlatBounds.right.date);

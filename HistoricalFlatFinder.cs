@@ -51,7 +51,7 @@ namespace Lua
             int localAddedCandles = 0;
             int step = 0;
 
-            for (int i = 0; i < globalCandles.Count - _Constants.NAperture - 1; i += _Constants.NAperture + overallAdded)
+            for (int i = 0; i < globalCandles.Count - _Constants.NAperture -  overallAdded; i += _Constants.NAperture + localAddedCandles)
             {
                 step++;
                 localAddedCandles = 0;
@@ -79,7 +79,7 @@ namespace Lua
                     Printer printer  = new Printer(flatIdentifier);
                     localAddedCandles++;
                     // Расширяем окно
-                    aperture.Add(globalCandles[(_Constants.NAperture * step) - 1 + localAddedCandles]);
+                    aperture.Add(globalCandles[(_Constants.NAperture * step) + overallAdded + localAddedCandles + 1]);
                     Console.WriteLine("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
                     flatIdentifier.Identify();
 
@@ -87,21 +87,16 @@ namespace Lua
                     if (flatIdentifier.IsFlat == false)
                     {
                         flatsFound++;
-                        // Нужно отсечь последнюю добавленную свечу,
-                        // так как на ней `isFlat == false`
-                        overallAdded += localAddedCandles - 1;
+                        overallAdded += localAddedCandles;
 
                         Console.WriteLine("+1 боковик!");
                         aperture.RemoveAt(aperture.Count - 1);
-                        Console.WriteLine("[overallAdded] = {0}", overallAdded);
-                        // bounds.left = flatIdentifier.FlatBounds.left;
-                        // bounds.right = flatIdentifier.FlatBounds.right;
                         Bounds bounds = flatIdentifier.SetBounds(aperture[0], aperture[^1]);
                         apertureBounds.Add(bounds);
                         flatIdentifier.Identify();
                         printer.OutputApertureInfo();
                         // Двигаем окно в следующую позицию
-                        aperture = MoveAperture(overallAdded, step);
+                        aperture = MoveAperture(overallAdded - 1, step);
                     }
                 }
 
@@ -119,7 +114,7 @@ namespace Lua
             Console.WriteLine("[MoveAperture()]");
             aperture.Clear();
             
-            int startPosition = (_Constants.NAperture * _step) + _candlesToAdd;
+            int startPosition = (_Constants.NAperture * _step) + _candlesToAdd + 1;
             for (int i = startPosition; i < startPosition + _Constants.NAperture; i++)
             {
                 aperture.Add(globalCandles[i]);
