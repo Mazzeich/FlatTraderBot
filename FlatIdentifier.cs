@@ -5,6 +5,9 @@ using System.Reflection.PortableExecutable;
 
 namespace Lua
 {
+    /// <summary>
+    /// Класс, реализующий определения бокового движения в заданном интервале свечей
+    /// </summary>
     [SuppressMessage("ReSharper", "CommentTypo")]
     public class FlatIdentifier
     {

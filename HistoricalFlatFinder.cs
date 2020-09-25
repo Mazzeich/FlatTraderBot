@@ -97,6 +97,7 @@ namespace Lua
                         aperture.RemoveAt(aperture.Count - 1);
                         Bounds bounds = flatIdentifier.SetBounds(aperture[0], aperture[^1]);
                         apertureBounds.Add(bounds);
+                        flatIdentifier.candles = aperture;
                         flatIdentifier.Identify();
                         printer.OutputApertureInfo();
                         // Двигаем окно в следующую позицию
@@ -110,15 +111,15 @@ namespace Lua
         /// <summary>
         /// Функция перемещения окна в следующую позицию
         /// </summary>
-        /// <param name="_candlesToAdd">Всего свечей, которые были добавлены ранее</param>
-        /// <param name="_step">Текущий шаг прохода алгоритма</param>
+        /// <param name="candlesToAdd">Всего свечей, которые были добавлены ранее</param>
+        /// <param name="step">Текущий шаг прохода алгоритма</param>
         /// <returns>Новое окно свечей</returns>
-        private List<_CandleStruct> MoveAperture(int _candlesToAdd, int _step)
+        private List<_CandleStruct> MoveAperture(int candlesToAdd, int step)
         {
             Console.WriteLine("[MoveAperture()]");
             aperture.Clear();
             
-            int startPosition = (_Constants.NAperture * _step) + _candlesToAdd + 1;
+            int startPosition = (_Constants.NAperture * step) + candlesToAdd + 1;
             for (int i = startPosition; i < startPosition + _Constants.NAperture; i++)
             {
                 aperture.Add(globalCandles[i]);
