@@ -72,6 +72,7 @@ namespace Lua
 
         public List<_CandleStruct> GetHistoricalData()
         {
+            // TODO: Сделать нормальное считывание свечей
             pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataRTS.csv");
 
             using (StreamReader reader = new StreamReader(pathHistoricalData))
