@@ -106,9 +106,9 @@ namespace Lua
         
         public Enum trend;
         public FlatIdentifier() {}
-        public FlatIdentifier(List<_CandleStruct> _candles)
+        public FlatIdentifier(List<_CandleStruct> candles)
         {
-            candles  = _candles;
+            this.candles  = candles;
             isFlat = false;
         }
 

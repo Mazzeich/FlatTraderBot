@@ -18,8 +18,7 @@ namespace Lua
         /// Сколько боковиков было найдено
         /// </summary>
         private int flatsFound;
-
-
+        
         public int FlatsFound
         {
             get => flatsFound;
@@ -32,10 +31,10 @@ namespace Lua
             set => apertureBounds = value;
         }
 
-        public HistoricalFlatFinder(List<_CandleStruct> _candles)
+        public HistoricalFlatFinder(List<_CandleStruct> candles)
         {
             Console.WriteLine("[HistoricalFlatFinder()]");
-            globalCandles = _candles;
+            globalCandles = candles;
 
             for (int i = 0; i < _Constants.NAperture; i++) // Формируем стартовое окно
             {
@@ -52,7 +51,7 @@ namespace Lua
             int localAddedCandles = 0;
             int step = 0;
 
-            for (int i = 0; i < globalCandles.Count - _Constants.NAperture -  overallAdded; i += _Constants.NAperture + localAddedCandles)
+            for (int i = 0; i < globalCandles.Count - _Constants.NAperture; i += _Constants.NAperture + localAddedCandles)
             {
                 step++;
                 localAddedCandles = 0;
