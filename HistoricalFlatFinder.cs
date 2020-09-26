@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime;
 
 // ReSharper disable CommentTypo
 
@@ -18,48 +17,48 @@ namespace Lua
         /// Сколько боковиков было найдено
         /// </summary>
         private int flatsFound;
+        /// <summary>
+        /// Сколько всего было добавлено свечей к окну
+        /// </summary>
+        private int overallAddedCandles;
+        /// <summary>
+        /// На каком шаге сейчас находимся
+        /// </summary>
+        private int step;
 
+        
+        public int FlatsFound => flatsFound;
 
-        public int FlatsFound
+        public List<Bounds> ApertureBounds => apertureBounds;
+
+        public HistoricalFlatFinder(List<_CandleStruct> candles)
         {
-            get => flatsFound;
-            set => this.flatsFound = value;
-        }
-
-        public List<Bounds> ApertureBounds
-        {
-            get => apertureBounds;
-            set => apertureBounds = value;
-        }
-
-        public HistoricalFlatFinder(List<_CandleStruct> _candles)
-        {
-            Console.WriteLine("[HistoricalFlatFinder()]");
-            globalCandles = _candles;
+            globalCandles = candles;
 
             for (int i = 0; i < _Constants.NAperture; i++) // Формируем стартовое окно
             {
                 aperture.Add(globalCandles[i]);
             }
-            Console.WriteLine("Стартовое окно: globalCandles.Count = {0}\taperture.Count = {1}", globalCandles.Count, aperture.Count);
 
             FindAllFlats();
         }
 
         private void FindAllFlats()
         {
-            int overallAdded = 0;
-            int localAddedCandles = 0;
-            int step = 0;
+            overallAddedCandles = 0;
+            step = 0;
 
-            for (int i = 0; i < globalCandles.Count - _Constants.NAperture -  overallAdded; i += _Constants.NAperture + localAddedCandles)
+            int localAddedCandles;
+
+            for (int i = 0; i < globalCandles.Count - _Constants.NAperture; i += _Constants.NAperture + localAddedCandles)
             {
                 step++;
                 localAddedCandles = 0;
+                // TODO: Log-файл. Асинхронный String.Append-ер, чтобы наконец забыть про консоль
                 Console.WriteLine("[i] = {0}\t\t[aperture.Count] = {1}", i, aperture.Count);
                 
                 // Если в конце осталось меньше свечей, чем вмещает окно
-                if (globalCandles.Count - (_Constants.NAperture * step) + overallAdded <= _Constants.NAperture)
+                if (globalCandles.Count - (_Constants.NAperture * step) + overallAddedCandles <= _Constants.NAperture)
                 {
                     break;
                 }
@@ -73,34 +72,33 @@ namespace Lua
                     // Двигаем окно в следующую позицию
                     Printer printer = new Printer(flatIdentifier);
                     printer.WhyIsNotFlat(aperture[0], aperture[^1]);
-                    aperture = MoveAperture(overallAdded, step);
+                    MoveAperture(overallAddedCandles, step);
                     continue;
                 }
                 
-                while (flatIdentifier.IsFlat == true)
+                while (flatIdentifier.IsFlat)
                 {                
                     Printer printer  = new Printer(flatIdentifier);
                     localAddedCandles++;
                     // Расширяем окно
-                    aperture.Add(globalCandles[(_Constants.NAperture * step) + overallAdded + localAddedCandles + 1]);
-                    Console.WriteLine("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
+                    ExpandAperture(localAddedCandles);
                     flatIdentifier.Identify();
-
                     
-                    if (flatIdentifier.IsFlat == false)
+                    if (!flatIdentifier.IsFlat)
                     {
                         printer.WhyIsNotFlat(aperture[0], aperture[^1]);
                         flatsFound++;
-                        overallAdded += localAddedCandles;
+                        overallAddedCandles += localAddedCandles;
 
                         Console.WriteLine("+1 боковик!");
                         aperture.RemoveAt(aperture.Count - 1);
                         Bounds bounds = flatIdentifier.SetBounds(aperture[0], aperture[^1]);
                         apertureBounds.Add(bounds);
+                        flatIdentifier.candles = aperture;
                         flatIdentifier.Identify();
                         printer.OutputApertureInfo();
                         // Двигаем окно в следующую позицию
-                        aperture = MoveAperture(overallAdded - 1, step);
+                        MoveAperture(overallAddedCandles - 1, step);
                     }
                 }
 
@@ -110,21 +108,28 @@ namespace Lua
         /// <summary>
         /// Функция перемещения окна в следующую позицию
         /// </summary>
-        /// <param name="_candlesToAdd">Всего свечей, которые были добавлены ранее</param>
-        /// <param name="_step">Текущий шаг прохода алгоритма</param>
-        /// <returns>Новое окно свечей</returns>
-        private List<_CandleStruct> MoveAperture(int _candlesToAdd, int _step)
+        /// <param name="candlesToAdd">Всего свечей, которые были добавлены ранее</param>
+        /// <param name="step">Текущий шаг прохода алгоритма</param>
+        private void MoveAperture(int candlesToAdd, int step)
         {
             Console.WriteLine("[MoveAperture()]");
             aperture.Clear();
             
-            int startPosition = (_Constants.NAperture * _step) + _candlesToAdd + 1;
+            int startPosition = (_Constants.NAperture * step) + candlesToAdd + 1;
             for (int i = startPosition; i < startPosition + _Constants.NAperture; i++)
             {
                 aperture.Add(globalCandles[i]);
             }
-            
-            return aperture;
+        }
+
+        /// <summary>
+        /// Функция расширения окна на 
+        /// </summary>
+        /// <param name="addedCandlesToAperture">Количество свечей, добавленных на текущем шаге</param>
+        private void ExpandAperture(int addedCandlesToAperture)
+        {
+            aperture.Add(globalCandles[_Constants.NAperture * step + overallAddedCandles + addedCandlesToAperture + 1]);
+            Console.WriteLine("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
         }
     }
 }

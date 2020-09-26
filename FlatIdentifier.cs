@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection.PortableExecutable;
 
 namespace Lua
 {
+    /// <summary>
+    /// Класс, реализующий определения бокового движения в заданном интервале свечей
+    /// </summary>
     [SuppressMessage("ReSharper", "CommentTypo")]
     public class FlatIdentifier
     {
@@ -20,18 +22,18 @@ namespace Lua
         /// Максимум, его индекс, среднее по хай
         /// </summary>
         private (double, int, double) highInfo;
-        private  double gMin;     // Глобальный минимум
-        private  double gMax;     // Глобальный максимум 
-        private  int idxGmin;     // Индекс гМина
-        private  int idxGmax;     // Индекс гМакса
-        private  double median;   // Скользящая средняя
-        private  double k;        // Угловой коэффициент апп. прямой
-        private  double sdLow;    // СКО по лоу
-        private  double sdHigh;   // СКО по хай
-        private  int exsNearSDL;  // Разворотов на уровне СКО-лоу
-        private  int exsNearSDH;  // Разворотов на уровне СКО-хай
-        private Bounds flatBounds;
-        private bool isFlat;
+        private double gMin;     // Глобальный минимум
+        private double gMax;     // Глобальный максимум 
+        private int idxGmin;     // Индекс гМина
+        private int idxGmax;     // Индекс гМакса
+        private double median;   // Скользящая средняя
+        private double k;        // Угловой коэффициент апп. прямой
+        private double sdLow;    // СКО по лоу
+        private double sdHigh;   // СКО по хай
+        private int exsNearSDL;  // Разворотов на уровне СКО-лоу
+        private int exsNearSDH;  // Разворотов на уровне СКО-хай
+        private Bounds flatBounds;// Границы начала и конца найденного боковика
+        private bool isFlat;      // Определился ли боковик внутри объекта
         
         public  double flatWidth; // Ширина коридора текущего периода
 
@@ -103,9 +105,9 @@ namespace Lua
         
         public Enum trend;
         public FlatIdentifier() {}
-        public FlatIdentifier(List<_CandleStruct> _candles)
+        public FlatIdentifier(List<_CandleStruct> candles)
         {
-            candles  = _candles;
+            this.candles  = candles;
             isFlat = false;
         }
 

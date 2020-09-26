@@ -1,13 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Globalization;
 using System.Collections.Generic;
 
 namespace Lua
 {
-    static class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             List<_CandleStruct> candles = new List<_CandleStruct>();
             Reader reader = new Reader(candles);
@@ -18,7 +16,6 @@ namespace Lua
 
             Console.WriteLine("End of Main();");
             Console.ReadKey();
-            return;
         }
     }
 }

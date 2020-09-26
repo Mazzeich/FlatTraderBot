@@ -12,6 +12,7 @@ namespace Lua
         List<_CandleStruct> candleStruct;
 
         private static string currentDirectory;
+        
         private string pathHigh;
         private string pathLow;
         private string pathAvg;
@@ -21,18 +22,17 @@ namespace Lua
         private string pathHistoricalData;
 
 
-        public string[] readHeights;
-        public string[] readLows;
-        public string[] readAvgs;
-        public string[] readCloses;
-        public string[] readOpens;
-        public string[] readVolumes;
+        private string[] readHeights;
+        private string[] readLows;
+        private string[] readAvgs;
+        private string[] readCloses;
+        private string[] readOpens;
+        private string[] readVolumes;
+        private string[] readAllData;
 
-        public string[] readAllData;
-
-        public Reader(List<_CandleStruct> _candleStruct)
+        public Reader(List<_CandleStruct> candleStruct)
         {
-            candleStruct = _candleStruct;
+            this.candleStruct = candleStruct;
             currentDirectory = Directory.GetCurrentDirectory();
         }
 
@@ -72,7 +72,8 @@ namespace Lua
 
         public List<_CandleStruct> GetHistoricalData()
         {
-            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataSBER.txt");
+            // TODO: Сделать нормальное считывание свечей
+            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataRTS.csv");
 
             using (StreamReader reader = new StreamReader(pathHistoricalData))
             {

@@ -5,9 +5,6 @@ using System;
 /// </summary>
 public struct _Constants
 {
-    /// <value> Максимальный размер массива </value>
-    public const int NGlobal = 20000;
-    
     /// <value> Размер окна </value>
     public const int NAperture = 40;
     
