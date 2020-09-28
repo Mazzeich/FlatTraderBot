@@ -72,32 +72,24 @@ namespace Lua
 
         public List<_CandleStruct> GetHistoricalData()
         {
-            // TODO: Сделать нормальное считывание свечей
             pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataRTS.csv");
 
-            using (StreamReader reader = new StreamReader(pathHistoricalData))
+            using StreamReader streamReader = new StreamReader(pathHistoricalData);
+            using CsvReader csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
+            csvReader.Read();
+            csvReader.ReadHeader();
+
+            while (csvReader.Read())
             {
-                using CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-                using (CsvDataReader dr = new CsvDataReader(csv))
-                {
-                    // readAllData[0] - "<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>"
-                    readAllData = File.ReadAllLines(pathHistoricalData);
-                    string[] row = new string[7];
+                _CandleStruct temp;
+                
+                temp.low = csvReader.GetField<double>("<LOW>");
+                temp.high = csvReader.GetField<double>("<HIGH>");
+                temp.close = csvReader.GetField<double>("<CLOSE>");
+                temp.avg = (temp.high + temp.low) * 0.5;
+                temp.date = csvReader.GetField<string>("<DATE>") + csvReader.GetField<string>("<TIME>");
 
-                    for (int i = 1; i < readAllData.Length; i++)
-                    {
-                        row = readAllData[i].Split(",");
-                        _CandleStruct temp;
-                        temp.low   = double.Parse(row[4], CultureInfo.InvariantCulture);
-                        temp.high  = double.Parse(row[3], CultureInfo.InvariantCulture);
-                        temp.close = double.Parse(row[5], CultureInfo.InvariantCulture);
-                        temp.avg   = (temp.high + temp.low) * 0.5;
-                        temp.date  = row[0] + " " + row[1];
-                        //temp.date = i.ToString();
-
-                        candleStruct.Add(temp);
-                    }
-                }
+                candleStruct.Add(temp);
             }
 
             return candleStruct;
