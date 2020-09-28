@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using NLog;
+// ReSharper disable CommentTypo
 
 namespace Lua
 {
     internal static class Program
     {
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        /// <summary>
+        /// Инициализация логгера
+        /// В документации указано, что это делают в каждом классе программы
+        /// </summary>
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         static void Main()
         {
-            logger.Info("Program has started...");
+            Logger.Info("----------------------------------------------------------------------------------");
+            Logger.Info("Program has started...");
+            
             List<_CandleStruct> candles = new List<_CandleStruct>();
             Reader reader = new Reader(candles);
             candles = reader.GetHistoricalData();
@@ -16,7 +24,7 @@ namespace Lua
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
 
-            logger.Info("Main() completed successfully.");
+            Logger.Info("Main() completed successfully.");
             Console.ReadKey();
         }
     }

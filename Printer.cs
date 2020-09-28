@@ -1,21 +1,43 @@
 using System;
+using NLog;
+using NLog.Conditions;
+using NLog.Config;
+using NLog.Targets;
+// ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
 
 namespace Lua
 {
     class Printer
     {
-        private FlatIdentifier fi;
-        private HistoricalFlatFinder hFF;
-        public Printer() {}
-        public Printer(FlatIdentifier _flatIdentifier)
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        
+        private readonly FlatIdentifier fi;
+        private readonly HistoricalFlatFinder hFF;
+
+        public Printer()
         {
-            fi = _flatIdentifier;
+            // Подготовка логгера
+            LoggingConfiguration config = new LoggingConfiguration();
+            //FileTarget logfile = new FileTarget("Printer_logfile") { FileName = "loggerPrinter.txt" };
+            ColoredConsoleTarget logconsole = new ColoredConsoleTarget("Printer_logconsole");
+            ConsoleRowHighlightingRule highlightingRule = new ConsoleRowHighlightingRule
+            {
+                Condition = ConditionParser.ParseExpression("level == LogLevel.Trace"),
+                ForegroundColor = ConsoleOutputColor.Green
+            };
+            logconsole.RowHighlightingRules.Add(highlightingRule);
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
+            LogManager.Configuration = config;
+        }
+        public Printer(FlatIdentifier flatIdentifier) : this()
+        {
+            fi = flatIdentifier;
         }
 
-        public Printer(HistoricalFlatFinder _historicalFF)
+        public Printer(HistoricalFlatFinder historicalFf) : this()
         {
-            hFF = _historicalFF;
+            hFF = historicalFf;
         }
 
         public void OutputApertureInfo()
@@ -70,8 +92,9 @@ namespace Lua
         public void WhyIsNotFlat(_CandleStruct leftBound, _CandleStruct rightBound)
         {
             string reason = "";
-            Console.WriteLine("Окно с {0} по {1}", leftBound.date, rightBound.date);
-            Console.WriteLine("В окне не определено боковое движение.\nВозможные причины:");
+            Logger.Info("Окно с {0} по {1}", leftBound.date, rightBound.date);
+            Logger.Info("В окне не определено боковое движение.\nВозможные причины:");
+
             
             switch (fi.trend)
             {
@@ -127,17 +150,18 @@ namespace Lua
                 }
             }
 
-            Console.WriteLine(reason);
+            //Console.WriteLine(reason);
+            Logger.Info(reason);
             Console.WriteLine();
         }
 
         public void OutputHistoricalInfo()
         {
-            Console.WriteLine("Боковиков найдено: {0}", hFF.FlatsFound);
-            Console.WriteLine("Боковики определены в: ");
+            Logger.Info("Боковиков найдено: {0}", hFF.FlatsFound);
+            Logger.Info("Боковики определены в: ");
             for (int i = 0; i < hFF.ApertureBounds.Count; i++)
             {
-                Console.WriteLine("[{0}]\t[{1}]", hFF.ApertureBounds[i].left.date, hFF.ApertureBounds[i].right.date);
+                Logger.Info("[{0}]\t[{1}]", hFF.ApertureBounds[i].left.date, hFF.ApertureBounds[i].right.date);
             }
         }
     }

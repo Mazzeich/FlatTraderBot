@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using NLog;
+using NLog.Fluent;
 
 // ReSharper disable CommentTypo
 
@@ -7,7 +9,13 @@ namespace Lua
 {
     public class HistoricalFlatFinder
     {
+        /// <summary>
+        /// Инициализация логгера
+        /// </summary>
+        private Logger Logger = LogManager.GetCurrentClassLogger();
+        
         // TODO: Коллекция окон, чтобы можно было итерироваться по каждому и выводить информацию адекватнее
+        
         private readonly List<_CandleStruct> globalCandles;
         
         private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
@@ -54,8 +62,7 @@ namespace Lua
             {
                 step++;
                 localAddedCandles = 0;
-                // TODO: Log-файл. Асинхронный String.Append-ер, чтобы наконец забыть про консоль
-                Console.WriteLine("[i] = {0}\t\t[aperture.Count] = {1}", i, aperture.Count);
+                Logger.Trace("[i] = {0}\t\t[aperture.Count] = {1}", i , aperture.Count);
                 
                 // Если в конце осталось меньше свечей, чем вмещает окно
                 if (globalCandles.Count - (_Constants.NAperture * step) + overallAddedCandles <= _Constants.NAperture)
@@ -72,7 +79,7 @@ namespace Lua
                     // Двигаем окно в следующую позицию
                     Printer printer = new Printer(flatIdentifier);
                     printer.WhyIsNotFlat(aperture[0], aperture[^1]);
-                    MoveAperture(overallAddedCandles, step);
+                    MoveAperture(overallAddedCandles);
                     continue;
                 }
                 
@@ -98,7 +105,7 @@ namespace Lua
                         flatIdentifier.Identify();
                         printer.OutputApertureInfo();
                         // Двигаем окно в следующую позицию
-                        MoveAperture(overallAddedCandles - 1, step);
+                        MoveAperture(overallAddedCandles - 1);
                     }
                 }
 
@@ -110,9 +117,9 @@ namespace Lua
         /// </summary>
         /// <param name="candlesToAdd">Всего свечей, которые были добавлены ранее</param>
         /// <param name="step">Текущий шаг прохода алгоритма</param>
-        private void MoveAperture(int candlesToAdd, int step)
+        private void MoveAperture(int candlesToAdd)
         {
-            Console.WriteLine("[MoveAperture()]");
+            Logger.Info("[MoveAperture()]");
             aperture.Clear();
             
             int startPosition = (_Constants.NAperture * step) + candlesToAdd + 1;
@@ -129,7 +136,7 @@ namespace Lua
         private void ExpandAperture(int addedCandlesToAperture)
         {
             aperture.Add(globalCandles[_Constants.NAperture * step + overallAddedCandles + addedCandlesToAperture + 1]);
-            Console.WriteLine("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
+            Logger.Info("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
         }
     }
 }
