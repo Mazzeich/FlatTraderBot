@@ -5,8 +5,10 @@ namespace Lua
 {
     internal static class Program
     {
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         static void Main()
         {
+            logger.Info("Program has started...");
             List<_CandleStruct> candles = new List<_CandleStruct>();
             Reader reader = new Reader(candles);
             candles = reader.GetHistoricalData();
@@ -14,7 +16,7 @@ namespace Lua
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
 
-            Console.WriteLine("End of Main();");
+            logger.Info("Main() completed successfully.");
             Console.ReadKey();
         }
     }
