@@ -9,6 +9,7 @@
     <PackageReference Include="CsvHelper" Version="15.0.5" />
     <PackageReference Include="NLog" Version="4.7.5" />
     <PackageReference Include="NLog.Config" Version="4.7.5" />
+    <PackageReference Include="NLog.Extended" Version="4.7.5" />
   </ItemGroup>
 
 </Project>
