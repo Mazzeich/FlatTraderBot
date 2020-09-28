@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using NLog;
 
 namespace Lua
 {
     /// <summary>
-    /// Класс, реализующий определения бокового движения в заданном интервале свечей
+    /// Класс, реализующий определение бокового движения в заданном интервале свечей
     /// </summary>
     [SuppressMessage("ReSharper", "CommentTypo")]
     public class FlatIdentifier
@@ -22,19 +23,18 @@ namespace Lua
         /// Максимум, его индекс, среднее по хай
         /// </summary>
         private (double, int, double) highInfo;
-        private double gMin;     // Глобальный минимум
-        private double gMax;     // Глобальный максимум 
-        private int idxGmin;     // Индекс гМина
-        private int idxGmax;     // Индекс гМакса
-        private double median;   // Скользящая средняя
-        private double k;        // Угловой коэффициент апп. прямой
-        private double sdLow;    // СКО по лоу
-        private double sdHigh;   // СКО по хай
-        private int exsNearSDL;  // Разворотов на уровне СКО-лоу
-        private int exsNearSDH;  // Разворотов на уровне СКО-хай
+        private double gMin;      // Глобальный минимум
+        private double gMax;      // Глобальный максимум 
+        private int idxGmin;      // Индекс гМина
+        private int idxGmax;      // Индекс гМакса
+        private double median;    // Скользящая средняя
+        private double k;         // Угловой коэффициент апп. прямой
+        private double sdLow;     // СКО по лоу
+        private double sdHigh;    // СКО по хай
+        private int exsNearSDL;   // Разворотов на уровне СКО-лоу
+        private int exsNearSDH;   // Разворотов на уровне СКО-хай
         private Bounds flatBounds;// Границы начала и конца найденного боковика
-        private bool isFlat;      // Определился ли боковик внутри объекта
-        
+
         public  double flatWidth; // Ширина коридора текущего периода
 
         public double GMin 
@@ -97,23 +97,22 @@ namespace Lua
         /// <summary>
         /// Действительно ли мы нашли боковик в заданном окне
         /// </summary>
-        public bool IsFlat
-        {
-            get => isFlat;
-            set => this.isFlat = value;
-        }
-        
+        public bool IsFlat { get; private set; }
+
+        /// <summary>
+        /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
+        /// </summary>
         public Enum trend;
-        public FlatIdentifier() {}
+        
         public FlatIdentifier(List<_CandleStruct> candles)
         {
             this.candles  = candles;
-            isFlat = false;
+            IsFlat = false;
         }
 
-        public bool Identify()
+        public void Identify()
         {
-            isFlat = false;
+            IsFlat = false;
             
             lowInfo  = GlobalExtremumsAndMedian(false);
             highInfo = GlobalExtremumsAndMedian(true);
@@ -126,9 +125,9 @@ namespace Lua
 
             k = FindK();
 
-            (double, double) SD = StandartDeviation(median);
-            sdLow  = SD.Item1;
-            sdHigh = SD.Item2;
+            (double low, double high) = StandartDeviation(median);
+            sdLow  = low;
+            sdHigh = high;
 
             exsNearSDL = ExtremumsNearSD(median, sdLow , false);
             exsNearSDH = ExtremumsNearSD(median, sdHigh, true);
@@ -138,18 +137,18 @@ namespace Lua
                 trend = Trend.Neutral;
                 if ((exsNearSDL > 1) && (exsNearSDH > 1) && (flatWidth > (_Constants.MinWidthCoeff * median)))
                 {
-                    isFlat = true;
+                    IsFlat = true;
                 }
             } else if (k < 0)
             {
                 trend = Trend.Down;
+                IsFlat = false;
             }
             else
             {
                 trend = Trend.Up;
+                IsFlat = false;
             }
-
-            return isFlat;
         }
 
         /// <summary>
@@ -202,10 +201,38 @@ namespace Lua
         private double FindK()
         {
             double k = 0;
+            int n = candles.Count; 
+
+            double sx = 0;
+            double sy = 0;
+            double sx2 = 0;
+            double sxy = 0;
+
+            for (int i = 0; i < n; i++)
+            {
+                sx += i;
+                sy += candles[i].avg;
+                sx2 += i * i;
+                sxy += i * candles[i].avg;
+            }
+            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
+
+            return k;
+        }
+        
+        /// <summary>
+        /// Функция поиска угла наклона аппроксимирующей прямой
+        /// без учёта последних нескольких свечей (фаза)
+        /// Нужно для определения текущего тренда по инструменту
+        /// </summary>
+        /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
+        private double FindKWithoutPhase()
+        {
+            double k = 0;
 
             // Не учитывать первые и последние несколько свечей
-            //`int phaseCandlesNum = (int)((double)candles.Length * _Constants.PhaseCandlesCoeff);`
-            int n = candles.Count; // `-phaseCandlesNum`
+            int phaseCandlesNum = (int)(candles.Count * _Constants.PhaseCandlesCoeff);
+            int n = candles.Count - phaseCandlesNum;
 
             double sx = 0;
             double sy = 0;
