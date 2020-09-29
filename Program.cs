@@ -22,6 +22,7 @@ namespace Lua
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
+            
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
         }

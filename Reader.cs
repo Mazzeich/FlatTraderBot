@@ -33,7 +33,6 @@ namespace Lua
         private string[] readCloses;
         private string[] readOpens;
         private string[] readVolumes;
-        private string[] readAllData;
 
         public Reader(List<_CandleStruct> candleStruct)
         {
@@ -87,7 +86,7 @@ namespace Lua
         public List<_CandleStruct> GetHistoricalData()
         {
             logger.Trace("[GetHistoricalData invoked]");
-            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataNDAQ.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataSBER.csv");
 
             using StreamReader streamReader = new StreamReader(pathHistoricalData);
             using CsvReader csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
@@ -111,7 +110,6 @@ namespace Lua
             }
 
             logger.Trace("Finished reading data from {0}", pathHistoricalData);
-            LogManager.Shutdown();
             return candleStruct;
         }
     }

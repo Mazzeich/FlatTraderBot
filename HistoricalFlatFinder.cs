@@ -11,7 +11,7 @@ namespace Lua
         /// <summary>
         /// Инициализация логгера
         /// </summary>
-        private Logger logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
         
         // TODO: Коллекция окон, чтобы можно было итерироваться по каждому и выводить информацию адекватнее
         
@@ -115,7 +115,6 @@ namespace Lua
         /// Функция перемещения окна в следующую позицию
         /// </summary>
         /// <param name="candlesToAdd">Всего свечей, которые были добавлены ранее</param>
-        /// <param name="step">Текущий шаг прохода алгоритма</param>
         private void MoveAperture(int candlesToAdd)
         {
             logger.Trace("[MoveAperture()]");
