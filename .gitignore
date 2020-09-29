@@ -8,4 +8,4 @@
 /Data/
 /obj/
 
-!/.bin/Debug/netcoreapp3.1/NLog.config
+!*/Debug/netcoreapp3.1/NLog.config
