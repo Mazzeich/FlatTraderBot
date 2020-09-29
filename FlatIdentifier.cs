@@ -203,19 +203,19 @@ namespace Lua
             double k = 0;
             int n = candles.Count; 
 
-            double sx = 0;
-            double sy = 0;
-            double sx2 = 0;
-            double sxy = 0;
+            double sumX = 0;
+            double sumY = 0;
+            double sumXsquared = 0;
+            double sumXY = 0;
 
             for (int i = 0; i < n; i++)
             {
-                sx += i;
-                sy += candles[i].avg;
-                sx2 += i * i;
-                sxy += i * candles[i].avg;
+                sumX += i;
+                sumY += candles[i].avg;
+                sumXsquared += i * i;
+                sumXY += i * candles[i].avg;
             }
-            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
+            k = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX)); 
 
             return k;
         }
