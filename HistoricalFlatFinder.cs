@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using NLog;
-using NLog.Fluent;
 
 // ReSharper disable CommentTypo
 

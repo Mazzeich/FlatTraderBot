@@ -58,10 +58,10 @@ namespace Lua
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
                 _CandleStruct temp;
-                temp.low   = double.Parse(readLows[i], CultureInfo.InvariantCulture);
+                temp.low   = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
                 temp.high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
-                temp.close = double.Parse(readCloses[i], CultureInfo.InvariantCulture);
-                temp.avg   = double.Parse(readAvgs[i], CultureInfo.InvariantCulture);
+                temp.close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
+                temp.avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
                 temp.date  = "";
 
                 candleStruct.Add(temp);
@@ -83,11 +83,11 @@ namespace Lua
             {
                 _CandleStruct temp;
                 
-                temp.low = csvReader.GetField<double>("<LOW>");
-                temp.high = csvReader.GetField<double>("<HIGH>");
+                temp.low   = csvReader.GetField<double>("<LOW>");
+                temp.high  = csvReader.GetField<double>("<HIGH>");
                 temp.close = csvReader.GetField<double>("<CLOSE>");
-                temp.avg = (temp.high + temp.low) * 0.5;
-                temp.date = csvReader.GetField<string>("<DATE>") + csvReader.GetField<string>("<TIME>");
+                temp.avg   = (temp.high + temp.low) * 0.5;
+                temp.date  = csvReader.GetField<string>("<DATE>") + csvReader.GetField<string>("<TIME>");
 
                 candleStruct.Add(temp);
             }
