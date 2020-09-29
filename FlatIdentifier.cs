@@ -11,6 +11,7 @@ namespace Lua
     [SuppressMessage("ReSharper", "CommentTypo")]
     public class FlatIdentifier
     {
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
         /// <summary>
         /// Массив структур свечей
         /// </summary>
@@ -106,12 +107,14 @@ namespace Lua
         
         public FlatIdentifier(List<_CandleStruct> candles)
         {
+            logger.Trace("\n[FlatIdentifier] initialized");
             this.candles  = candles;
             IsFlat = false;
         }
 
         public void Identify()
         {
+            logger.Trace("[Identify] started");
             IsFlat = false;
             
             lowInfo  = GlobalExtremumsAndMedian(false);
@@ -149,6 +152,7 @@ namespace Lua
                 trend = Trend.Up;
                 IsFlat = false;
             }
+            logger.Trace("[Identify] finished");
         }
 
         /// <summary>
@@ -159,7 +163,8 @@ namespace Lua
         // ReSharper disable once InconsistentNaming
         private (double, int, double) GlobalExtremumsAndMedian(bool onHigh)
         {
-            double globalExtremum = 0;
+            logger.Trace("Calculating global extremums and median of current aperture. [onHigh] = {0}", onHigh);
+            double globalExtremum;
             double med = 0;
             int index = 0;
 
@@ -190,6 +195,7 @@ namespace Lua
                 }
             }
             med /= candles.Count;
+            logger.Trace("GEaM found. [onHigh] = {0}", onHigh);
 
             return (globalExtremum, index, med);
         }
@@ -200,6 +206,7 @@ namespace Lua
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
         private double FindK()
         {
+            logger.Trace("Finding k...");
             double k = 0;
             int n = candles.Count; 
 
@@ -215,7 +222,8 @@ namespace Lua
                 sumXsquared += i * i;
                 sumXY += i * candles[i].avg;
             }
-            k = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX)); 
+            k = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
+            logger.Trace("k found. k = {0}", k);
 
             return k;
         }
@@ -228,6 +236,7 @@ namespace Lua
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
         private double FindKWithoutPhase()
         {
+            logger.Trace("Finding k without phase candles...");
             double k = 0;
 
             // Не учитывать первые и последние несколько свечей
@@ -247,6 +256,7 @@ namespace Lua
                 sxy += i * candles[i].avg;
             }
             k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
+            logger.Trace("k found");
 
             return k;
         }
@@ -259,6 +269,7 @@ namespace Lua
         /// <returns></returns>
         private (double, double) StandartDeviation(double _median)
         {
+            logger.Trace("Calculation standart deviations in current aperture...");
             double sumLow = 0;
             double sumHigh = 0;
 
@@ -281,6 +292,7 @@ namespace Lua
             }
             double SDLow = Math.Sqrt(sumLow / lowsCount);
             double SDHigh = Math.Sqrt(sumHigh / highsCount);
+            logger.Trace("Standart deviations calculated. SDlow = {0} | SDhigh = {1}", _median - SDLow, _median + SDHigh);
 
             return (_median - SDLow, _median + SDHigh);
         }
@@ -294,6 +306,7 @@ namespace Lua
         /// <returns></returns>
         private int ExtremumsNearSD(double _median, double standartDeviation, bool onHigh)
         {
+            logger.Trace("Counting extremums near standart deviations. [onHigh] - {0}", onHigh);
             int extremums = 0;
             double rangeToReachSD = _median * _Constants.SDOffset;
 
@@ -342,14 +355,17 @@ namespace Lua
                 //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
                 //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
+            logger.Trace("Extremums near SD = {0} | [onHigh] = {1}", extremums, onHigh);
 
             return extremums;
         }
 
         public Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
+            logger.Trace("Setting bounds...");
             flatBounds.left = left;
             flatBounds.right = right;
+            logger.Trace("Bounds set");
             return FlatBounds;
         }
     }

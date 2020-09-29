@@ -11,11 +11,10 @@ namespace Lua
         /// Инициализация логгера
         /// В документации указано, что это делают в каждом классе программы
         /// </summary>
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         static void Main()
         {
-            Logger.Info("----------------------------------------------------------------------------------");
-            Logger.Info("Program has started...");
+            logger.Trace("\nProgram has started...");
             
             List<_CandleStruct> candles = new List<_CandleStruct>();
             Reader reader = new Reader(candles);
@@ -23,9 +22,8 @@ namespace Lua
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
-
-            Logger.Info("Main() completed successfully.");
-            Console.ReadKey();
+            logger.Trace("Main() completed successfully.");
+            LogManager.Shutdown();
         }
     }
 }

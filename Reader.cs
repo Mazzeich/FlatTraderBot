@@ -3,11 +3,17 @@ using System.IO;
 using System.Globalization;
 using CsvHelper;
 using System.Collections.Generic;
+using NLog;
+// ReSharper disable CommentTypo
 
 namespace Lua
 {
     public class Reader
     {
+        /// <summary>
+        /// Инициализация логгера и присваивание ему имени текущего класса "Lua.Reader"
+        /// </summary>
+        private  static readonly Logger logger = LogManager.GetCurrentClassLogger();
         List<_CandleStruct> candleStruct;
 
         private static string currentDirectory;
@@ -31,8 +37,14 @@ namespace Lua
 
         public Reader(List<_CandleStruct> candleStruct)
         {
+            logger.Trace("\n[Class Reader initialized]");
             this.candleStruct = candleStruct;
             currentDirectory = Directory.GetCurrentDirectory();
+        }
+
+        ~Reader()
+        {
+            logger.Trace("[Class Reader destroyed]");
         }
 
         /// <summary>
@@ -41,6 +53,7 @@ namespace Lua
         [Obsolete("Method were used to work with dataParser.lua")]
         public List<_CandleStruct> GetSeparatedData()
         {
+            logger.Trace("[GetSeparatedData()] invoked. Reading data...");
             pathHigh   = Path.Combine(currentDirectory, @"..\..\..\Data\dataHigh.txt");
             pathLow    = Path.Combine(currentDirectory, @"..\..\..\Data\dataLow.txt");
             pathAvg    = Path.Combine(currentDirectory, @"..\..\..\Data\dataAvg.txt");
@@ -67,31 +80,38 @@ namespace Lua
                 candleStruct.Add(temp);
             }
 
+            logger.Trace("[GetSeparatedData() finished]");
             return candleStruct;
         }
 
         public List<_CandleStruct> GetHistoricalData()
         {
-            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataSBER.csv");
+            logger.Trace("[GetHistoricalData invoked]");
+            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataNDAQ.csv");
 
             using StreamReader streamReader = new StreamReader(pathHistoricalData);
             using CsvReader csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
+            logger.Trace("Reading data from \"{0}\"...", pathHistoricalData);
+            // TODO: GetFullPath
+
             csvReader.Read();
             csvReader.ReadHeader();
 
             while (csvReader.Read())
             {
                 _CandleStruct temp;
-                
-                temp.low   = csvReader.GetField<double>("<LOW>");
-                temp.high  = csvReader.GetField<double>("<HIGH>");
+
+                temp.low = csvReader.GetField<double>("<LOW>");
+                temp.high = csvReader.GetField<double>("<HIGH>");
                 temp.close = csvReader.GetField<double>("<CLOSE>");
-                temp.avg   = (temp.high + temp.low) * 0.5;
-                temp.date  = csvReader.GetField<string>("<DATE>") + csvReader.GetField<string>("<TIME>");
+                temp.avg = (temp.high + temp.low) * 0.5;
+                temp.date = csvReader.GetField<string>("<DATE>") + csvReader.GetField<string>("<TIME>");
 
                 candleStruct.Add(temp);
             }
 
+            logger.Trace("Finished reading data from {0}", pathHistoricalData);
+            LogManager.Shutdown();
             return candleStruct;
         }
     }

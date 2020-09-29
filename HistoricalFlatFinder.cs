@@ -11,7 +11,7 @@ namespace Lua
         /// <summary>
         /// Инициализация логгера
         /// </summary>
-        private Logger Logger = LogManager.GetCurrentClassLogger();
+        private Logger logger = LogManager.GetCurrentClassLogger();
         
         // TODO: Коллекция окон, чтобы можно было итерироваться по каждому и выводить информацию адекватнее
         
@@ -55,13 +55,13 @@ namespace Lua
             overallAddedCandles = 0;
             step = 0;
 
-            int localAddedCandles;
+            int localAddedCandles = 0;
 
-            for (int i = 0; i < globalCandles.Count - _Constants.NAperture; i += _Constants.NAperture + localAddedCandles)
+            for (int i = 0; i < globalCandles.Count - _Constants.NAperture - localAddedCandles - 1; i += _Constants.NAperture + localAddedCandles)
             {
                 step++;
                 localAddedCandles = 0;
-                Logger.Trace("[i] = {0}\t\t[aperture.Count] = {1}", i , aperture.Count);
+                logger.Trace("[i] = {0}\t\t[aperture.Count] = {1}", i , aperture.Count);
                 
                 // Если в конце осталось меньше свечей, чем вмещает окно
                 if (globalCandles.Count - (_Constants.NAperture * step) + overallAddedCandles <= _Constants.NAperture)
@@ -96,7 +96,7 @@ namespace Lua
                         flatsFound++;
                         overallAddedCandles += localAddedCandles;
 
-                        Console.WriteLine("+1 боковик!");
+                        logger.Trace("+1 боковик!");
                         aperture.RemoveAt(aperture.Count - 1);
                         Bounds bounds = flatIdentifier.SetBounds(aperture[0], aperture[^1]);
                         apertureBounds.Add(bounds);
@@ -118,7 +118,7 @@ namespace Lua
         /// <param name="step">Текущий шаг прохода алгоритма</param>
         private void MoveAperture(int candlesToAdd)
         {
-            Logger.Info("[MoveAperture()]");
+            logger.Trace("[MoveAperture()]");
             aperture.Clear();
             
             int startPosition = (_Constants.NAperture * step) + candlesToAdd + 1;
@@ -135,7 +135,7 @@ namespace Lua
         private void ExpandAperture(int addedCandlesToAperture)
         {
             aperture.Add(globalCandles[_Constants.NAperture * step + overallAddedCandles + addedCandlesToAperture + 1]);
-            Logger.Info("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
+            logger.Trace("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
         }
     }
 }
