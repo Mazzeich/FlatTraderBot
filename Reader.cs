@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Globalization;
 using CsvHelper;
@@ -37,9 +38,9 @@ namespace Lua
         /// <summary>
         /// Считать все строки из файлов распарсенных данных
         /// </summary>
+        [Obsolete("Method were used to work with dataParser.lua")]
         public List<_CandleStruct> GetSeparatedData()
         {
-            // Deprecated method
             pathHigh   = Path.Combine(currentDirectory, @"..\..\..\Data\dataHigh.txt");
             pathLow    = Path.Combine(currentDirectory, @"..\..\..\Data\dataLow.txt");
             pathAvg    = Path.Combine(currentDirectory, @"..\..\..\Data\dataAvg.txt");
