@@ -3,6 +3,9 @@
 *.csv
 
 /.idea/
-/bin/
-/obj/
 /.vscode/
+/bin/
+/Data/
+/obj/
+
+!/.bin/Debug/netcoreapp3.1/NLog.config
