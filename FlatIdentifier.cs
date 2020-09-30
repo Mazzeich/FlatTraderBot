@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NLog;
+// ReSharper disable InconsistentNaming
 
 namespace Lua
 {
@@ -11,6 +12,9 @@ namespace Lua
     [SuppressMessage("ReSharper", "CommentTypo")]
     public class FlatIdentifier
     {
+        /// <summary>
+        /// Логгер в logFlatIdentifier.txt
+        /// </summary>
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
         /// <summary>
         /// Массив структур свечей
@@ -24,81 +28,27 @@ namespace Lua
         /// Максимум, его индекс, среднее по хай
         /// </summary>
         private (double, int, double) highInfo;
-        private double gMin;      // Глобальный минимум
-        private double gMax;      // Глобальный максимум 
-        private int idxGmin;      // Индекс гМина
-        private int idxGmax;      // Индекс гМакса
-        private double median;    // Скользящая средняя
-        private double k;         // Угловой коэффициент апп. прямой
-        private double sdLow;     // СКО по лоу
-        private double sdHigh;    // СКО по хай
-        private int exsNearSDL;   // Разворотов на уровне СКО-лоу
-        private int exsNearSDH;   // Разворотов на уровне СКО-хай
+
         private Bounds flatBounds;// Границы начала и конца найденного боковика
-
+        
         public  double flatWidth; // Ширина коридора текущего периода
+        public double gMin { get; private set; }
+        public double gMax { get; private set; }
+        public int idxGmin { get; private set; }
+        public int idxGmax { get; private set; }
+        public double average { get; private set; }
+        public double k { get; private set; }
+        public double SDL { get; private set; }
+        public double SDH { get; private set; }
+        public int exsNearSDL { get; private set; }
+        public int exsNearSDH { get; private set; }
 
-        public double GMin 
-        {
-            get => gMin;
-            set => this.gMin = value;
-        }
-        public double GMax
-        {
-            get => gMax;
-            set => this.GMax = value;
-        }
-        public int IdxGmin
-        {
-            get => idxGmin;
-            set => this.idxGmin = value;
-        }
-        public int IdxGmax
-        {
-            get => idxGmax;
-            set => this.idxGmax = value;
-        }
-        public double Median
-        {
-            get => median;
-            set => this.median = value;
-        }
-        public double K
-        {
-            get => k;
-            set => this.k = value;
-        }
-        public double SDL
-        {
-            get => sdLow;
-            set => this.sdLow = value;
-        }   
-        public double SDH
-        {
-            get => sdHigh;
-            set => this.sdHigh = value;
-        }
-        public int ExsNearSDL
-        {
-            get => exsNearSDL;
-            set => this.exsNearSDL = value;
-        }
-        public int ExsNearSDH
-        {
-            get => exsNearSDH;
-            set => this.exsNearSDH = value;
-        }
-
-        public Bounds FlatBounds
-        {
-            get => flatBounds;
-            set => this.flatBounds = value;
-        }
+        public Bounds FlatBounds => flatBounds;
 
         /// <summary>
         /// Действительно ли мы нашли боковик в заданном окне
         /// </summary>
-        public bool IsFlat { get; private set; }
+        public bool isFlat { get; private set; }
 
         /// <summary>
         /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
@@ -109,13 +59,14 @@ namespace Lua
         {
             logger.Trace("\n[FlatIdentifier] initialized");
             this.candles  = candles;
-            IsFlat = false;
+            isFlat = false;
         }
 
         public void Identify()
         {
             logger.Trace("[Identify] started");
-            IsFlat = false;
+            
+            isFlat = false;
             
             lowInfo  = GlobalExtremumsAndMedian(false);
             highInfo = GlobalExtremumsAndMedian(true);
@@ -123,34 +74,34 @@ namespace Lua
             gMax = highInfo.Item1;
             idxGmin = lowInfo.Item2;
             idxGmax = highInfo.Item2;
-            median = (highInfo.Item3 + lowInfo.Item3) * 0.5;
+            average = (highInfo.Item3 + lowInfo.Item3) * 0.5;
             flatWidth = gMax - gMin;
 
             k = FindK();
 
-            (double low, double high) = StandartDeviation(median);
-            sdLow  = low;
-            sdHigh = high;
+            (double low, double high) = StandartDeviation(average);
+            SDL = low;
+            SDH = high;
 
-            exsNearSDL = ExtremumsNearSD(median, sdLow , false);
-            exsNearSDH = ExtremumsNearSD(median, sdHigh, true);
+            ExtremumsNearSD(average, SDL);
+            ExtremumsNearSD(average, SDH);
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > 1) && (exsNearSDH > 1) && (flatWidth > (_Constants.MinWidthCoeff * median)))
+                if ((exsNearSDL > 1) && (exsNearSDH > 1) && (flatWidth > (_Constants.MinWidthCoeff * average)))
                 {
-                    IsFlat = true;
+                    isFlat = true;
                 }
             } else if (k < 0)
             {
                 trend = Trend.Down;
-                IsFlat = false;
+                isFlat = false;
             }
             else
             {
                 trend = Trend.Up;
-                IsFlat = false;
+                isFlat = false;
             }
             logger.Trace("[Identify] finished");
         }
@@ -163,7 +114,7 @@ namespace Lua
         // ReSharper disable once InconsistentNaming
         private (double, int, double) GlobalExtremumsAndMedian(bool onHigh)
         {
-            logger.Trace("Calculating global extremums and median of current aperture. [onHigh] = {0}", onHigh);
+            logger.Trace("Calculating global extremums and average of current aperture. [onHigh] = {0}", onHigh);
             double globalExtremum;
             double med = 0;
             int index = 0;
@@ -262,11 +213,11 @@ namespace Lua
         }
 
         /// <summary>
-        /// Функция находит среднеквадратическое отклонение свечей тех, что выше среднего, 
-        /// и тех, что ниже внутри коридора
+        /// Функция находит среднеквадратическое отклонение свечей тех, что ниже среднего, 
+        /// и тех, что выше внутри коридора
         /// </summary>
         /// <param name="_median">Скользящая средняя</param>
-        /// <returns></returns>
+        /// <returns>double SDLow, double SDHigh</returns>
         private (double, double) StandartDeviation(double _median)
         {
             logger.Trace("Calculation standart deviations in current aperture...");
@@ -279,7 +230,7 @@ namespace Lua
 
             for (int i = 0; i < candles.Count - 1; i++)
             {
-                if ((candles[i].low) <= (_median - _Constants.KOffset)) // `_median - _Constants.KOffset` ??? 
+                if ((candles[i].low) <= (_median - _Constants.KOffset)) // `_average - _Constants.KOffset` ??? 
                 {
                     sumLow += Math.Pow(_median - candles[i].low, 2);
                     lowsCount++;
@@ -300,64 +251,51 @@ namespace Lua
         /// <summary>
         /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО
         /// </summary>
-        /// <param name="_median">Скользящая средняя</param>
+        /// <param name="_average">Скользящая средняя</param>
         /// <param name="standartDeviation">Среднеквадратическое отклонение</param>
-        /// <param name="onHigh">true - ищем по high, false - по low</param>
         /// <returns></returns>
-        private int ExtremumsNearSD(double _median, double standartDeviation, bool onHigh)
+        private void ExtremumsNearSD(double _average, double standartDeviation)
         {
-            logger.Trace("Counting extremums near standart deviations. [onHigh] - {0}", onHigh);
-            int extremums = 0;
-            double rangeToReachSD = _median * _Constants.SDOffset;
+            logger.Trace("Counting extremums near standart deviations");
+            double rangeToReachSD = _average * _Constants.SDOffset;
 
-            if (!onHigh)
+            //Console.Write("[Попавшие в low индексы]: ");
+            for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
             {
-                //Console.Write("[Попавшие в low индексы]: ");
-                for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
+                if (Math.Abs(candles[i].low - standartDeviation) <= rangeToReachSD &&
+                    candles[i].low <= candles[i - 1].low && candles[i].low <= candles[i - 2].low &&
+                    candles[i].low <= candles[i + 1].low && candles[i].low <= candles[i + 2].low)
                 {
-                    if ((Math.Abs(candles[i].low - standartDeviation) <= (rangeToReachSD)) &&
-                        (candles[i].low <= candles[i-1].low) &&
-                        (candles[i].low <= candles[i-2].low) &&
-                        (candles[i].low <= candles[i+1].low) &&
-                        (candles[i].low <= candles[i+2].low))
-                    {
-                        //Console.Write("{0}({1}) ", cdls[i].low, i + 1);
-                        extremums++;
-                        _CandleStruct temp;
-                        temp = candles[i];
-                        temp.low -= 0.01;
-                        candles[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
-                    }
+                    //Console.Write("{0}({1}) ", cdls[i].low, i + 1);
+                    exsNearSDL++;
+                    _CandleStruct temp = candles[i];
+                    temp.low -= 0.01;
+                    candles[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                 }
-                //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
-                //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             }
-            else
+            //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+            //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
+
+            //Console.Write("[Попавшие в high индексы]: ");
+            for (int i = 2; i < candles.Count - 2; i++)
             {
-                //Console.Write("[Попавшие в high индексы]: ");
-                for (int i = 2; i < candles.Count - 2; i++)
+                if (Math.Abs(candles[i].high - standartDeviation) <= rangeToReachSD &&
+                    candles[i].high >= candles[i - 1].high && candles[i].high >= candles[i - 2].high &&
+                    candles[i].high >= candles[i + 1].high && candles[i].high >= candles[i + 2].high)
                 {
-                    if ((Math.Abs(candles[i].high - standartDeviation) <= (rangeToReachSD)) &&
-                        (candles[i].high >= candles[i-1].high) &&
-                        (candles[i].high >= candles[i-2].high) &&
-                        (candles[i].high >= candles[i+1].high) &&
-                        (candles[i].high >= candles[i+2].high))
-                    {
-                        //Console.Write("{0}({1}) ", cdls[i].high, i + 1);
-                        extremums++;
-                        _CandleStruct temp;
-                        temp = candles[i];
-                        temp.high += 0.01;
-                        candles[i] = temp;
-                    }
+                    //Console.Write("{0}({1}) ", cdls[i].high, i + 1);
+                    exsNearSDH++;
+                    _CandleStruct temp = candles[i];
+                    temp.high += 0.01;
+                    candles[i] = temp;
                 }
+            }
                 
-                //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
-                //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
-            }
-            logger.Trace("Extremums near SD = {0} | [onHigh] = {1}", extremums, onHigh);
 
-            return extremums;
+            //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
+            //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
+            
+            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
         }
 
         public Bounds SetBounds(_CandleStruct left, _CandleStruct right)
