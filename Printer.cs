@@ -32,12 +32,12 @@ namespace Lua
 
         public void OutputApertureInfo()
         {
-            logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]\n", fi.GMin, fi.IdxGmin + 1, fi.GMax, fi.IdxGmax + 1);
-            logger.Trace("[k] = {0}\n", fi.K);
-            logger.Trace("[Median] = {0}\n", fi.Median);
+            logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]\n", fi.gMin, fi.idxGmin + 1, fi.gMax, fi.idxGmax + 1);
+            logger.Trace("[k] = {0}\n", fi.k);
+            logger.Trace("[average] = {0}\n", fi.average);
             logger.Trace("[candles.Count] = {0}\n", fi.candles.Count);
             logger.Trace("[SDL] = {0}\t\t[SDH] = {1}\n", fi.SDL, fi.SDH);
-            logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}\n", fi.ExsNearSDL, fi.ExsNearSDH);
+            logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}\n", fi.exsNearSDL, fi.exsNearSDH);
             logger.Trace("[Границы окна]: [{0}]\t[{1}]\n", fi.FlatBounds.left.date, fi.FlatBounds.right.date);
             
             switch (fi.trend)
@@ -45,23 +45,23 @@ namespace Lua
                 case Trend.Down:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", fi.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.Median);
+                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.average);
                     logger.Trace("Аппроксимирующая линия имеет сильный убывающий тренд\n");
                     break;
                 }
                 case Trend.Up:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", fi.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.Median);
+                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.average);
                     logger.Trace("Аппроксимирующая линия имеет сильный возрастающий тренд\n");
                     break;
                 }
                 case Trend.Neutral:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", fi.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.Median);
+                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.average);
                     logger.Trace("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный\n");
-                    if (fi.IsFlat)
+                    if (fi.isFlat)
                     {
                         logger.Trace("Цена, вероятно, формирует боковик...\n");
                     }
@@ -71,7 +71,7 @@ namespace Lua
                     break;
             }
 
-            if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+            if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.average))
             {
                 logger.Trace("Боковик слишком узок\n");
             }
@@ -89,15 +89,15 @@ namespace Lua
                 case Trend.Down:
                 {
                     reason += "Нисходящий тренд. ";
-                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.average))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
 
-                    if (fi.ExsNearSDL < 2)
+                    if (fi.exsNearSDL < 2)
                     {
                         reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (fi.ExsNearSDH < 2)
+                    } else if (fi.exsNearSDH < 2)
                     {
                         reason += "Недостаточно вершин сверху возле СКО. ";
                     }
@@ -106,15 +106,15 @@ namespace Lua
                 case Trend.Up:
                 {
                     reason += "Восходящий тренд. ";
-                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.average))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
 
-                    if (fi.ExsNearSDL < 2)
+                    if (fi.exsNearSDL < 2)
                     {
                         reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (fi.ExsNearSDH < 2)
+                    } else if (fi.exsNearSDH < 2)
                     {
                         reason += "Недостаточно вершин сверху возле СКО. ";
                     }
@@ -122,15 +122,15 @@ namespace Lua
                 }
                 case Trend.Neutral:
                 {
-                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.Median))
+                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.average))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
 
-                    if (fi.ExsNearSDL < 2)
+                    if (fi.exsNearSDL < 2)
                     {
                         reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (fi.ExsNearSDH < 2)
+                    } else if (fi.exsNearSDH < 2)
                     {
                         reason += "Недостаточно вершин сверху возле СКО. ";
                     }

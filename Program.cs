@@ -12,7 +12,7 @@ namespace Lua
         /// В документации указано, что это делают в каждом классе программы
         /// </summary>
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        static void Main()
+        private static void Main()
         {
             logger.Trace("\nProgram has started...");
             

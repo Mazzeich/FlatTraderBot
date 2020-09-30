@@ -38,7 +38,12 @@ namespace Lua
 
         public List<Bounds> ApertureBounds => apertureBounds;
 
-        public HistoricalFlatFinder(List<_CandleStruct> candles)
+        private HistoricalFlatFinder()
+        {
+            logger.Trace("\n[HistoricalFlatFinder] initialized");
+        }
+
+        public HistoricalFlatFinder(List<_CandleStruct> candles) : this()
         {
             globalCandles = candles;
 
@@ -52,6 +57,8 @@ namespace Lua
 
         private void FindAllFlats()
         {
+            logger.Trace("[FindAllFlats] invoked");
+            
             overallAddedCandles = 0;
             step = 0;
 
@@ -73,7 +80,7 @@ namespace Lua
 
                 flatIdentifier.Identify();
                 // Если не нашли боковик сходу
-                if (flatIdentifier.IsFlat == false)
+                if (flatIdentifier.isFlat == false)
                 {
                     // Двигаем окно в следующую позицию
                     Printer printer = new Printer(flatIdentifier);
@@ -82,7 +89,7 @@ namespace Lua
                     continue;
                 }
                 
-                while (flatIdentifier.IsFlat)
+                while (flatIdentifier.isFlat)
                 {                
                     Printer printer  = new Printer(flatIdentifier);
                     localAddedCandles++;
@@ -90,7 +97,7 @@ namespace Lua
                     ExpandAperture(localAddedCandles);
                     flatIdentifier.Identify();
                     
-                    if (!flatIdentifier.IsFlat)
+                    if (!flatIdentifier.isFlat)
                     {
                         printer.WhyIsNotFlat(aperture[0], aperture[^1]);
                         flatsFound++;
