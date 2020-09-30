@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NLog;
-// ReSharper disable InconsistentNaming
 
 namespace Lua
 {
@@ -10,6 +9,7 @@ namespace Lua
     /// Класс, реализующий определение бокового движения в заданном интервале свечей
     /// </summary>
     [SuppressMessage("ReSharper", "CommentTypo")]
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class FlatIdentifier
     {
         /// <summary>
@@ -97,32 +97,38 @@ namespace Lua
         private void GetGlobalExtremumsAndAverage()
         {
             logger.Trace("Calculating global extremums and average of current aperture");
-
-            gMax = double.NegativeInfinity;
-            for (int i = 0; i < candles.Count; i++)
-            {
-                average += candles[i].high;
-                if (gMax < candles[i].high)
-                {
-                    gMax = candles[i].high;
-                    idxGmax = i;
-                }
-            }
-
+            
+            average = 0;
+            double averageMinis = 0;
+            double averageMaxes = 0;
+            
             gMin = double.PositiveInfinity;
             for (int i = 0; i < candles.Count; i++)
             {
-                average += candles[i].low;
+                averageMinis += candles[i].low;
                 if (gMin > candles[i].low)
                 {
                     gMin = candles[i].low;
                     idxGmin = i;
                 }
             }
+            averageMinis /= candles.Count;
 
-            average /= candles.Count;
+            gMax = double.NegativeInfinity;
+            for (int i = 0; i < candles.Count; i++)
+            {
+                averageMaxes += candles[i].high;
+                if (gMax < candles[i].high)
+                {
+                    gMax = candles[i].high;
+                    idxGmax = i;
+                }
+            }
+            averageMaxes /= candles.Count;
+
+            average = (averageMinis + averageMaxes) * 0.5;
             
-            logger.Trace("GEaM found");
+            logger.Trace("GEaA found|\t[gMin] = {0} [gMax] = {1} [average] = {2}", gMin, gMax, average);
         }
 
         /// <summary>
@@ -226,7 +232,7 @@ namespace Lua
         /// <param name="standartDeviation">Среднеквадратическое отклонение</param>
         private void EstimateExtremumsNearSD(double _average, double standartDeviation)
         {
-            logger.Trace("Counting extremums near standart deviations");
+            logger.Trace("Counting extremums near standart deviations...");
             double rangeToReachSD = _average * _Constants.SDOffset;
 
             //Console.Write("[Попавшие в low индексы]: ");

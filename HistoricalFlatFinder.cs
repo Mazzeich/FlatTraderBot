@@ -18,12 +18,7 @@ namespace Lua
         private readonly List<_CandleStruct> globalCandles;
         
         private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
-        private List<Bounds> apertureBounds = new List<Bounds>();
 
-        /// <summary>
-        /// Сколько боковиков было найдено
-        /// </summary>
-        private int flatsFound;
         /// <summary>
         /// Сколько всего было добавлено свечей к окну
         /// </summary>
@@ -33,10 +28,13 @@ namespace Lua
         /// </summary>
         private int step;
 
-        
-        public int FlatsFound => flatsFound;
 
-        public List<Bounds> ApertureBounds => apertureBounds;
+        /// <summary>
+        /// Сколько боковиков было найдено
+        /// </summary>
+        public int FlatsFound { get; private set; }
+
+        public List<Bounds> ApertureBounds { get; } = new List<Bounds>();
 
         private HistoricalFlatFinder()
         {
@@ -100,13 +98,13 @@ namespace Lua
                     if (!flatIdentifier.isFlat)
                     {
                         printer.WhyIsNotFlat(aperture[0], aperture[^1]);
-                        flatsFound++;
+                        FlatsFound++;
                         overallAddedCandles += localAddedCandles;
 
                         logger.Trace("+1 боковик!");
                         aperture.RemoveAt(aperture.Count - 1);
                         Bounds bounds = flatIdentifier.SetBounds(aperture[0], aperture[^1]);
-                        apertureBounds.Add(bounds);
+                        ApertureBounds.Add(bounds);
                         flatIdentifier.candles = aperture;
                         flatIdentifier.Identify();
                         printer.OutputApertureInfo();
