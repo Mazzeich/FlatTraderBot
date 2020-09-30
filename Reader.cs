@@ -75,6 +75,7 @@ namespace Lua
                 temp.close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
                 temp.avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
                 temp.date  = "";
+                temp.time  = "";
 
                 candleStruct.Add(temp);
             }
@@ -86,7 +87,7 @@ namespace Lua
         public List<_CandleStruct> GetHistoricalData()
         {
             logger.Trace("[GetHistoricalData invoked]");
-            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataSBER.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataSberUnitTesting.csv");
 
             using StreamReader streamReader = new StreamReader(pathHistoricalData);
             using CsvReader csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
@@ -104,7 +105,8 @@ namespace Lua
                 temp.high = csvReader.GetField<double>("<HIGH>");
                 temp.close = csvReader.GetField<double>("<CLOSE>");
                 temp.avg = (temp.high + temp.low) * 0.5;
-                temp.date = csvReader.GetField<string>("<DATE>") + csvReader.GetField<string>("<TIME>");
+                temp.date = csvReader.GetField<string>("<DATE>");
+                temp.time = csvReader.GetField<string>("<TIME>");
 
                 candleStruct.Add(temp);
             }

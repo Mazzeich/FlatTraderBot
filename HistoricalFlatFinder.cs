@@ -107,7 +107,7 @@ namespace Lua
                         ApertureBounds.Add(bounds);
                         flatIdentifier.candles = aperture;
                         flatIdentifier.Identify();
-                        printer.OutputApertureInfo();
+                        printer.OutputApertureInfo(aperture[0], aperture[^1]);
                         // Двигаем окно в следующую позицию
                         MoveAperture(overallAddedCandles - 1);
                     }

@@ -30,8 +30,10 @@ namespace Lua
             historicalFlatFinder = historicalFf;
         }
 
-        public void OutputApertureInfo()
+        public void OutputApertureInfo(_CandleStruct leftBound, _CandleStruct rightBound)
         {
+            logger.Trace("Окно {0} с {1} по {2}", leftBound.date, leftBound.time, rightBound.time);
+
             logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]\n", flatIdentifier.gMin, flatIdentifier.idxGmin + 1, flatIdentifier.gMax, flatIdentifier.idxGmax + 1);
             logger.Trace("[k] = {0}\n", flatIdentifier.k);
             logger.Trace("[average] = {0}\n", flatIdentifier.average);
@@ -80,7 +82,7 @@ namespace Lua
         public void WhyIsNotFlat(_CandleStruct leftBound, _CandleStruct rightBound)
         {
             string reason = "";
-            logger.Trace("Окно с {0} по {1}", leftBound.date, rightBound.date);
+            logger.Trace("Окно {0} с {1} по {2}", leftBound.date, leftBound.time, rightBound.time);
             logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
 
             
@@ -144,11 +146,21 @@ namespace Lua
 
         public void OutputHistoricalInfo()
         {
-            logger.Trace("Боковиков найдено: {0}", historicalFlatFinder.FlatsFound);
-            logger.Trace("Боковики определены в: ");
-            for (int i = 0; i < historicalFlatFinder.ApertureBounds.Count; i++)
+            if (historicalFlatFinder != null)
             {
-                logger.Trace("[{0}]\t[{1}]", historicalFlatFinder.ApertureBounds[i].left.date, historicalFlatFinder.ApertureBounds[i].right.date);
+                logger.Trace("Боковиков найдено: {0}", historicalFlatFinder.FlatsFound);
+                logger.Trace("Боковики определены в: ");
+                for (int i = 0; i < historicalFlatFinder.ApertureBounds.Count; i++)
+                {
+                    logger.Trace("[{0}]\tс [{1}] по [{2}]",
+                        historicalFlatFinder.ApertureBounds[i].left.date,
+                        historicalFlatFinder.ApertureBounds[i].left.time,
+                        historicalFlatFinder.ApertureBounds[i].right.time);
+                }
+            }
+            else
+            {
+                logger.Debug("[Printer.OutputHistoricalInfo().historicalFlatFinder] == null");
             }
         }
     }
