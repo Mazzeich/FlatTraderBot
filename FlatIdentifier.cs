@@ -68,23 +68,18 @@ namespace Lua
             
             isFlat = false;
             
-            lowInfo  = GlobalExtremumsAndMedian(false);
-            highInfo = GlobalExtremumsAndMedian(true);
-            gMin = lowInfo.Item1;
-            gMax = highInfo.Item1;
-            idxGmin = lowInfo.Item2;
-            idxGmax = highInfo.Item2;
-            average = (highInfo.Item3 + lowInfo.Item3) * 0.5;
+            GetGlobalExtremumsAndAverage();
+
             flatWidth = gMax - gMin;
 
             k = FindK();
 
-            (double low, double high) = StandartDeviation(average);
+            (double low, double high) = GetStandartDeviation(average);
             SDL = low;
             SDH = high;
 
-            ExtremumsNearSD(average, SDL);
-            ExtremumsNearSD(average, SDH);
+            EstimateExtremumsNearSD(average, SDL);
+            EstimateExtremumsNearSD(average, SDH);
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
@@ -112,43 +107,35 @@ namespace Lua
         /// <param name="onHigh">true - ищем по high, false - по low</param>
         /// <returns></returns>
         // ReSharper disable once InconsistentNaming
-        private (double, int, double) GlobalExtremumsAndMedian(bool onHigh)
+        private void GetGlobalExtremumsAndAverage()
         {
-            logger.Trace("Calculating global extremums and average of current aperture. [onHigh] = {0}", onHigh);
-            double globalExtremum;
-            double med = 0;
-            int index = 0;
+            logger.Trace("Calculating global extremums and average of current aperture");
 
-            if (onHigh)
+            gMax = double.NegativeInfinity;
+            for (int i = 0; i < candles.Count; i++)
             {
-                globalExtremum = double.NegativeInfinity;
-                for (int i = 0; i < candles.Count; i++)
+                average += candles[i].high;
+                if (gMax < candles[i].high)
                 {
-                    med += candles[i].high;
-                    if (globalExtremum < candles[i].high)
-                    {
-                        globalExtremum = candles[i].high;
-                        index = i;
-                    }
+                    gMax = candles[i].high;
+                    idxGmax = i;
                 }
             }
-            else
+
+            gMin = double.PositiveInfinity;
+            for (int i = 0; i < candles.Count; i++)
             {
-                globalExtremum = double.PositiveInfinity;
-                for (int i = 0; i < candles.Count; i++)
+                average += candles[i].low;
+                if (gMin > candles[i].low)
                 {
-                    med += candles[i].low;
-                    if (globalExtremum > candles[i].low)
-                    {
-                        globalExtremum = candles[i].low;
-                        index = i;
-                    }
+                    gMin = candles[i].low;
+                    idxGmin = i;
                 }
             }
-            med /= candles.Count;
-            logger.Trace("GEaM found. [onHigh] = {0}", onHigh);
 
-            return (globalExtremum, index, med);
+            average /= candles.Count;
+            
+            logger.Trace("GEaM found");
         }
 
         /// <summary>
@@ -218,7 +205,7 @@ namespace Lua
         /// </summary>
         /// <param name="_median">Скользящая средняя</param>
         /// <returns>double SDLow, double SDHigh</returns>
-        private (double, double) StandartDeviation(double _median)
+        private (double, double) GetStandartDeviation(double _median)
         {
             logger.Trace("Calculation standart deviations in current aperture...");
             double sumLow = 0;
@@ -253,8 +240,7 @@ namespace Lua
         /// </summary>
         /// <param name="_average">Скользящая средняя</param>
         /// <param name="standartDeviation">Среднеквадратическое отклонение</param>
-        /// <returns></returns>
-        private void ExtremumsNearSD(double _average, double standartDeviation)
+        private void EstimateExtremumsNearSD(double _average, double standartDeviation)
         {
             logger.Trace("Counting extremums near standart deviations");
             double rangeToReachSD = _average * _Constants.SDOffset;
