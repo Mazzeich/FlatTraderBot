@@ -13,8 +13,8 @@ namespace Lua
         // С другой стороны, логгер не должен инициализировать в классе. Это затратно
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
         
-        private readonly FlatIdentifier fi;
-        private readonly HistoricalFlatFinder hFf;
+        private readonly FlatIdentifier flatIdentifier;
+        private readonly HistoricalFlatFinder historicalFlatFinder;
 
         private Printer()
         {
@@ -22,46 +22,46 @@ namespace Lua
         }
         public Printer(FlatIdentifier flatIdentifier) : this()
         {
-            fi = flatIdentifier;
+            this.flatIdentifier = flatIdentifier;
         }
 
         public Printer(HistoricalFlatFinder historicalFf) : this()
         {
-            hFf = historicalFf;
+            historicalFlatFinder = historicalFf;
         }
 
         public void OutputApertureInfo()
         {
-            logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]\n", fi.gMin, fi.idxGmin + 1, fi.gMax, fi.idxGmax + 1);
-            logger.Trace("[k] = {0}\n", fi.k);
-            logger.Trace("[average] = {0}\n", fi.average);
-            logger.Trace("[candles.Count] = {0}\n", fi.candles.Count);
-            logger.Trace("[SDL] = {0}\t\t[SDH] = {1}\n", fi.SDL, fi.SDH);
-            logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}\n", fi.exsNearSDL, fi.exsNearSDH);
-            logger.Trace("[Границы окна]: [{0}]\t[{1}]\n", fi.FlatBounds.left.date, fi.FlatBounds.right.date);
+            logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]\n", flatIdentifier.gMin, flatIdentifier.idxGmin + 1, flatIdentifier.gMax, flatIdentifier.idxGmax + 1);
+            logger.Trace("[k] = {0}\n", flatIdentifier.k);
+            logger.Trace("[average] = {0}\n", flatIdentifier.average);
+            logger.Trace("[candles.Count] = {0}\n", flatIdentifier.candles.Count);
+            logger.Trace("[SDL] = {0}\t\t[SDH] = {1}\n", flatIdentifier.SDL, flatIdentifier.SDH);
+            logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}\n", flatIdentifier.exsNearSDL, flatIdentifier.exsNearSDH);
+            logger.Trace("[Границы окна]: [{0}]\t[{1}]\n", flatIdentifier.FlatBounds.left.date, flatIdentifier.FlatBounds.right.date);
             
-            switch (fi.trend)
+            switch (flatIdentifier.trend)
             {
                 case Trend.Down:
                 {
-                    logger.Trace("[Ширина коридора] = {0}\t", fi.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.average);
+                    logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
+                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * flatIdentifier.average);
                     logger.Trace("Аппроксимирующая линия имеет сильный убывающий тренд\n");
                     break;
                 }
                 case Trend.Up:
                 {
-                    logger.Trace("[Ширина коридора] = {0}\t", fi.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.average);
+                    logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
+                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * flatIdentifier.average);
                     logger.Trace("Аппроксимирующая линия имеет сильный возрастающий тренд\n");
                     break;
                 }
                 case Trend.Neutral:
                 {
-                    logger.Trace("[Ширина коридора] = {0}\t", fi.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * fi.average);
+                    logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
+                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * flatIdentifier.average);
                     logger.Trace("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный\n");
-                    if (fi.isFlat)
+                    if (flatIdentifier.isFlat)
                     {
                         logger.Trace("Цена, вероятно, формирует боковик...\n");
                     }
@@ -71,7 +71,7 @@ namespace Lua
                     break;
             }
 
-            if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.average))
+            if ((flatIdentifier.flatWidth) < (_Constants.MinWidthCoeff * flatIdentifier.average))
             {
                 logger.Trace("Боковик слишком узок\n");
             }
@@ -84,20 +84,20 @@ namespace Lua
             logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
 
             
-            switch (fi.trend)
+            switch (flatIdentifier.trend)
             {
                 case Trend.Down:
                 {
                     reason += "Нисходящий тренд. ";
-                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.average))
+                    if ((flatIdentifier.flatWidth) < (_Constants.MinWidthCoeff * flatIdentifier.average))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
 
-                    if (fi.exsNearSDL < 2)
+                    if (flatIdentifier.exsNearSDL < 2)
                     {
                         reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (fi.exsNearSDH < 2)
+                    } else if (flatIdentifier.exsNearSDH < 2)
                     {
                         reason += "Недостаточно вершин сверху возле СКО. ";
                     }
@@ -106,15 +106,15 @@ namespace Lua
                 case Trend.Up:
                 {
                     reason += "Восходящий тренд. ";
-                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.average))
+                    if ((flatIdentifier.flatWidth) < (_Constants.MinWidthCoeff * flatIdentifier.average))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
 
-                    if (fi.exsNearSDL < 2)
+                    if (flatIdentifier.exsNearSDL < 2)
                     {
                         reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (fi.exsNearSDH < 2)
+                    } else if (flatIdentifier.exsNearSDH < 2)
                     {
                         reason += "Недостаточно вершин сверху возле СКО. ";
                     }
@@ -122,15 +122,15 @@ namespace Lua
                 }
                 case Trend.Neutral:
                 {
-                    if ((fi.flatWidth) < (_Constants.MinWidthCoeff * fi.average))
+                    if ((flatIdentifier.flatWidth) < (_Constants.MinWidthCoeff * flatIdentifier.average))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
 
-                    if (fi.exsNearSDL < 2)
+                    if (flatIdentifier.exsNearSDL < 2)
                     {
                         reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (fi.exsNearSDH < 2)
+                    } else if (flatIdentifier.exsNearSDH < 2)
                     {
                         reason += "Недостаточно вершин сверху возле СКО. ";
                     }
@@ -144,11 +144,11 @@ namespace Lua
 
         public void OutputHistoricalInfo()
         {
-            logger.Trace("Боковиков найдено: {0}", hFf.FlatsFound);
+            logger.Trace("Боковиков найдено: {0}", historicalFlatFinder.FlatsFound);
             logger.Trace("Боковики определены в: ");
-            for (int i = 0; i < hFf.ApertureBounds.Count; i++)
+            for (int i = 0; i < historicalFlatFinder.ApertureBounds.Count; i++)
             {
-                logger.Trace("[{0}]\t[{1}]", hFf.ApertureBounds[i].left.date, hFf.ApertureBounds[i].right.date);
+                logger.Trace("[{0}]\t[{1}]", historicalFlatFinder.ApertureBounds[i].left.date, historicalFlatFinder.ApertureBounds[i].right.date);
             }
         }
     }
