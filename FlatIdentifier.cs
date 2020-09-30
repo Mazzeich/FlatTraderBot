@@ -96,7 +96,7 @@ namespace Lua
         /// </summary>
         private void GetGlobalExtremumsAndAverage()
         {
-            logger.Trace("Calculating global extremums and average of current aperture");
+            logger.Trace("Calculating global extremums and [average] of current aperture");
             
             average = 0;
             double averageMinis = 0;
@@ -128,7 +128,7 @@ namespace Lua
 
             average = (averageMinis + averageMaxes) * 0.5;
             
-            logger.Trace("GEaA found|\t[gMin] = {0} [gMax] = {1} [average] = {2}", gMin, gMax, average);
+            logger.Trace("Global extremums and [average] calculated.\t[gMin] = {0} [gMax] = {1} [average] = {2}", gMin, gMax, average);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Lua
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
         private void FindK()
         {
-            logger.Trace("Finding k...");
+            logger.Trace("Finding [k]...");
             int n = candles.Count; 
 
             double sumX = 0;
@@ -155,7 +155,7 @@ namespace Lua
             
             k = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
             
-            logger.Trace("k found. k = {0}", k);
+            logger.Trace("[k] found. [k] = {0}", k);
         }
         
         /// <summary>
@@ -166,7 +166,7 @@ namespace Lua
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
         private void FindKWithoutPhase()
         {
-            logger.Trace("Finding k without phase candles...");
+            logger.Trace("Finding [k] without phase candles...");
 
             // Не учитывать первые и последние несколько свечей
             int phaseCandlesNum = (int)(candles.Count * _Constants.PhaseCandlesCoeff);
@@ -187,7 +187,7 @@ namespace Lua
             
             k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
             
-            logger.Trace("k found");
+            logger.Trace("[k] found. [k] = {0}", k);
         }
 
         /// <summary>
@@ -233,6 +233,9 @@ namespace Lua
         private void EstimateExtremumsNearSD(double _average, double standartDeviation)
         {
             logger.Trace("Counting extremums near standart deviations...");
+
+            exsNearSDL = 0;
+            exsNearSDH = 0;
             double rangeToReachSD = _average * _Constants.SDOffset;
 
             //Console.Write("[Попавшие в low индексы]: ");
