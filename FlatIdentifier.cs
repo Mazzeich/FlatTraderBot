@@ -72,7 +72,7 @@ namespace Lua
 
             flatWidth = gMax - gMin;
 
-            k = FindK();
+            FindK();
 
             (double low, double high) = GetStandartDeviation(average);
             SDL = low;
@@ -104,9 +104,6 @@ namespace Lua
         /// <summary>
         /// Функция поиска глобальных экстремумов в массиве структур свечей
         /// </summary>
-        /// <param name="onHigh">true - ищем по high, false - по low</param>
-        /// <returns></returns>
-        // ReSharper disable once InconsistentNaming
         private void GetGlobalExtremumsAndAverage()
         {
             logger.Trace("Calculating global extremums and average of current aperture");
@@ -142,10 +139,9 @@ namespace Lua
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private double FindK()
+        private void FindK()
         {
             logger.Trace("Finding k...");
-            double k = 0;
             int n = candles.Count; 
 
             double sumX = 0;
@@ -160,10 +156,10 @@ namespace Lua
                 sumXsquared += i * i;
                 sumXY += i * candles[i].avg;
             }
+            
             k = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
+            
             logger.Trace("k found. k = {0}", k);
-
-            return k;
         }
         
         /// <summary>
@@ -172,10 +168,9 @@ namespace Lua
         /// Нужно для определения текущего тренда по инструменту
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private double FindKWithoutPhase()
+        private void FindKWithoutPhase()
         {
             logger.Trace("Finding k without phase candles...");
-            double k = 0;
 
             // Не учитывать первые и последние несколько свечей
             int phaseCandlesNum = (int)(candles.Count * _Constants.PhaseCandlesCoeff);
@@ -193,10 +188,10 @@ namespace Lua
                 sx2 += i * i;
                 sxy += i * candles[i].avg;
             }
+            
             k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
+            
             logger.Trace("k found");
-
-            return k;
         }
 
         /// <summary>
