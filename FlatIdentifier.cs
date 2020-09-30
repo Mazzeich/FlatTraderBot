@@ -19,15 +19,7 @@ namespace Lua
         /// <summary>
         /// Массив структур свечей
         /// </summary>
-        public  List<_CandleStruct> candles = new List<_CandleStruct>();
-        /// <summary>
-        /// Минимум, его индекс, среднее по лоу
-        /// </summary>
-        private (double, int, double) lowInfo;
-        /// <summary>
-        /// Максимум, его индекс, среднее по хай
-        /// </summary>
-        private (double, int, double) highInfo;
+        public List<_CandleStruct> candles;
 
         private Bounds flatBounds;// Границы начала и конца найденного боковика
         
@@ -42,14 +34,11 @@ namespace Lua
         public double SDH { get; private set; }
         public int exsNearSDL { get; private set; }
         public int exsNearSDH { get; private set; }
-
         public Bounds FlatBounds => flatBounds;
-
         /// <summary>
         /// Действительно ли мы нашли боковик в заданном окне
         /// </summary>
         public bool isFlat { get; private set; }
-
         /// <summary>
         /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
         /// </summary>
@@ -74,10 +63,10 @@ namespace Lua
 
             FindK();
 
-            (double low, double high) = GetStandartDeviation(average);
+            (double low, double high) = GetStandartDeviation();
             SDL = low;
             SDH = high;
-
+            
             EstimateExtremumsNearSD(average, SDL);
             EstimateExtremumsNearSD(average, SDH);
             
@@ -98,6 +87,7 @@ namespace Lua
                 trend = Trend.Up;
                 isFlat = false;
             }
+            
             logger.Trace("[Identify] finished");
         }
 
@@ -198,9 +188,8 @@ namespace Lua
         /// Функция находит среднеквадратическое отклонение свечей тех, что ниже среднего, 
         /// и тех, что выше внутри коридора
         /// </summary>
-        /// <param name="_median">Скользящая средняя</param>
         /// <returns>double SDLow, double SDHigh</returns>
-        private (double, double) GetStandartDeviation(double _median)
+        private (double, double) GetStandartDeviation()
         {
             logger.Trace("Calculation standart deviations in current aperture...");
             double sumLow = 0;
@@ -212,22 +201,22 @@ namespace Lua
 
             for (int i = 0; i < candles.Count - 1; i++)
             {
-                if ((candles[i].low) <= (_median - _Constants.KOffset)) // `_average - _Constants.KOffset` ??? 
+                if ((candles[i].low) <= (average - _Constants.KOffset)) // `_average - _Constants.KOffset` ??? 
                 {
-                    sumLow += Math.Pow(_median - candles[i].low, 2);
+                    sumLow += Math.Pow(average - candles[i].low, 2);
                     lowsCount++;
                 }
-                else if ((candles[i].high) >= (_median + _Constants.KOffset))
+                else if ((candles[i].high) >= (average + _Constants.KOffset))
                 {
-                    sumHigh += Math.Pow(candles[i].high - _median, 2);
+                    sumHigh += Math.Pow(candles[i].high - average, 2);
                     highsCount++;
                 }
             }
             double SDLow = Math.Sqrt(sumLow / lowsCount);
             double SDHigh = Math.Sqrt(sumHigh / highsCount);
-            logger.Trace("Standart deviations calculated. SDlow = {0} | SDhigh = {1}", _median - SDLow, _median + SDHigh);
+            logger.Trace("Standart deviations calculated. SDlow = {0} | SDhigh = {1}", average - SDLow, average + SDHigh);
 
-            return (_median - SDLow, _median + SDHigh);
+            return (average - SDLow, average + SDHigh);
         }
 
         /// <summary>
@@ -244,8 +233,8 @@ namespace Lua
             for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
             {
                 if (Math.Abs(candles[i].low - standartDeviation) <= rangeToReachSD &&
-                    candles[i].low <= candles[i - 1].low && candles[i].low <= candles[i - 2].low &&
-                    candles[i].low <= candles[i + 1].low && candles[i].low <= candles[i + 2].low)
+                    candles[i].low <= candles[i-1].low && candles[i].low <= candles[i-2].low &&
+                    candles[i].low <= candles[i+1].low && candles[i].low <= candles[i+2].low)
                 {
                     //Console.Write("{0}({1}) ", cdls[i].low, i + 1);
                     exsNearSDL++;
@@ -261,8 +250,8 @@ namespace Lua
             for (int i = 2; i < candles.Count - 2; i++)
             {
                 if (Math.Abs(candles[i].high - standartDeviation) <= rangeToReachSD &&
-                    candles[i].high >= candles[i - 1].high && candles[i].high >= candles[i - 2].high &&
-                    candles[i].high >= candles[i + 1].high && candles[i].high >= candles[i + 2].high)
+                    candles[i].high >= candles[i-1].high && candles[i].high >= candles[i-2].high &&
+                    candles[i].high >= candles[i+1].high && candles[i].high >= candles[i+2].high)
                 {
                     //Console.Write("{0}({1}) ", cdls[i].high, i + 1);
                     exsNearSDH++;
@@ -271,8 +260,7 @@ namespace Lua
                     candles[i] = temp;
                 }
             }
-                
-
+            
             //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
             //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
             
