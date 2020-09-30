@@ -1,6 +1,9 @@
-public enum Trend : int
+namespace Lua
 {
-    Down = -1,
-    Neutral = 0, 
-    Up = 1
+    public enum Trend : int
+    {
+        Down = -1,
+        Neutral = 0, 
+        Up = 1
+    }
 }
