@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 
 // ReSharper disable CommentTypo
@@ -18,16 +19,6 @@ namespace Lua
         private readonly List<_CandleStruct> globalCandles;
         
         private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
-
-        /// <summary>
-        /// Сколько всего было добавлено свечей к окну
-        /// </summary>
-        private int overallAddedCandles;
-        /// <summary>
-        /// На каком шаге сейчас находимся
-        /// </summary>
-        private int step;
-
 
         /// <summary>
         /// Сколько боковиков было найдено
@@ -55,91 +46,73 @@ namespace Lua
 
         private void FindAllFlats()
         {
-            logger.Trace("[FindAllFlats] invoked");
-            
-            overallAddedCandles = 0;
-            step = 0;
-
-            int localAddedCandles = 0;
-
-            for (int i = 0; i < globalCandles.Count - _Constants.NAperture - localAddedCandles - 1; i += _Constants.NAperture + localAddedCandles)
+            for (int i = 0; i < globalCandles.Count;)
             {
-                step++;
-                localAddedCandles = 0;
-                logger.Trace("[i] = {0}\t\t[aperture.Count] = {1}", i , aperture.Count);
-                
-                // Если в конце осталось меньше свечей, чем вмещает окно
-                if (globalCandles.Count - (_Constants.NAperture * step) + overallAddedCandles <= _Constants.NAperture)
-                {
-                    break;
-                }
+                MoveAperture(i); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
+
+                int localAddedCandles = 1;
+                if (globalCandles.Count - i < _Constants.NAperture - 1) break;
 
                 FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
-
-                flatIdentifier.Identify();
-                // Если не нашли боковик сходу
-                if (flatIdentifier.isFlat == false)
+                flatIdentifier.Identify(); // Определяем начальное окно
+                
+                // Если не определили боковик сходу
+                if (!flatIdentifier.isFlat)
                 {
-                    // Двигаем окно в следующую позицию
-                    Printer printer = new Printer(flatIdentifier);
-                    printer.WhyIsNotFlat(aperture[0], aperture[^1]);
-                    MoveAperture(overallAddedCandles);
+                    i++;
+                    MoveAperture(i);
                     continue;
                 }
-                
+
                 while (flatIdentifier.isFlat)
-                {                
-                    Printer printer  = new Printer(flatIdentifier);
-                    localAddedCandles++;
-                    // Расширяем окно
-                    ExpandAperture(localAddedCandles);
+                {
                     flatIdentifier.Identify();
-                    
+                    localAddedCandles++;
+                    ExpandAperture(i);
                     if (!flatIdentifier.isFlat)
                     {
-                        printer.WhyIsNotFlat(aperture[0], aperture[^1]);
                         FlatsFound++;
-                        overallAddedCandles += localAddedCandles;
-
-                        logger.Trace("+1 боковик!");
-                        aperture.RemoveAt(aperture.Count - 1);
-                        Bounds bounds = flatIdentifier.SetBounds(aperture[0], aperture[^1]);
-                        ApertureBounds.Add(bounds);
-                        flatIdentifier.candles = aperture;
-                        flatIdentifier.Identify();
-                        printer.OutputApertureInfo(aperture[0], aperture[^1]);
-                        // Двигаем окно в следующую позицию
-                        MoveAperture(overallAddedCandles - 1);
+                        logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
+                            flatIdentifier.FlatBounds.left.date,
+                            flatIdentifier.FlatBounds.left.time,
+                            flatIdentifier.FlatBounds.right.time);
                     }
                 }
 
+                i += localAddedCandles;
             }
         }
-
+        
         /// <summary>
-        /// Функция перемещения окна в следующую позицию
+        /// Перемещает окно в следующую позицию (переинициализирует в следующем интервале)
         /// </summary>
-        /// <param name="candlesToAdd">Всего свечей, которые были добавлены ранее</param>
-        private void MoveAperture(int candlesToAdd)
+        /// <param name="i">Начальный индекс, с которого будет начинать новое окно на + _Constants.NAperture</param>
+        private void MoveAperture(int i)
         {
-            logger.Trace("[MoveAperture()]");
+            //logger.Trace("[MoveAperture()]");
             aperture.Clear();
-            
-            int startPosition = (_Constants.NAperture * step) + candlesToAdd + 1;
-            for (int i = startPosition; i < startPosition + _Constants.NAperture; i++)
+
+            try
             {
-                aperture.Add(globalCandles[i]);
+                for (int j = i; j < i + _Constants.NAperture; j++)
+                {
+                    aperture.Add(globalCandles[j]);
+                }
+            }
+            catch (Exception exception)
+            {
+                logger.Trace(exception);
             }
         }
 
         /// <summary>
-        /// Функция расширения окна на 
+        /// Расширяет окно на 1 свечу
         /// </summary>
-        /// <param name="addedCandlesToAperture">Количество свечей, добавленных на текущем шаге</param>
-        private void ExpandAperture(int addedCandlesToAperture)
+        /// <param name="i">Начальный индекс, с которого расширять на + (aperture.Count + 1)</param>
+        private void ExpandAperture(int i)
         {
-            aperture.Add(globalCandles[_Constants.NAperture * step + overallAddedCandles + addedCandlesToAperture + 1]);
-            logger.Trace("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
+            aperture.Add(globalCandles[i + aperture.Count + 1]);
+            //logger.Trace("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
         }
     }
 }
