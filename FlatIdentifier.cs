@@ -54,6 +54,8 @@ namespace Lua
         public void Identify()
         {
             logger.Trace("[Identify] started");
+            flatBounds = SetBounds(candles[0], candles[^1]);
+            logger.Trace("[{0}]: Окно с {1} по {2}", flatBounds.left.date, flatBounds.left.time, flatBounds.right.time);
             
             isFlat = false;
             
@@ -61,6 +63,7 @@ namespace Lua
 
             flatWidth = gMax - gMin;
 
+            // Вычисляем поле k
             FindK();
 
             (double low, double high) = GetStandartDeviation();
@@ -88,7 +91,7 @@ namespace Lua
                 isFlat = false;
             }
             
-            logger.Trace("[Identify] finished");
+            logger.Trace("isFlat = {0}\n[Identify] finished", isFlat);
         }
 
         /// <summary>
@@ -281,7 +284,7 @@ namespace Lua
             logger.Trace("Setting bounds...");
             flatBounds.left = left;
             flatBounds.right = right;
-            logger.Trace("Bounds set");
+            logger.Trace("Bounds set: [{0}] [{1}]", flatBounds.left.time, flatBounds.right.time);
             return FlatBounds;
         }
     }

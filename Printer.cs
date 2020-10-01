@@ -34,35 +34,35 @@ namespace Lua
         {
             logger.Trace("Окно {0} с {1} по {2}", leftBound.date, leftBound.time, rightBound.time);
 
-            logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]\n", flatIdentifier.gMin, flatIdentifier.idxGmin + 1, flatIdentifier.gMax, flatIdentifier.idxGmax + 1);
-            logger.Trace("[k] = {0}\n", flatIdentifier.k);
-            logger.Trace("[average] = {0}\n", flatIdentifier.average);
-            logger.Trace("[candles.Count] = {0}\n", flatIdentifier.candles.Count);
-            logger.Trace("[SDL] = {0}\t\t[SDH] = {1}\n", flatIdentifier.SDL, flatIdentifier.SDH);
-            logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}\n", flatIdentifier.exsNearSDL, flatIdentifier.exsNearSDH);
-            logger.Trace("[Границы окна]: [{0}]\t[{1}]\n", flatIdentifier.FlatBounds.left.date, flatIdentifier.FlatBounds.right.date);
+            logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", flatIdentifier.gMin, flatIdentifier.idxGmin + 1, flatIdentifier.gMax, flatIdentifier.idxGmax + 1);
+            logger.Trace("[k] = {0}", flatIdentifier.k);
+            logger.Trace("[average] = {0}", flatIdentifier.average);
+            logger.Trace("[candles.Count] = {0}", flatIdentifier.candles.Count);
+            logger.Trace("[SDL] = {0}\t\t[SDH] = {1}", flatIdentifier.SDL, flatIdentifier.SDH);
+            logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", flatIdentifier.exsNearSDL, flatIdentifier.exsNearSDH);
+            logger.Trace("[Границы окна]: [{0}]\t[{1}]", flatIdentifier.FlatBounds.left.date, flatIdentifier.FlatBounds.right.date);
             
             switch (flatIdentifier.trend)
             {
                 case Trend.Down:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * flatIdentifier.average);
-                    logger.Trace("Аппроксимирующая линия имеет сильный убывающий тренд\n");
+                    logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.average);
+                    logger.Trace("Аппроксимирующая линия имеет сильный убывающий тренд");
                     break;
                 }
                 case Trend.Up:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * flatIdentifier.average);
+                    logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.average);
                     logger.Trace("Аппроксимирующая линия имеет сильный возрастающий тренд\n");
                     break;
                 }
                 case Trend.Neutral:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
-                    logger.Trace("[Минимальная ширина коридора] = {0}\n", _Constants.MinWidthCoeff * flatIdentifier.average);
-                    logger.Trace("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный\n");
+                    logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.average);
+                    logger.Trace("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный");
                     if (flatIdentifier.isFlat)
                     {
                         logger.Trace("Цена, вероятно, формирует боковик...\n");
