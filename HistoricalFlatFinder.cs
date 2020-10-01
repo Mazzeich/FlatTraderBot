@@ -48,27 +48,28 @@ namespace Lua
         {
             for (int i = 0; i < globalCandles.Count;)
             {
-                MoveAperture(i);
+                MoveAperture(i); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
 
-                int localAddedCandles = 0;
+                int localAddedCandles = 1;
                 if (globalCandles.Count - i < _Constants.NAperture - 1) break;
 
                 FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
-                flatIdentifier.Identify();
+                flatIdentifier.Identify(); // Определяем начальное окно
+                
                 // Если не определили боковик сходу
-                if (flatIdentifier.isFlat == false)
+                if (!flatIdentifier.isFlat)
                 {
                     i++;
                     MoveAperture(i);
                     continue;
                 }
 
-                while (flatIdentifier.isFlat == true)
+                while (flatIdentifier.isFlat)
                 {
                     flatIdentifier.Identify();
                     localAddedCandles++;
                     ExpandAperture(i);
-                    if (flatIdentifier.isFlat == false)
+                    if (!flatIdentifier.isFlat)
                     {
                         FlatsFound++;
                         logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
@@ -81,8 +82,11 @@ namespace Lua
                 i += localAddedCandles;
             }
         }
-
-
+        
+        /// <summary>
+        /// Перемещает окно в следующую позицию (переинициализирует в следующем интервале)
+        /// </summary>
+        /// <param name="i">Начальный индекс, с которого будет начинать новое окно на + _Constants.NAperture</param>
         private void MoveAperture(int i)
         {
             //logger.Trace("[MoveAperture()]");
@@ -101,7 +105,10 @@ namespace Lua
             }
         }
 
-
+        /// <summary>
+        /// Расширяет окно на 1 свечу
+        /// </summary>
+        /// <param name="i">Начальный индекс, с которого расширять на + (aperture.Count + 1)</param>
         private void ExpandAperture(int i)
         {
             aperture.Add(globalCandles[i + aperture.Count + 1]);
