@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NLog;
-// ReSharper disable InconsistentNaming
 
 namespace Lua
 {
@@ -10,6 +9,7 @@ namespace Lua
     /// Класс, реализующий определение бокового движения в заданном интервале свечей
     /// </summary>
     [SuppressMessage("ReSharper", "CommentTypo")]
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class FlatIdentifier
     {
         /// <summary>
@@ -96,33 +96,39 @@ namespace Lua
         /// </summary>
         private void GetGlobalExtremumsAndAverage()
         {
-            logger.Trace("Calculating global extremums and average of current aperture");
-
-            gMax = double.NegativeInfinity;
-            for (int i = 0; i < candles.Count; i++)
-            {
-                average += candles[i].high;
-                if (gMax < candles[i].high)
-                {
-                    gMax = candles[i].high;
-                    idxGmax = i;
-                }
-            }
-
+            logger.Trace("Calculating global extremums and [average] of current aperture");
+            
+            average = 0;
+            double averageMinis = 0;
+            double averageMaxes = 0;
+            
             gMin = double.PositiveInfinity;
             for (int i = 0; i < candles.Count; i++)
             {
-                average += candles[i].low;
+                averageMinis += candles[i].low;
                 if (gMin > candles[i].low)
                 {
                     gMin = candles[i].low;
                     idxGmin = i;
                 }
             }
+            averageMinis /= candles.Count;
 
-            average /= candles.Count;
+            gMax = double.NegativeInfinity;
+            for (int i = 0; i < candles.Count; i++)
+            {
+                averageMaxes += candles[i].high;
+                if (gMax < candles[i].high)
+                {
+                    gMax = candles[i].high;
+                    idxGmax = i;
+                }
+            }
+            averageMaxes /= candles.Count;
+
+            average = (averageMinis + averageMaxes) * 0.5;
             
-            logger.Trace("GEaM found");
+            logger.Trace("Global extremums and [average] calculated.\t[gMin] = {0} [gMax] = {1} [average] = {2}", gMin, gMax, average);
         }
 
         /// <summary>
@@ -131,7 +137,7 @@ namespace Lua
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
         private void FindK()
         {
-            logger.Trace("Finding k...");
+            logger.Trace("Finding [k]...");
             int n = candles.Count; 
 
             double sumX = 0;
@@ -149,7 +155,7 @@ namespace Lua
             
             k = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
             
-            logger.Trace("k found. k = {0}", k);
+            logger.Trace("[k] found. [k] = {0}", k);
         }
         
         /// <summary>
@@ -160,7 +166,7 @@ namespace Lua
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
         private void FindKWithoutPhase()
         {
-            logger.Trace("Finding k without phase candles...");
+            logger.Trace("Finding [k] without phase candles...");
 
             // Не учитывать первые и последние несколько свечей
             int phaseCandlesNum = (int)(candles.Count * _Constants.PhaseCandlesCoeff);
@@ -181,7 +187,7 @@ namespace Lua
             
             k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
             
-            logger.Trace("k found");
+            logger.Trace("[k] found. [k] = {0}", k);
         }
 
         /// <summary>
@@ -226,7 +232,10 @@ namespace Lua
         /// <param name="standartDeviation">Среднеквадратическое отклонение</param>
         private void EstimateExtremumsNearSD(double _average, double standartDeviation)
         {
-            logger.Trace("Counting extremums near standart deviations");
+            logger.Trace("Counting extremums near standart deviations...");
+
+            exsNearSDL = 0;
+            exsNearSDH = 0;
             double rangeToReachSD = _average * _Constants.SDOffset;
 
             //Console.Write("[Попавшие в low индексы]: ");

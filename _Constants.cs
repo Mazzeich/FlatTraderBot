@@ -1,3 +1,4 @@
+// ReSharper disable CommentTypo
 namespace Lua
 {
     /// <summary>
