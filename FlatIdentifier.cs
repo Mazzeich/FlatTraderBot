@@ -44,7 +44,7 @@ namespace Lua
         /// </summary>
         public Enum trend;
         
-        public FlatIdentifier(List<_CandleStruct> candles)
+        public FlatIdentifier(ref List<_CandleStruct> candles)
         {
             logger.Trace("\n[FlatIdentifier] initialized");
             this.candles  = candles;
@@ -140,6 +140,7 @@ namespace Lua
         private void FindK()
         {
             logger.Trace("Finding [k]...");
+            k = 0;
             int n = candles.Count; 
 
             double sumX = 0;
@@ -239,31 +240,31 @@ namespace Lua
             exsNearSDH = 0;
             double rangeToReachSD = _average * _Constants.SDOffset;
 
-            //Console.Write("[Попавшие в low индексы]: ");
+            logger.Trace("[Попавшие в low свечи]: ");
             for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
             {
                 if (Math.Abs(candles[i].low - SDL) <= rangeToReachSD &&
                     candles[i].low <= candles[i-1].low && candles[i].low <= candles[i-2].low &&
                     candles[i].low <= candles[i+1].low && candles[i].low <= candles[i+2].low)
                 {
-                    //Console.Write("{0}({1}) ", cdls[i].low, i + 1);
+                    logger.Trace(candles[i].time);
                     exsNearSDL++;
                     _CandleStruct temp = candles[i];
                     temp.low -= 0.01;
                     candles[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                 }
             }
-            //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
-            //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
+            logger.Trace("[rangeToReachSD] =  {0}", rangeToReachSD);
+            logger.Trace("[SDL - rangeToReachSD] = {0}", SDL - rangeToReachSD);
 
-            //Console.Write("[Попавшие в high индексы]: ");
+            logger.Trace("[Попавшие в high свечи]: ");
             for (int i = 2; i < candles.Count - 2; i++)
             {
                 if (Math.Abs(candles[i].high - SDH) <= rangeToReachSD &&
                     candles[i].high >= candles[i-1].high && candles[i].high >= candles[i-2].high &&
                     candles[i].high >= candles[i+1].high && candles[i].high >= candles[i+2].high)
                 {
-                    //Console.Write("{0}({1}) ", cdls[i].high, i + 1);
+                    logger.Trace(candles[i].time);
                     exsNearSDH++;
                     _CandleStruct temp = candles[i];
                     temp.high += 0.01;
@@ -271,8 +272,8 @@ namespace Lua
                 }
             }
             
-            //Console.WriteLine("\n[rangeToReachSD] =  {0}", rangeToReachSD);
-            //Console.WriteLine("[rangeToReachSD + standartDeviation] = {0}", rangeToReachSD + standartDeviation);
+            logger.Trace("[rangeToReachSD] =  {0}", rangeToReachSD);
+            logger.Trace("[rangeToReachSD + SDH] = {0}", rangeToReachSD + SDH);
             
             logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
         }
