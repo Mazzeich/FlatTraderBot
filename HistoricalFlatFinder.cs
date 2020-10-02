@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NLog;
 
 // ReSharper disable CommentTypo
@@ -24,7 +25,7 @@ namespace Lua
         /// Сколько боковиков было найдено
         /// </summary>
         public int FlatsFound { get; private set; }
-
+        
         public List<Bounds> ApertureBounds { get; } = new List<Bounds>();
 
         private HistoricalFlatFinder()
@@ -46,42 +47,51 @@ namespace Lua
 
         private void FindAllFlats()
         {
-            for (int i = 0; i < globalCandles.Count;) // Как правило, i хранит в себе индекс начала окна во всё датасете
+            // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
+            for (int globalIterator = 0; globalIterator < globalCandles.Count;) 
             {
-                int localAddedCandles = 0;
-                if (globalCandles.Count - i < _Constants.NAperture - 1)
-                {
+                if (globalCandles.Count - globalIterator < _Constants.NAperture - 1)
                     break;
-                }
 
-                FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
+                FlatIdentifier flatIdentifier = new FlatIdentifier(ref aperture);
                 flatIdentifier.Identify(); // Определяем начальное окно
                 
                 // Если не определили боковик сходу
                 if (!flatIdentifier.isFlat)
                 {
-                    i++;
-                    MoveAperture(i);
+                    Printer printer = new Printer(flatIdentifier);
+                    printer.OutputApertureInfo();
+                    printer.WhyIsNotFlat(flatIdentifier.FlatBounds.left, flatIdentifier.FlatBounds.right);
+                    globalIterator++;
+                    MoveAperture(globalIterator);
                     continue;
                 }
 
                 while (flatIdentifier.isFlat)
                 {
-                    flatIdentifier.Identify();
-                    localAddedCandles++;
-                    ExpandAperture(i);
-                    if (!flatIdentifier.isFlat)
+                    for (int j = 0; j < _Constants.ExpansionValue; j++)
                     {
-                        FlatsFound++;
-                        logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
-                            flatIdentifier.FlatBounds.left.date,
-                            flatIdentifier.FlatBounds.left.time,
-                            flatIdentifier.FlatBounds.right.time);
+                        ExpandAperture(globalIterator);
                     }
-                }
+                    
+                    flatIdentifier.Identify();
 
-                i += localAddedCandles + aperture.Count; // Переместить i на следующую после найденного окна свечу
-                MoveAperture(i - localAddedCandles); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
+                    if (flatIdentifier.isFlat) 
+                        continue; // Райдер предложил
+                    
+                    Printer printer = new Printer(flatIdentifier);
+                    printer.OutputApertureInfo();
+                    printer.WhyIsNotFlat(flatIdentifier.FlatBounds.left, flatIdentifier.FlatBounds.right);
+                    ApertureBounds.Add(flatIdentifier.FlatBounds);
+                    FlatsFound++;
+                    logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
+                        flatIdentifier.FlatBounds.left.date,
+                        flatIdentifier.FlatBounds.left.time,
+                        flatIdentifier.FlatBounds.right.time);
+                    
+                    globalIterator += aperture.Count; // Переместить i на следующую после найденного окна свечу
+                    MoveAperture(globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
+                }
             }
         }
         
@@ -91,19 +101,20 @@ namespace Lua
         /// <param name="i">Начальный индекс, с которого будет начинать новое окно на + _Constants.NAperture</param>
         private void MoveAperture(int i)
         {
-            //logger.Trace("[MoveAperture()]");
+            logger.Trace("[MoveAperture()]");
+            
             aperture.Clear();
-
-            try
+            for (int j = i; j < i + _Constants.NAperture; j++)
             {
-                for (int j = i; j < i + _Constants.NAperture; j++)
+                try
                 {
                     aperture.Add(globalCandles[j]);
                 }
-            }
-            catch (Exception exception)
-            {
-                logger.Trace(exception);
+                catch (Exception exception)
+                {
+                    logger.Trace(exception);
+                    break;
+                }
             }
         }
 
@@ -113,8 +124,15 @@ namespace Lua
         /// <param name="i">Начальный индекс, с которого расширять на + (aperture.Count + 1)</param>
         private void ExpandAperture(int i)
         {
-            aperture.Add(globalCandles[i + aperture.Count + 1]);
-            //logger.Trace("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
+            try
+            {
+                aperture.Add(globalCandles[i + aperture.Count + 1]);
+                logger.Trace("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
+            }
+            catch (Exception exception)
+            {
+                logger.Trace(exception);
+            }
         }
     }
 }
