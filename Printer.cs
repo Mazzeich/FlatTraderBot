@@ -30,9 +30,12 @@ namespace Lua
             historicalFlatFinder = historicalFf;
         }
 
-        public void OutputApertureInfo(_CandleStruct leftBound, _CandleStruct rightBound)
+        public void OutputApertureInfo()
         {
-            logger.Trace("Окно {0} с {1} по {2}", leftBound.date, leftBound.time, rightBound.time);
+            logger.Trace("Окно {0} с {1} по {2}", 
+                flatIdentifier.FlatBounds.left.date, 
+                flatIdentifier.FlatBounds.left.time, 
+                flatIdentifier.FlatBounds.right.time);
 
             logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", flatIdentifier.gMin, flatIdentifier.idxGmin + 1, flatIdentifier.gMax, flatIdentifier.idxGmax + 1);
             logger.Trace("[k] = {0}", flatIdentifier.k);
@@ -152,7 +155,7 @@ namespace Lua
                 logger.Trace("Боковики определены в: ");
                 for (int i = 0; i < historicalFlatFinder.ApertureBounds.Count; i++)
                 {
-                    logger.Trace("[{0}]\tс [{1}] по [{2}]",
+                    logger.Trace("[{0}] с [{1}] по [{2}]",
                         historicalFlatFinder.ApertureBounds[i].left.date,
                         historicalFlatFinder.ApertureBounds[i].left.time,
                         historicalFlatFinder.ApertureBounds[i].right.time);
