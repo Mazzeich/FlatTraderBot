@@ -46,12 +46,13 @@ namespace Lua
 
         private void FindAllFlats()
         {
-            for (int i = 0; i < globalCandles.Count;)
+            for (int i = 0; i < globalCandles.Count;) // Как правило, i хранит в себе индекс начала окна во всё датасете
             {
-                MoveAperture(i); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
-
-                int localAddedCandles = 1;
-                if (globalCandles.Count - i < _Constants.NAperture - 1) break;
+                int localAddedCandles = 0;
+                if (globalCandles.Count - i < _Constants.NAperture - 1)
+                {
+                    break;
+                }
 
                 FlatIdentifier flatIdentifier = new FlatIdentifier(aperture);
                 flatIdentifier.Identify(); // Определяем начальное окно
@@ -79,7 +80,8 @@ namespace Lua
                     }
                 }
 
-                i += localAddedCandles;
+                i += localAddedCandles + aperture.Count; // Переместить i на следующую после найденного окна свечу
+                MoveAperture(i - localAddedCandles); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
             }
         }
         

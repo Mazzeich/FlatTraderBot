@@ -87,7 +87,7 @@ namespace Lua
         public List<_CandleStruct> GetHistoricalData()
         {
             logger.Trace("[GetHistoricalData invoked]");
-            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\dataSBER.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"..\..\..\Data\data.csv");
 
             using StreamReader streamReader = new StreamReader(pathHistoricalData);
             using CsvReader csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);

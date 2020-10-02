@@ -66,12 +66,11 @@ namespace Lua
             // Вычисляем поле k
             FindK();
 
-            (double low, double high) = GetStandartDeviation();
+            (double low, double high) = GetStandartDeviations();
             SDL = low;
             SDH = high;
             
-            EstimateExtremumsNearSD(average, SDL);
-            EstimateExtremumsNearSD(average, SDH);
+            EstimateExtremumsNearSD(average);
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
@@ -198,7 +197,7 @@ namespace Lua
         /// и тех, что выше внутри коридора
         /// </summary>
         /// <returns>double SDLow, double SDHigh</returns>
-        private (double, double) GetStandartDeviation()
+        private (double, double) GetStandartDeviations()
         {
             logger.Trace("Calculation standart deviations in current aperture...");
             double sumLow = 0;
@@ -232,8 +231,7 @@ namespace Lua
         /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО
         /// </summary>
         /// <param name="_average">Скользящая средняя</param>
-        /// <param name="standartDeviation">Среднеквадратическое отклонение</param>
-        private void EstimateExtremumsNearSD(double _average, double standartDeviation)
+        private void EstimateExtremumsNearSD(double _average)
         {
             logger.Trace("Counting extremums near standart deviations...");
 
@@ -244,7 +242,7 @@ namespace Lua
             //Console.Write("[Попавшие в low индексы]: ");
             for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
             {
-                if (Math.Abs(candles[i].low - standartDeviation) <= rangeToReachSD &&
+                if (Math.Abs(candles[i].low - SDL) <= rangeToReachSD &&
                     candles[i].low <= candles[i-1].low && candles[i].low <= candles[i-2].low &&
                     candles[i].low <= candles[i+1].low && candles[i].low <= candles[i+2].low)
                 {
@@ -261,7 +259,7 @@ namespace Lua
             //Console.Write("[Попавшие в high индексы]: ");
             for (int i = 2; i < candles.Count - 2; i++)
             {
-                if (Math.Abs(candles[i].high - standartDeviation) <= rangeToReachSD &&
+                if (Math.Abs(candles[i].high - SDH) <= rangeToReachSD &&
                     candles[i].high >= candles[i-1].high && candles[i].high >= candles[i-2].high &&
                     candles[i].high >= candles[i+1].high && candles[i].high >= candles[i+2].high)
                 {
