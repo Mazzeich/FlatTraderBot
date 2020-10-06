@@ -61,7 +61,7 @@ namespace Lua
                 {
                     Printer printer = new Printer(flatIdentifier);
                     printer.OutputApertureInfo();
-                    printer.WhyIsNotFlat(flatIdentifier.FlatBounds.left, flatIdentifier.FlatBounds.right);
+                    flatIdentifier.PrintWhyIsNotFlat();
                     globalIterator++;
                     MoveAperture(globalIterator);
                     continue;
@@ -81,7 +81,7 @@ namespace Lua
                     
                     Printer printer = new Printer(flatIdentifier);
                     printer.OutputApertureInfo();
-                    printer.WhyIsNotFlat(flatIdentifier.FlatBounds.left, flatIdentifier.FlatBounds.right);
+                    flatIdentifier.PrintWhyIsNotFlat();
                     ApertureBounds.Add(flatIdentifier.FlatBounds);
                     FlatsFound++;
                     logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 

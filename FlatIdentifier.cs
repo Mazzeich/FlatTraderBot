@@ -286,5 +286,70 @@ namespace Lua
             logger.Trace("Bounds set: [{0}] [{1}]", flatBounds.left.time, flatBounds.right.time);
             return FlatBounds;
         }
+        
+        public void PrintWhyIsNotFlat()
+        {
+            string reason = "";
+            logger.Trace("Окно {0} с {1} по {2}", flatBounds.left.date, flatBounds.left.time, flatBounds.right.time);
+            logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
+
+            
+            switch (trend)
+            {
+                case Trend.Down:
+                {
+                    reason += "Нисходящий тренд. ";
+                    if ((flatWidth) < (_Constants.MinWidthCoeff * average))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (exsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (exsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+                case Trend.Up:
+                {
+                    reason += "Восходящий тренд. ";
+                    if ((flatWidth) < (_Constants.MinWidthCoeff * average))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (exsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (exsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+                case Trend.Neutral:
+                {
+                    if ((flatWidth) < (_Constants.MinWidthCoeff * average))
+                    {
+                        reason += "Недостаточная ширина коридора. ";
+                    }
+
+                    if (exsNearSDL < 2)
+                    {
+                        reason += "Недостаточно вершин снизу возле СКО.  ";
+                    } else if (exsNearSDH < 2)
+                    {
+                        reason += "Недостаточно вершин сверху возле СКО. ";
+                    }
+                    break;
+                }
+            }
+
+            //Console.WriteLine(reason);
+            logger.Trace(reason + "\n");
+        }
     }
 }
