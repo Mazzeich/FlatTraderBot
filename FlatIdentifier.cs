@@ -28,10 +28,11 @@ namespace Lua
         public double gMax { get; private set; }
         public int idxGmin { get; private set; }
         public int idxGmax { get; private set; }
-        public double average { get; private set; }
+        public double mean { get; private set; }
         public double k { get; private set; }
         public double SDL { get; private set; }
         public double SDH { get; private set; }
+        public double SDMean { get; private set; }
         public int exsNearSDL { get; private set; }
         public int exsNearSDH { get; private set; }
         public Bounds FlatBounds => flatBounds;
@@ -59,23 +60,24 @@ namespace Lua
             
             isFlat = false;
             
-            GetGlobalExtremumsAndAverage();
+            GetGlobalExtremumsAndMean();
+            SDMean = GetStandartDeviationMean();
 
             flatWidth = gMax - gMin;
 
             // Вычисляем поле k
-            FindK();
+            k = FindK();
 
             (double low, double high) = GetStandartDeviations();
             SDL = low;
             SDH = high;
             
-            EstimateExtremumsNearSD(average);
+            EstimateExtremumsNearSD(mean);
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > 1) && (exsNearSDH > 1) && (flatWidth > (_Constants.MinWidthCoeff * average)))
+                if ((exsNearSDL > 1) && (exsNearSDH > 1) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
                 {
                     isFlat = true;
                 }
@@ -96,48 +98,48 @@ namespace Lua
         /// <summary>
         /// Функция поиска глобальных экстремумов в массиве структур свечей
         /// </summary>
-        private void GetGlobalExtremumsAndAverage()
+        private void GetGlobalExtremumsAndMean()
         {
-            logger.Trace("Calculating global extremums and [average] of current aperture");
+            logger.Trace("Calculating global extremums and [mean] of current aperture");
             
-            average = 0;
-            double averageMinis = 0;
-            double averageMaxes = 0;
-            
+            mean = 0;
+
             gMin = double.PositiveInfinity;
             for (int i = 0; i < candles.Count; i++)
             {
-                averageMinis += candles[i].low;
                 if (gMin > candles[i].low)
                 {
                     gMin = candles[i].low;
                     idxGmin = i;
                 }
             }
-            averageMinis /= candles.Count;
 
             gMax = double.NegativeInfinity;
             for (int i = 0; i < candles.Count; i++)
             {
-                averageMaxes += candles[i].high;
                 if (gMax < candles[i].high)
                 {
                     gMax = candles[i].high;
                     idxGmax = i;
                 }
             }
-            averageMaxes /= candles.Count;
 
-            average = (averageMinis + averageMaxes) * 0.5;
+            // Вычисляем мат. ожидание
+            for (int i = 0; i < candles.Count; i++)
+            {
+                mean += candles[i].avg;
+            }
+
+            mean /= candles.Count;
             
-            logger.Trace("Global extremums and [average] calculated.\t[gMin] = {0} [gMax] = {1} [average] = {2}", gMin, gMax, average);
+            logger.Trace("Global extremums and [mean] calculated.\t[gMin] = {0} [gMax] = {1} [mean] = {2}", gMin, gMax, mean);
         }
 
         /// <summary>
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private void FindK()
+        private double FindK()
         {
             logger.Trace("Finding [k]...");
             k = 0;
@@ -147,7 +149,7 @@ namespace Lua
             double sumY = 0;
             double sumXsquared = 0;
             double sumXY = 0;
-
+            
             for (int i = 0; i < n; i++)
             {
                 sumX += i;
@@ -155,42 +157,29 @@ namespace Lua
                 sumXsquared += i * i;
                 sumXY += i * candles[i].avg;
             }
+            // Точка пересечения с осью ординат
+
+            double result = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
+            double b = (sumY - result * sumX)/n;
+
+            logger.Trace("[b] = {0}", b);
+            logger.Trace("[k] found. [k] = {0}", result);
             
-            k = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
-            
-            logger.Trace("[k] found. [k] = {0}", k);
+            return result;
         }
-        
-        /// <summary>
-        /// Функция поиска угла наклона аппроксимирующей прямой
-        /// без учёта последних нескольких свечей (фаза)
-        /// Нужно для определения текущего тренда по инструменту
-        /// </summary>
-        /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private void FindKWithoutPhase()
+
+        private double GetStandartDeviationMean()
         {
-            logger.Trace("Finding [k] without phase candles...");
-
-            // Не учитывать первые и последние несколько свечей
-            int phaseCandlesNum = (int)(candles.Count * _Constants.PhaseCandlesCoeff);
-            int n = candles.Count - phaseCandlesNum;
-
-            double sx = 0;
-            double sy = 0;
-            double sx2 = 0;
-            double sxy = 0;
-
-            for (int i = 0; i < n; i++)
+            double sumMean = 0;
+            double result = 0;
+            for (int i = 0; i < candles.Count - 1; i++)
             {
-                sx += i;
-                sy += candles[i].avg;
-                sx2 += i * i;
-                sxy += i * candles[i].avg;
+                sumMean += Math.Pow(mean - candles[i].avg, 2);
             }
-            
-            k = ((n * sxy) - (sx * sy)) / ((n * sx2) - (sx * sx)); 
-            
-            logger.Trace("[k] found. [k] = {0}", k);
+            // z = -1.4623
+            result = Math.Sqrt(sumMean / candles.Count);
+            logger.Trace("[Standart Deviation on mean] = {0}", result);
+            return result;
         }
 
         /// <summary>
@@ -210,22 +199,22 @@ namespace Lua
 
             for (int i = 0; i < candles.Count - 1; i++)
             {
-                if ((candles[i].low) <= (average - _Constants.KOffset)) // `_average - _Constants.KOffset` ??? 
+                if ((candles[i].low) <= (mean - _Constants.KOffset)) // `_average - _Constants.KOffset` ??? 
                 {
-                    sumLow += Math.Pow(average - candles[i].low, 2);
+                    sumLow += Math.Pow(mean - candles[i].low, 2);
                     lowsCount++;
                 }
-                else if ((candles[i].high) >= (average + _Constants.KOffset))
+                else if ((candles[i].high) >= (mean + _Constants.KOffset))
                 {
-                    sumHigh += Math.Pow(candles[i].high - average, 2);
+                    sumHigh += Math.Pow(candles[i].high - mean, 2);
                     highsCount++;
                 }
             }
             double SDLow = Math.Sqrt(sumLow / lowsCount);
             double SDHigh = Math.Sqrt(sumHigh / highsCount);
-            logger.Trace("Standart deviations calculated. SDlow = {0} | SDhigh = {1}", average - SDLow, average + SDHigh);
+            logger.Trace("Standart deviations calculated. SDlow = {0} | SDhigh = {1}", mean - SDLow, mean + SDHigh);
 
-            return (average - SDLow, average + SDHigh);
+            return (mean - SDLow, mean + SDHigh);
         }
 
         /// <summary>
@@ -299,7 +288,7 @@ namespace Lua
                 case Trend.Down:
                 {
                     reason += "Нисходящий тренд. ";
-                    if ((flatWidth) < (_Constants.MinWidthCoeff * average))
+                    if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
@@ -316,7 +305,7 @@ namespace Lua
                 case Trend.Up:
                 {
                     reason += "Восходящий тренд. ";
-                    if ((flatWidth) < (_Constants.MinWidthCoeff * average))
+                    if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
@@ -332,7 +321,7 @@ namespace Lua
                 }
                 case Trend.Neutral:
                 {
-                    if ((flatWidth) < (_Constants.MinWidthCoeff * average))
+                    if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
                     {
                         reason += "Недостаточная ширина коридора. ";
                     }
