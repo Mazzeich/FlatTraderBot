@@ -19,9 +19,14 @@ namespace Lua
             List<_CandleStruct> candles = new List<_CandleStruct>();
             Reader reader = new Reader(candles);
             candles = reader.GetHistoricalData();
-            HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
-            Printer printer = new Printer(historicalFlatFinder);
-            printer.OutputHistoricalInfo();
+            // HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
+            // Printer printer = new Printer(historicalFlatFinder);
+            // printer.OutputHistoricalInfo();
+            
+            FlatIdentifier flatIdentifier = new FlatIdentifier(ref candles);
+            flatIdentifier.Identify();
+            Printer printer = new Printer(flatIdentifier);
+            printer.OutputApertureInfo();
             
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();

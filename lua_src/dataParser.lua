@@ -6,11 +6,11 @@ Settings['sec_code'] = "YNDX"
 
 function main()
 
-  local openPath 	 = "C:/Projects/Lua/Data/dataOpen.txt"
+  local openPath   = "C:/Projects/Lua/Data/dataOpen.txt"
   local closePath  = "C:/Projects/Lua/Data/dataClose.txt"
   local volumePath = "C:/Projects/Lua/Data/dataVolume.txt"
-  local highPath 	 = "C:/Projects/Lua/Data/dataHigh.txt"
-  local lowPath 	 = "C:/Projects/Lua/Data/dataLow.txt"
+  local highPath   = "C:/Projects/Lua/Data/dataHigh.txt"
+  local lowPath    = "C:/Projects/Lua/Data/dataLow.txt"
   local avgPath    = "C:/Projects/Lua/Data/dataAvg.txt"
   local timePath   = "C:/Projects/Lua/Data/dataTime.txt"
   

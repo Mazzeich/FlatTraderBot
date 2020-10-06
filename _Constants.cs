@@ -16,7 +16,7 @@ namespace Lua
         public const double MinWidthCoeff = 0.002;
 
         /// <value> Коэффициент для определения поведения тренда</value>
-        public const double KOffset = 0.005;
+        public const double KOffset = 0.00025;
 
         /// <value> Возможное отклонение экстремума от линии СКО</value>
         public const double SDOffset = 0.0003;

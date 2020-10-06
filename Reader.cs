@@ -60,12 +60,12 @@ namespace Lua
             pathClose  = Path.Combine(currentDirectory, @"..\..\..\Data\dataClose.txt");
             pathVolume = Path.Combine(currentDirectory, @"..\..\..\Data\dataVolume.txt");
 
-            readHeights  = File.ReadAllLines(pathHigh);
-            readLows     = File.ReadAllLines(pathLow);
-            readAvgs     = File.ReadAllLines(pathAvg);
-            readOpens    = File.ReadAllLines(pathOpen);
-            readCloses   = File.ReadAllLines(pathClose);
-            readVolumes  = File.ReadAllLines(pathVolume);
+            readHeights = File.ReadAllLines(pathHigh);
+            readLows    = File.ReadAllLines(pathLow);
+            readAvgs    = File.ReadAllLines(pathAvg);
+            readOpens   = File.ReadAllLines(pathOpen);
+            readCloses  = File.ReadAllLines(pathClose);
+            readVolumes = File.ReadAllLines(pathVolume);
         
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
@@ -101,12 +101,12 @@ namespace Lua
             {
                 _CandleStruct temp;
 
-                temp.low = csvReader.GetField<double>("<LOW>");
-                temp.high = csvReader.GetField<double>("<HIGH>");
+                temp.low   = csvReader.GetField<double>("<LOW>");
+                temp.high  = csvReader.GetField<double>("<HIGH>");
                 temp.close = csvReader.GetField<double>("<CLOSE>");
-                temp.avg = (temp.high + temp.low) * 0.5;
-                temp.date = csvReader.GetField<string>("<DATE>");
-                temp.time = csvReader.GetField<string>("<TIME>");
+                temp.avg   = (temp.high + temp.low) * 0.5;
+                temp.date  = csvReader.GetField<string>("<DATE>");
+                temp.time  = csvReader.GetField<string>("<TIME>");
 
                 candleStruct.Add(temp);
             }
