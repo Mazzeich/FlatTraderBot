@@ -35,15 +35,13 @@ namespace Lua
         {
             globalCandles = candles;
 
-            for (int i = 0; i < _Constants.NAperture; i++) // Формируем стартовое окно
+            for (int i = 1; i < _Constants.NAperture; i++) // Формируем стартовое окно
             {
                 aperture.Add(globalCandles[i]);
             }
-
-            FindAllFlats();
         }
 
-        private void FindAllFlats()
+        public void FindAllFlats()
         {
             // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
             for (int globalIterator = 0; globalIterator < globalCandles.Count;) 
@@ -57,7 +55,7 @@ namespace Lua
                 // Если не определили боковик сходу
                 if (!flatIdentifier.isFlat)
                 {
-                    flatIdentifier.PrintWhyIsNotFlat();
+                    flatIdentifier.ReasonsWhyIsNotFlat();
                     globalIterator++;
                     MoveAperture(globalIterator);
                     continue;
@@ -83,7 +81,8 @@ namespace Lua
                     if (flatIdentifier.isFlat) 
                         continue; // Райдер предложил
                     
-                    flatIdentifier.PrintWhyIsNotFlat();
+                    Printer printer = new Printer(flatIdentifier);
+                    printer.ReasonsApertureIsNotFlat(flatIdentifier.ReasonsWhyIsNotFlat());
                     apertureBounds.Add(flatIdentifier.FlatBounds);
                     flatsFound++;
                     logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
@@ -127,7 +126,8 @@ namespace Lua
         /// <param name="i">Начальный индекс, с которого расширять на + (aperture.Count + 1)</param>
         private void ExpandAperture(int i)
         {
-            aperture.Add(globalCandles[i + aperture.Count + 1]);
+            int indexOfAddingCandle = i + aperture.Count + 1;
+            aperture.Add(globalCandles[indexOfAddingCandle]);
             logger.Trace("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
         }
     }
