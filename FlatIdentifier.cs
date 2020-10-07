@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NLog;
+// ReSharper disable IdentifierTypo
+// ReSharper disable StringLiteralTypo
 
 namespace Lua
 {
@@ -23,7 +25,7 @@ namespace Lua
 
         private Bounds flatBounds;// Границы начала и конца найденного боковика
         
-        public  double flatWidth; // Ширина коридора текущего периода
+        public  double flatWidth; // Ширина коридора текущего окна
         public double gMin { get; private set; }
         public double gMax { get; private set; }
         public int idxGmin { get; private set; }
@@ -68,9 +70,8 @@ namespace Lua
             // Вычисляем поле k
             k = FindK();
 
-            (double low, double high) = GetStandartDeviations();
-            SDL = low;
-            SDH = high;
+            SDL = mean - SDMean;
+            SDH = mean + SDMean;
             
             EstimateExtremumsNearSD(mean);
             
@@ -81,15 +82,21 @@ namespace Lua
                 {
                     isFlat = true;
                 }
+                else
+                {
+                    ReasonsWhyIsNotFlat();
+                }
             } else if (k < 0)
             {
                 trend = Trend.Down;
                 isFlat = false;
+                ReasonsWhyIsNotFlat();
             }
             else
             {
                 trend = Trend.Up;
                 isFlat = false;
+                ReasonsWhyIsNotFlat();
             }
             
             logger.Trace("isFlat = {0}\n[Identify] finished", isFlat);
@@ -182,6 +189,7 @@ namespace Lua
             return result;
         }
 
+        [Obsolete("Method was used to calculate standart deviations way extreme than it should have been")]
         /// <summary>
         /// Функция находит среднеквадратическое отклонение свечей тех, что ниже среднего, 
         /// и тех, что выше внутри коридора
@@ -199,12 +207,12 @@ namespace Lua
 
             for (int i = 0; i < candles.Count - 1; i++)
             {
-                if ((candles[i].low) <= (mean - _Constants.KOffset)) // `_average - _Constants.KOffset` ??? 
+                if ((candles[i].low) <= mean) 
                 {
                     sumLow += Math.Pow(mean - candles[i].low, 2);
                     lowsCount++;
                 }
-                else if ((candles[i].high) >= (mean + _Constants.KOffset))
+                else if ((candles[i].high) >= mean)
                 {
                     sumHigh += Math.Pow(candles[i].high - mean, 2);
                     highsCount++;
@@ -212,7 +220,7 @@ namespace Lua
             }
             double SDLow = Math.Sqrt(sumLow / lowsCount);
             double SDHigh = Math.Sqrt(sumHigh / highsCount);
-            logger.Trace("Standart deviations calculated. SDlow = {0} | SDhigh = {1}", mean - SDLow, mean + SDHigh);
+            logger.Trace("Standart deviations calculated. [mean] - [SDL] = {0} | [mean] + [SDH] = {1}", mean - SDLow, mean + SDHigh);
 
             return (mean - SDLow, mean + SDHigh);
         }
@@ -276,7 +284,7 @@ namespace Lua
             return FlatBounds;
         }
         
-        public void PrintWhyIsNotFlat()
+        public string ReasonsWhyIsNotFlat()
         {
             string reason = "";
             logger.Trace("Окно {0} с {1} по {2}", flatBounds.left.date, flatBounds.left.time, flatBounds.right.time);
@@ -336,9 +344,8 @@ namespace Lua
                     break;
                 }
             }
-
-            //Console.WriteLine(reason);
             logger.Trace(reason + "\n");
+            return reason;
         }
     }
 }
