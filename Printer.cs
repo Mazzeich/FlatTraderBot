@@ -101,5 +101,10 @@ namespace Lua
                 logger.Debug("[Printer.OutputHistoricalInfo().historicalFlatFinder] == null");
             }
         }
+
+        public void ReasonsApertureIsNotFlat(string reason)
+        {
+            logger.Trace(reason);
+        }
     }
 }
