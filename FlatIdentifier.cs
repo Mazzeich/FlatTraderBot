@@ -18,10 +18,11 @@ namespace Lua
         /// Логгер в logFlatIdentifier.txt
         /// </summary>
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Массив структур свечей
         /// </summary>
-        public List<_CandleStruct> candles;
+        public List<_CandleStruct> candles { get; }
 
         private Bounds flatBounds;// Границы начала и конца найденного боковика
         
@@ -46,6 +47,10 @@ namespace Lua
         /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
         /// </summary>
         public Enum trend;
+        /// <summary>
+        /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
+        /// </summary>
+        public string reasonsOfApertureHasNoFlat { get; private set; }
         
         public FlatIdentifier(ref List<_CandleStruct> candles)
         {
@@ -58,22 +63,28 @@ namespace Lua
         {
             logger.Trace("[Identify] started");
             flatBounds = SetBounds(candles[0], candles[^1]);
-            logger.Trace("[{0}]: Окно с {1} по {2}", flatBounds.left.date, flatBounds.left.time, flatBounds.right.time);
+            logger.Trace("[{0}]: Окно с {1} по {2}", 
+                flatBounds.left.date,
+                flatBounds.left.time,
+                flatBounds.right.time);
             
             isFlat = false;
             
-            GetGlobalExtremumsAndMean();
+            GetGlobalExtremumsAndMean(candles);
             SDMean = GetStandartDeviationMean();
 
             flatWidth = gMax - gMin;
+            logger.Trace("[flatWidth] = {0}", flatWidth);
 
             // Вычисляем поле k
-            k = FindK();
+            k = FindK(candles);
 
             SDL = mean - SDMean;
             SDH = mean + SDMean;
-            
-            EstimateExtremumsNearSD(mean);
+
+            exsNearSDL = 0;
+            exsNearSDH = 0;
+            (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD(candles);
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
@@ -84,28 +95,28 @@ namespace Lua
                 }
                 else
                 {
-                    ReasonsWhyIsNotFlat();
+                    reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
                 }
             } else if (k < 0)
             {
                 trend = Trend.Down;
                 isFlat = false;
-                ReasonsWhyIsNotFlat();
+                reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
             }
             else
             {
                 trend = Trend.Up;
                 isFlat = false;
-                ReasonsWhyIsNotFlat();
+                reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
             }
-            
+
             logger.Trace("isFlat = {0}\n[Identify] finished", isFlat);
         }
 
         /// <summary>
         /// Функция поиска глобальных экстремумов в массиве структур свечей
         /// </summary>
-        private void GetGlobalExtremumsAndMean()
+        private void GetGlobalExtremumsAndMean(List<_CandleStruct> candles)
         {
             logger.Trace("Calculating global extremums and [mean] of current aperture");
             
@@ -146,7 +157,7 @@ namespace Lua
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private double FindK()
+        private double FindK(List<_CandleStruct> candles)
         {
             logger.Trace("Finding [k]...");
             k = 0;
@@ -169,32 +180,33 @@ namespace Lua
             double result = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
             double b = (sumY - result * sumX)/n;
 
-            logger.Trace("[b] = {0}", b);
-            logger.Trace("[k] found. [k] = {0}", result);
+            logger.Trace("[k] = {0}\t [b] = {1}", result, b);
             
             return result;
         }
 
+        /// <summary>
+        /// Функция вычисляет СКО окна по avg всех свечей
+        /// </summary>
+        /// <returns></returns>
         private double GetStandartDeviationMean()
         {
             double sumMean = 0;
-            double result = 0;
             for (int i = 0; i < candles.Count - 1; i++)
             {
                 sumMean += Math.Pow(mean - candles[i].avg, 2);
             }
-            // z = -1.4623
-            result = Math.Sqrt(sumMean / candles.Count);
+            double result = Math.Sqrt(sumMean / candles.Count);
             logger.Trace("[Standart Deviation on mean] = {0}", result);
             return result;
         }
 
-        [Obsolete("Method was used to calculate standart deviations way extreme than it should have been")]
         /// <summary>
         /// Функция находит среднеквадратическое отклонение свечей тех, что ниже среднего, 
         /// и тех, что выше внутри коридора
         /// </summary>
         /// <returns>double SDLow, double SDHigh</returns>
+        [Obsolete("Method was used to calculate standart deviations way extreme than it should have been")]
         private (double, double) GetStandartDeviations()
         {
             logger.Trace("Calculation standart deviations in current aperture...");
@@ -228,54 +240,54 @@ namespace Lua
         /// <summary>
         /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО
         /// </summary>
-        /// <param name="_average">Скользящая средняя</param>
-        private void EstimateExtremumsNearSD(double _average)
+        private (int, int) EstimateExtremumsNearSD(List<_CandleStruct> candles)
         {
             logger.Trace("Counting extremums near standart deviations...");
 
-            exsNearSDL = 0;
-            exsNearSDH = 0;
-            double rangeToReachSD = _average * _Constants.SDOffset;
+            int resLow  = 0;
+            int resHigh = 0;
+            double distanceToSD = mean * _Constants.SDOffset;
 
             logger.Trace("[Попавшие в low свечи]: ");
             for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
             {
-                if (Math.Abs(candles[i].low - SDL) <= rangeToReachSD &&
+                if (Math.Abs(candles[i].low - SDL) <= distanceToSD &&
                     candles[i].low <= candles[i-1].low && candles[i].low <= candles[i-2].low &&
                     candles[i].low <= candles[i+1].low && candles[i].low <= candles[i+2].low)
                 {
                     logger.Trace(candles[i].time);
-                    exsNearSDL++;
+                    resLow++;
                     _CandleStruct temp = candles[i];
                     temp.low -= 0.01;
                     candles[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                 }
             }
-            logger.Trace("[rangeToReachSD] =  {0}", rangeToReachSD);
-            logger.Trace("[SDL - rangeToReachSD] = {0}", SDL - rangeToReachSD);
+            logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
+            logger.Trace("[SDL - rangeToReachSD] = {0}", SDL - distanceToSD);
 
             logger.Trace("[Попавшие в high свечи]: ");
             for (int i = 2; i < candles.Count - 2; i++)
             {
-                if (Math.Abs(candles[i].high - SDH) <= rangeToReachSD &&
+                if (Math.Abs(candles[i].high - SDH) <= distanceToSD &&
                     candles[i].high >= candles[i-1].high && candles[i].high >= candles[i-2].high &&
                     candles[i].high >= candles[i+1].high && candles[i].high >= candles[i+2].high)
                 {
                     logger.Trace(candles[i].time);
-                    exsNearSDH++;
+                    resHigh++;
                     _CandleStruct temp = candles[i];
                     temp.high += 0.01;
                     candles[i] = temp;
                 }
             }
             
-            logger.Trace("[rangeToReachSD] =  {0}", rangeToReachSD);
-            logger.Trace("[rangeToReachSD + SDH] = {0}", rangeToReachSD + SDH);
+            logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
+            logger.Trace("[rangeToReachSD + SDH] = {0}", distanceToSD + SDH);
             
             logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
+            return (resLow, resHigh);
         }
 
-        public Bounds SetBounds(_CandleStruct left, _CandleStruct right)
+        private Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
             logger.Trace("Setting bounds...");
             flatBounds.left = left;
@@ -284,68 +296,45 @@ namespace Lua
             return FlatBounds;
         }
         
-        public string ReasonsWhyIsNotFlat()
+        /// <summary>
+        /// Функция для отладки, позволяющая вывести возможные причины отсутстивия нужного бокового движения 
+        /// </summary>
+        /// <returns>Строка, содержащая возможные причины</returns>
+        private string ReasonsWhyIsNotFlat()
         {
-            string reason = "";
-            logger.Trace("Окно {0} с {1} по {2}", flatBounds.left.date, flatBounds.left.time, flatBounds.right.time);
-            logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
+            string result = "";
 
+            if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
+            {
+                result += "Недостаточная ширина коридора. ";
+            }
+            if (exsNearSDL < 2)
+            {
+                result += "Недостаточно вершин снизу возле СКО.  ";
+            }
+            if (exsNearSDH < 2)
+            {
+                result += "Недостаточно вершин сверху возле СКО. ";
+            }
             
             switch (trend)
             {
                 case Trend.Down:
                 {
-                    reason += "Нисходящий тренд. ";
-                    if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
-                    {
-                        reason += "Недостаточная ширина коридора. ";
-                    }
-
-                    if (exsNearSDL < 2)
-                    {
-                        reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (exsNearSDH < 2)
-                    {
-                        reason += "Недостаточно вершин сверху возле СКО. ";
-                    }
+                    result += "Нисходящий тренд. ";
                     break;
                 }
                 case Trend.Up:
                 {
-                    reason += "Восходящий тренд. ";
-                    if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
-                    {
-                        reason += "Недостаточная ширина коридора. ";
-                    }
-
-                    if (exsNearSDL < 2)
-                    {
-                        reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (exsNearSDH < 2)
-                    {
-                        reason += "Недостаточно вершин сверху возле СКО. ";
-                    }
+                    result += "Восходящий тренд. ";
                     break;
                 }
                 case Trend.Neutral:
                 {
-                    if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
-                    {
-                        reason += "Недостаточная ширина коридора. ";
-                    }
-
-                    if (exsNearSDL < 2)
-                    {
-                        reason += "Недостаточно вершин снизу возле СКО.  ";
-                    } else if (exsNearSDH < 2)
-                    {
-                        reason += "Недостаточно вершин сверху возле СКО. ";
-                    }
                     break;
                 }
             }
-            logger.Trace(reason + "\n");
-            return reason;
+            return result;
         }
     }
 }
