@@ -41,7 +41,7 @@ namespace Lua
             logger.Trace("[k] = {0}", flatIdentifier.k);
             logger.Trace("[mean] = {0}", flatIdentifier.mean);
             logger.Trace("[candles.Count] = {0}", flatIdentifier.candles.Count);
-            logger.Trace("[SDL] = {0}\t\t[SDH] = {1}", flatIdentifier.SDL, flatIdentifier.SDH);
+            logger.Trace("[SDMean] = {0}\t[SDL] = {1}\t[SDH] = {2}", flatIdentifier.SDMean, flatIdentifier.SDL, flatIdentifier.SDH);
             logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", flatIdentifier.exsNearSDL, flatIdentifier.exsNearSDH);
             logger.Trace("[Границы окна]: [{0}]\t[{1}]", flatIdentifier.FlatBounds.left.date, flatIdentifier.FlatBounds.right.date);
             
@@ -102,9 +102,14 @@ namespace Lua
             }
         }
 
-        public void ReasonsApertureIsNotFlat(string reason)
+        public void ReasonsApertureIsNotFlat()
         {
-            logger.Trace(reason);
+            logger.Trace("Окно {0} с {1} по {2}", 
+                flatIdentifier.FlatBounds.left.date,
+                flatIdentifier.FlatBounds.left.time,
+                flatIdentifier.FlatBounds.right.time);
+            logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
+            logger.Trace(flatIdentifier.reasonsOfApertureHasNoFlat);
         }
     }
 }

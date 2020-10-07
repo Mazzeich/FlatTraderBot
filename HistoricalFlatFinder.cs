@@ -55,7 +55,8 @@ namespace Lua
                 // Если не определили боковик сходу
                 if (!flatIdentifier.isFlat)
                 {
-                    flatIdentifier.ReasonsWhyIsNotFlat();
+                    Printer printer = new Printer(flatIdentifier);
+                    printer.ReasonsApertureIsNotFlat();
                     globalIterator++;
                     MoveAperture(globalIterator);
                     continue;
@@ -82,7 +83,7 @@ namespace Lua
                         continue; // Райдер предложил
                     
                     Printer printer = new Printer(flatIdentifier);
-                    printer.ReasonsApertureIsNotFlat(flatIdentifier.ReasonsWhyIsNotFlat());
+                    printer.ReasonsApertureIsNotFlat();
                     apertureBounds.Add(flatIdentifier.FlatBounds);
                     flatsFound++;
                     logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
@@ -123,7 +124,7 @@ namespace Lua
         /// <summary>
         /// Расширяет окно на 1 свечу
         /// </summary>
-        /// <param name="i">Начальный индекс, с которого расширять на + (aperture.Count + 1)</param>
+        /// <param name="i">Начальный индекс, к которому добавить (aperture.Count + 1)</param>
         private void ExpandAperture(int i)
         {
             int indexOfAddingCandle = i + aperture.Count + 1;

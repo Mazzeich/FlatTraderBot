@@ -23,12 +23,7 @@ namespace Lua
             historicalFlatFinder.FindAllFlats();
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
-            
-            // FlatIdentifier flatIdentifier = new FlatIdentifier(ref candles);
-            // flatIdentifier.Identify();
-            // Printer printer = new Printer(flatIdentifier);
-            // printer.OutputApertureInfo();
-            
+
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
         }
