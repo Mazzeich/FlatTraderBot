@@ -263,7 +263,7 @@ namespace Lua
                 }
             }
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDL - rangeToReachSD] = {0}", SDL - distanceToSD);
+            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL + distanceToSD);
 
             logger.Trace("[Попавшие в high свечи]: ");
             for (int i = 2; i < candles.Count - 2; i++)
@@ -281,7 +281,7 @@ namespace Lua
             }
             
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[rangeToReachSD + SDH] = {0}", distanceToSD + SDH);
+            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
             
             logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
             return (resLow, resHigh);

@@ -75,7 +75,7 @@ namespace Lua
                 temp.close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
                 temp.avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
                 temp.date  = "";
-                temp.time = 0;
+                temp.time  = "";
 
                 candleStruct.Add(temp);
             }
@@ -106,7 +106,7 @@ namespace Lua
                 temp.close = csvReader.GetField<double>("<CLOSE>");
                 temp.avg   = (temp.high + temp.low) * 0.5;
                 temp.date  = csvReader.GetField<string>("<DATE>");
-                temp.time  = csvReader.GetField<int>("<TIME>");
+                temp.time  = csvReader.GetField<string>("<TIME>");
 
                 candleStruct.Add(temp);
             }

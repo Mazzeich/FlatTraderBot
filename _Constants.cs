@@ -9,7 +9,7 @@ namespace Lua
         /// <summary>
         /// Размер окна
         /// </summary>
-        public const int NAperture = 60;
+        public const int NAperture = 50;
 
         /// <summary>
         /// На сколько свечей увеличивать окно

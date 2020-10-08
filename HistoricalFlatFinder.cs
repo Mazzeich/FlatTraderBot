@@ -69,7 +69,7 @@ namespace Lua
                     //--------------------------------------------------
                     // TODO: Короче если мы нашли второй или больше бокович, проверяем,
                     // сколько свечей между его левым краем и правым краем предыдущего.
-                    // Если мало, то то сносим предыдущий бокович, взяв его левый край, и присобачив его позицию
+                    // Если мало, то сносим предыдущий бокович, взяв его левый край, и присобачив его позицию
                     // в левый край текущего окна. болдёш
                     //--------------------------------------------------
                     for (int j = 0; j < _Constants.ExpansionValue; j++)
@@ -85,7 +85,7 @@ namespace Lua
                         }
                     }
                     
-                    flatIdentifier.Identify();
+                    flatIdentifier.Identify(); // Identify() вызывает SetBounds() сам
 
                     if (flatIdentifier.isFlat) 
                         continue; // Райдер предложил
@@ -144,25 +144,25 @@ namespace Lua
         /// <summary>
         /// Функция удаляет слишком близко расположенное окно и расширяет текущее до границ удалённого
         /// </summary>
-        public void UniteApertures()
-        {
-            for (int i = 0; i < apertureBounds.Count - 1; i++)
-            {
-                if (apertureBounds[i].left.date == apertureBounds[i + 1].left.date)
-                {
-                    if (apertureBounds[i + 1].left.time - apertureBounds[i].right.time <= 10)
-                    {
-                        Bounds temp = apertureBounds[i];
-                        temp.right.time = apertureBounds[i + 1].right.time;
-                        apertureBounds[i] = temp;
-                        
-                        apertureBounds.RemoveAt(i + 1);
-                        
-                        flatsFound--;
-                        logger.Trace("Flat removed");
-                    }
-                }
-            }
-        }
+        // public void UniteApertures()
+        // {
+        //     for (int i = 0; i < apertureBounds.Count - 1; i++)
+        //     {
+        //         if (apertureBounds[i].left.date == apertureBounds[i + 1].right.date)
+        //         {
+        //             if (apertureBounds[i + 1].left.time - apertureBounds[i].right.time <= 10)
+        //             {
+        //                 Bounds temp = apertureBounds[i];
+        //                 temp.right.time = apertureBounds[i + 1].right.time;
+        //                 apertureBounds[i] = temp;
+        //                 
+        //                 apertureBounds.RemoveAt(i + 1);
+        //                 
+        //                 flatsFound--;
+        //                 logger.Trace("Flat removed");
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
