@@ -6,6 +6,10 @@ namespace Lua
     /// </summary>
     public struct _CandleStruct
     {
+        /// <summary>
+        /// Индекс свечи относительно глобальных данных
+        /// </summary>
+        public int index;
         /// <value> Хай текущей свечи </value>
         public double high;
         /// <value> Лоу текущей свечи </value>
