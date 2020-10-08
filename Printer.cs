@@ -1,8 +1,5 @@
-using System;
 using NLog;
-using NLog.Conditions;
-using NLog.Config;
-using NLog.Targets;
+
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
 
@@ -10,7 +7,7 @@ namespace Lua
 {
     class Printer
     {
-        // С другой стороны, логгер не должен инициализировать в классе. Это затратно
+        // С другой стороны, логгер не должен инициализироваться в классе. Это затратно
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
         
         private readonly FlatIdentifier flatIdentifier;
@@ -33,9 +30,9 @@ namespace Lua
         public void OutputApertureInfo()
         {
             logger.Trace("Окно {0} с {1} по {2}", 
-                flatIdentifier.FlatBounds.left.date, 
-                flatIdentifier.FlatBounds.left.time, 
-                flatIdentifier.FlatBounds.right.time);
+                flatIdentifier.flatBounds.leftBound.date, 
+                flatIdentifier.flatBounds.leftBound.time, 
+                flatIdentifier.flatBounds.rightBound.time);
 
             logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", flatIdentifier.gMin, flatIdentifier.idxGmin + 1, flatIdentifier.gMax, flatIdentifier.idxGmax + 1);
             logger.Trace("[k] = {0}", flatIdentifier.k);
@@ -43,7 +40,7 @@ namespace Lua
             logger.Trace("[candles.Count] = {0}", flatIdentifier.candles.Count);
             logger.Trace("[SDMean] = {0}\t[SDL] = {1}\t[SDH] = {2}", flatIdentifier.SDMean, flatIdentifier.SDL, flatIdentifier.SDH);
             logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", flatIdentifier.exsNearSDL, flatIdentifier.exsNearSDH);
-            logger.Trace("[Границы окна]: [{0}]\t[{1}]", flatIdentifier.FlatBounds.left.date, flatIdentifier.FlatBounds.right.date);
+            logger.Trace("[Границы окна]: [{0}]\t[{1}]", flatIdentifier.flatBounds.leftBound.date, flatIdentifier.flatBounds.rightBound.date);
             
             switch (flatIdentifier.trend)
             {
@@ -88,26 +85,26 @@ namespace Lua
             {
                 logger.Trace("Боковиков найдено: {0}", historicalFlatFinder.flatsFound);
                 logger.Trace("Боковики определены в: ");
-                for (int i = 0; i < historicalFlatFinder.apertureBounds.Count; i++)
+                for (int i = 0; i < historicalFlatFinder.flats.Count; i++)
                 {
                     logger.Trace("[{0}] с [{1}] по [{2}]",
-                        historicalFlatFinder.apertureBounds[i].left.date,
-                        historicalFlatFinder.apertureBounds[i].left.time,
-                        historicalFlatFinder.apertureBounds[i].right.time);
+                        historicalFlatFinder.flats[i].flatBounds.leftBound.date,
+                        historicalFlatFinder.flats[i].flatBounds.leftBound.time,
+                        historicalFlatFinder.flats[i].flatBounds.rightBound.time);
                 }
             }
             else
             {
-                logger.Debug("[Printer.OutputHistoricalInfo().historicalFlatFinder] == null");
+                logger.Trace("[Printer.OutputHistoricalInfo().historicalFlatFinder] == null");
             }
         }
 
         public void ReasonsApertureIsNotFlat()
         {
             logger.Trace("Окно {0} с {1} по {2}", 
-                flatIdentifier.FlatBounds.left.date,
-                flatIdentifier.FlatBounds.left.time,
-                flatIdentifier.FlatBounds.right.time);
+                flatIdentifier.flatBounds.leftBound.date,
+                flatIdentifier.flatBounds.leftBound.time,
+                flatIdentifier.flatBounds.rightBound.time);
             logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
             logger.Trace(flatIdentifier.reasonsOfApertureHasNoFlat);
         }
