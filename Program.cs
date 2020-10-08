@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NLog;
+
 // ReSharper disable CommentTypo
 
 namespace Lua
