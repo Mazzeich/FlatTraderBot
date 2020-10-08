@@ -31,7 +31,7 @@ namespace Lua
         /// <summary>
         /// Список всех найденных боковиков
         /// </summary>
-        public List<FlatIdentifier> flats { get; private set; } = new List<FlatIdentifier>();
+        public List<FlatIdentifier> flatList;
 
         private HistoricalFlatFinder()
         {
@@ -92,7 +92,7 @@ namespace Lua
                     Printer printer = new Printer(flatIdentifier);
                     printer.ReasonsApertureIsNotFlat();
                     //flatsBounds.Add(flatIdentifier.flatBounds);
-                    flats.Add(flatIdentifier);
+                    flatList.Add(flatIdentifier);
                     flatsFound++;
                     logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
                         flatIdentifier.flatBounds.leftBound.date, 
@@ -113,6 +113,8 @@ namespace Lua
                     }
                 }
             }
+            
+            UniteFlats(ref flatList);
         }
         
         /// <summary>
@@ -145,13 +147,11 @@ namespace Lua
         /// Функция склеивает находящиеся близко друг к другу боковики
         /// </summary>
         /// <param name="_flats">Список границ всех найденных боковиков</param>
-        private List<FlatIdentifier> UniteFlats(List<FlatIdentifier> _flats)
+        private void UniteFlats(ref List<FlatIdentifier> _flats)
         {
-            logger.Trace("Uniting flats...");
+            logger.Trace("Uniting flatList...");
             
             
-
-            return _flats;
         }
     }
 }

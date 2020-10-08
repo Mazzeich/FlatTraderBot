@@ -85,12 +85,12 @@ namespace Lua
             {
                 logger.Trace("Боковиков найдено: {0}", historicalFlatFinder.flatsFound);
                 logger.Trace("Боковики определены в: ");
-                for (int i = 0; i < historicalFlatFinder.flats.Count; i++)
+                for (int i = 0; i < historicalFlatFinder.flatList.Count; i++)
                 {
                     logger.Trace("[{0}] с [{1}] по [{2}]",
-                        historicalFlatFinder.flats[i].flatBounds.leftBound.date,
-                        historicalFlatFinder.flats[i].flatBounds.leftBound.time,
-                        historicalFlatFinder.flats[i].flatBounds.rightBound.time);
+                        historicalFlatFinder.flatList[i].flatBounds.leftBound.date,
+                        historicalFlatFinder.flatList[i].flatBounds.leftBound.time,
+                        historicalFlatFinder.flatList[i].flatBounds.rightBound.time);
                 }
             }
             else
