@@ -20,9 +20,11 @@ namespace Lua
             Reader reader = new Reader(candles);
             candles = reader.GetHistoricalData();
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
+            historicalFlatFinder.FindAllFlats();
+            historicalFlatFinder.UniteApertures();
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
-            
+
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
         }

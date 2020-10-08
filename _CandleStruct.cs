@@ -18,6 +18,6 @@ namespace Lua
         /// <value> Дата закрытия свечи </value>
         public string date;
         /// <value> Время закрытия свечи </value>
-        public string time;
+        public int time;
     }
 }
