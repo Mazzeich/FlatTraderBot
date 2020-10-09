@@ -60,7 +60,7 @@ namespace Candles
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > 1) && (exsNearSDH > 1) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
+                if ((exsNearSDL > 2) && (exsNearSDH > 2) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
                 {
                     isFlat = true;
                 }

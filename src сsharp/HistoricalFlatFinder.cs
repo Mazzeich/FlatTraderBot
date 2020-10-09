@@ -105,9 +105,9 @@ namespace Candles
                     {
                         MoveAperture(ref globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
                     }
-                    catch (Exception exception)
+                    catch (ArgumentOutOfRangeException exception)
                     {
-                        logger.Trace(exception);
+                        logger.Warn("Argument out of range");
                         return;
                     }
                 }
@@ -126,7 +126,6 @@ namespace Candles
             // Если первая и последняя свечи будущего окна находятся в пределах одного дня
             if (globalCandles[i].date == globalCandles[i + _Constants.NAperture].date)
             {
-                logger.Trace("Начало и конец предполагаемого окна находятся в пределах одного дня.");
                 for (int j = i; j < i + _Constants.NAperture; j++)
                 {
                     aperture.Add(globalCandles[j]);
