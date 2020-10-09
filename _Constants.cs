@@ -1,5 +1,5 @@
 // ReSharper disable CommentTypo
-namespace Lua
+namespace Candles
 {
     /// <summary>
     /// Структура постоянных величин

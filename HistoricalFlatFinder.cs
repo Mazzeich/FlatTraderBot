@@ -4,7 +4,7 @@ using NLog;
 
 // ReSharper disable CommentTypo
 
-namespace Lua
+namespace Candles
 {
     public class HistoricalFlatFinder
     {

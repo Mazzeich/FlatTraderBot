@@ -1,4 +1,4 @@
-namespace Lua
+namespace Candles
 {
     public enum Trend : int
     {

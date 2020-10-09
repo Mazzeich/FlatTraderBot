@@ -6,7 +6,7 @@ using NLog;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
-namespace Lua
+namespace Candles
 {
     /// <summary>
     /// Класс, реализующий определение бокового движения в заданном интервале свечей

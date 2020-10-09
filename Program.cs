@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NLog;
 
 // ReSharper disable CommentTypo
 
-namespace Lua
+namespace Candles
 {
     internal static class Program
     {
