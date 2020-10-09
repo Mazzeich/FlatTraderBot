@@ -20,37 +20,7 @@ namespace Candles
         /// </summary>
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        /// <summary>
-        /// Массив структур свечей
-        /// </summary>
-        public List<_CandleStruct> candles { get; }
-
-        public _Bounds flatBounds { get; private set; } // Границы начала и конца найденного боковика
-
-        public  double flatWidth; // Ширина коридора текущего окна
-        public double gMin { get; private set; }
-        public double gMax { get; private set; }
-        public int idxGmin { get; private set; }
-        public int idxGmax { get; private set; }
-        public double mean { get; private set; }
-        public double k { get; private set; }
-        public double SDL { get; private set; }
-        public double SDH { get; private set; }
-        public double SDMean { get; private set; }
-        public int exsNearSDL { get; private set; }
-        public int exsNearSDH { get; private set; }
-        /// <summary>
-        /// Действительно ли мы нашли боковик в заданном окне
-        /// </summary>
-        public bool isFlat { get; private set; }
-        /// <summary>
-        /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
-        /// </summary>
-        public Enum trend;
-        /// <summary>
-        /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
-        /// </summary>
-        public string reasonsOfApertureHasNoFlat { get; private set; }
+        
         
         public FlatIdentifier(ref List<_CandleStruct> candles)
         {
@@ -340,5 +310,37 @@ namespace Candles
             }
             return result;
         }
+        
+        /// <summary>
+        /// Массив структур свечей
+        /// </summary>
+        public List<_CandleStruct> candles { get; }
+
+        public _Bounds flatBounds { get; private set; } // Границы начала и конца найденного боковика
+
+        public  double flatWidth; // Ширина коридора текущего окна
+        public double gMin { get; private set; }
+        public double gMax { get; private set; }
+        public int idxGmin { get; private set; }
+        public int idxGmax { get; private set; }
+        public double mean { get; private set; }
+        public double k { get; private set; }
+        public double SDL { get; private set; }
+        public double SDH { get; private set; }
+        public double SDMean { get; private set; }
+        public int exsNearSDL { get; private set; }
+        public int exsNearSDH { get; private set; }
+        /// <summary>
+        /// Действительно ли мы нашли боковик в заданном окне
+        /// </summary>
+        public bool isFlat { get; private set; }
+        /// <summary>
+        /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
+        /// </summary>
+        public Enum trend;
+        /// <summary>
+        /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
+        /// </summary>
+        public string reasonsOfApertureHasNoFlat { get; private set; }
     }
 }
