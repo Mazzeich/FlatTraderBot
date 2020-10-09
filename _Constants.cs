@@ -19,7 +19,7 @@ namespace Lua
         /// <summary>
         /// На сколько свечей увеличивать окно
         /// </summary>
-        public const int ExpansionRate = 2;
+        public const int ExpansionRate = 3;
     
         /// <summary>
         /// Минимальная ширина коридора (коэфф. от цены инструмента)

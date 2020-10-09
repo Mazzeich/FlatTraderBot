@@ -99,7 +99,7 @@ namespace Lua
             }
         }
 
-        public void ReasonsApertureIsNotFlat()
+        public void PrintReasonsApertureIsNotFlat()
         {
             logger.Trace("Окно {0} с {1} по {2}", 
                 flatIdentifier.flatBounds.leftBound.date,
