@@ -20,10 +20,14 @@ namespace Candles
             List<_CandleStruct> candles = new List<_CandleStruct>();
             Reader reader = new Reader(candles);
             candles = reader.GetHistoricalData();
+            
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
             historicalFlatFinder.FindAllFlats();
+            
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
+
+            FlatClassifier flatClassifier = new FlatClassifier();
 
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();

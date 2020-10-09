@@ -112,8 +112,6 @@ namespace Candles
                     }
                 }
             }
-            
-            // UniteFlats(ref flatList);
         }
 
         /// <summary>
@@ -125,6 +123,7 @@ namespace Candles
             logger.Trace("[MoveAperture()]");
             
             aperture.Clear();
+            // Если первая и последняя свечи будущего окна находятся в пределах одного дня
             if (globalCandles[i].date == globalCandles[i + _Constants.NAperture].date)
             {
                 logger.Trace("Начало и конец предполагаемого окна находятся в пределах одного дня.");
@@ -133,10 +132,11 @@ namespace Candles
                     aperture.Add(globalCandles[j]);
                 }
             }
-            else
+            else // иначе
             {
                 logger.Trace("Начало и конец предполагаемого окна находятся в разных днях.");
                 int indexOfTheNextDay = 0;
+                // Находим начало следующего дня, где дата свечи не совпадает с датой свечи самого начала окна
                 for (int j = i + 1; j < i + _Constants.NAperture; j++)
                 {
                     indexOfTheNextDay = globalCandles[j].index;
