@@ -1,9 +1,10 @@
 using System;
-using System.IO;
-using System.Globalization;
-using CsvHelper;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using CsvHelper;
 using NLog;
+
 // ReSharper disable CommentTypo
 
 namespace Lua
@@ -70,12 +71,13 @@ namespace Lua
             for (int i = 0; i < readHeights.Length; i++) //readHeights.Length = readLows.Length
             {
                 _CandleStruct temp;
+                temp.index = i;
                 temp.low   = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
                 temp.high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
                 temp.close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
                 temp.avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
                 temp.date  = "";
-                temp.time = 0;
+                temp.time  = "";
 
                 candleStruct.Add(temp);
             }
@@ -97,18 +99,21 @@ namespace Lua
             csvReader.Read();
             csvReader.ReadHeader();
 
+            int i = 0;
             while (csvReader.Read())
             {
                 _CandleStruct temp;
 
+                temp.index = i;
                 temp.low   = csvReader.GetField<double>("<LOW>");
                 temp.high  = csvReader.GetField<double>("<HIGH>");
                 temp.close = csvReader.GetField<double>("<CLOSE>");
                 temp.avg   = (temp.high + temp.low) * 0.5;
                 temp.date  = csvReader.GetField<string>("<DATE>");
-                temp.time  = csvReader.GetField<int>("<TIME>");
+                temp.time  = csvReader.GetField<string>("<TIME>");
 
                 candleStruct.Add(temp);
+                i++;
             }
 
             logger.Trace("Finished reading data from {0}", pathHistoricalData);

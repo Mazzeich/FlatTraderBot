@@ -9,12 +9,17 @@ namespace Lua
         /// <summary>
         /// Размер окна
         /// </summary>
-        public const int NAperture = 60;
+        public const int NAperture = 50;
+
+        /// <summary>
+        /// Минимальное расстояние между боковиками, чтобы не склеивать их в один
+        /// </summary>
+        public const int MinFlatGap = 5;
 
         /// <summary>
         /// На сколько свечей увеличивать окно
         /// </summary>
-        public const int ExpansionValue = 2;
+        public const int ExpansionRate = 2;
     
         /// <summary>
         /// Минимальная ширина коридора (коэфф. от цены инструмента)

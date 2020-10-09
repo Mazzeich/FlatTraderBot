@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using NLog;
 
@@ -26,7 +25,13 @@ namespace Lua
         /// </summary>
         public int flatsFound { get; private set; }
         
-        public List<Bounds> apertureBounds { get; } = new List<Bounds>();
+        [Obsolete("The field used to contain bounds of all founded flats")]
+        public List<_Bounds> flatsBounds { get; private set; } = new List<_Bounds>();
+
+        /// <summary>
+        /// Список всех найденных боковиков
+        /// </summary>
+        public List<FlatIdentifier> flatList;
 
         private HistoricalFlatFinder()
         {
@@ -66,13 +71,7 @@ namespace Lua
 
                 while (flatIdentifier.isFlat)
                 {
-                    //--------------------------------------------------
-                    // TODO: Короче если мы нашли второй или больше бокович, проверяем,
-                    // сколько свечей между его левым краем и правым краем предыдущего.
-                    // Если мало, то то сносим предыдущий бокович, взяв его левый край, и присобачив его позицию
-                    // в левый край текущего окна. болдёш
-                    //--------------------------------------------------
-                    for (int j = 0; j < _Constants.ExpansionValue; j++)
+                    for (int j = 0; j < _Constants.ExpansionRate; j++)
                     {
                         try
                         {
@@ -85,19 +84,20 @@ namespace Lua
                         }
                     }
                     
-                    flatIdentifier.Identify();
+                    flatIdentifier.Identify(); // Identify() вызывает SetBounds() сам
 
                     if (flatIdentifier.isFlat) 
                         continue; // Райдер предложил
                     
                     Printer printer = new Printer(flatIdentifier);
                     printer.ReasonsApertureIsNotFlat();
-                    apertureBounds.Add(flatIdentifier.FlatBounds);
+                    //flatsBounds.Add(flatIdentifier.flatBounds);
+                    flatList.Add(flatIdentifier);
                     flatsFound++;
                     logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
-                        flatIdentifier.FlatBounds.left.date,
-                        flatIdentifier.FlatBounds.left.time,
-                        flatIdentifier.FlatBounds.right.time);
+                        flatIdentifier.flatBounds.leftBound.date, 
+                        flatIdentifier.flatBounds.leftBound.time,
+                        flatIdentifier.flatBounds.rightBound.time);
                     
                     
                     globalIterator += aperture.Count; // Переместить i на следующую после найденного окна свечу
@@ -113,6 +113,8 @@ namespace Lua
                     }
                 }
             }
+            
+            UniteFlats(ref flatList);
         }
         
         /// <summary>
@@ -142,27 +144,14 @@ namespace Lua
         }
 
         /// <summary>
-        /// Функция удаляет слишком близко расположенное окно и расширяет текущее до границ удалённого
+        /// Функция склеивает находящиеся близко друг к другу боковики
         /// </summary>
-        public void UniteApertures()
+        /// <param name="_flats">Список границ всех найденных боковиков</param>
+        private void UniteFlats(ref List<FlatIdentifier> _flats)
         {
-            for (int i = 0; i < apertureBounds.Count - 1; i++)
-            {
-                if (apertureBounds[i].left.date == apertureBounds[i + 1].left.date)
-                {
-                    if (apertureBounds[i + 1].left.time - apertureBounds[i].right.time <= 10)
-                    {
-                        Bounds temp = apertureBounds[i];
-                        temp.right.time = apertureBounds[i + 1].right.time;
-                        apertureBounds[i] = temp;
-                        
-                        apertureBounds.RemoveAt(i + 1);
-                        
-                        flatsFound--;
-                        logger.Trace("Flat removed");
-                    }
-                }
-            }
+            logger.Trace("Uniting flatList...");
+            
+            
         }
     }
 }

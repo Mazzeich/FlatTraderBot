@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NLog;
+
 // ReSharper disable CommentTypo
 
 namespace Lua
@@ -21,7 +21,6 @@ namespace Lua
             candles = reader.GetHistoricalData();
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
             historicalFlatFinder.FindAllFlats();
-            historicalFlatFinder.UniteApertures();
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
 

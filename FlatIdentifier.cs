@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NLog;
+
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
@@ -24,8 +25,8 @@ namespace Lua
         /// </summary>
         public List<_CandleStruct> candles { get; }
 
-        private Bounds flatBounds;// Границы начала и конца найденного боковика
-        
+        public _Bounds flatBounds { get; private set; } // Границы начала и конца найденного боковика
+
         public  double flatWidth; // Ширина коридора текущего окна
         public double gMin { get; private set; }
         public double gMax { get; private set; }
@@ -38,7 +39,6 @@ namespace Lua
         public double SDMean { get; private set; }
         public int exsNearSDL { get; private set; }
         public int exsNearSDH { get; private set; }
-        public Bounds FlatBounds => flatBounds;
         /// <summary>
         /// Действительно ли мы нашли боковик в заданном окне
         /// </summary>
@@ -62,12 +62,13 @@ namespace Lua
         public void Identify()
         {
             logger.Trace("[Identify] started");
+            
             flatBounds = SetBounds(candles[0], candles[^1]);
             logger.Trace("[{0}]: Окно с {1} по {2}", 
-                flatBounds.left.date,
-                flatBounds.left.time,
-                flatBounds.right.time);
-            
+                flatBounds.leftBound.date,
+                flatBounds.leftBound.time,
+                flatBounds.rightBound.time);
+
             isFlat = false;
             
             GetGlobalExtremumsAndMean(candles);
@@ -102,12 +103,14 @@ namespace Lua
                 trend = Trend.Down;
                 isFlat = false;
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
+                flatBounds = SetBounds(candles[0], candles[^_Constants.ExpansionRate]);
             }
             else
             {
                 trend = Trend.Up;
                 isFlat = false;
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
+                flatBounds = SetBounds(candles[0], candles[^_Constants.ExpansionRate]);
             }
 
             logger.Trace("isFlat = {0}\n[Identify] finished", isFlat);
@@ -263,7 +266,7 @@ namespace Lua
                 }
             }
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDL - rangeToReachSD] = {0}", SDL - distanceToSD);
+            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL + distanceToSD);
 
             logger.Trace("[Попавшие в high свечи]: ");
             for (int i = 2; i < candles.Count - 2; i++)
@@ -281,19 +284,20 @@ namespace Lua
             }
             
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[rangeToReachSD + SDH] = {0}", distanceToSD + SDH);
+            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
             
             logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
             return (resLow, resHigh);
         }
 
-        private Bounds SetBounds(_CandleStruct left, _CandleStruct right)
+        private _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
             logger.Trace("Setting bounds...");
-            flatBounds.left = left;
-            flatBounds.right = right;
-            logger.Trace("Bounds set: [{0}] [{1}]", flatBounds.left.time, flatBounds.right.time);
-            return FlatBounds;
+            _Bounds result = flatBounds;
+            result.leftBound = left;
+            result.rightBound = right;
+            logger.Trace("_Bounds set: [{0}] [{1}]", result.leftBound.index, result.rightBound.index);
+            return result;
         }
         
         /// <summary>
