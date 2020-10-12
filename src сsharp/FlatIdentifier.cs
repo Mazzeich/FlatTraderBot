@@ -20,8 +20,6 @@ namespace Candles
         /// </summary>
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        
-        
         public FlatIdentifier(ref List<_CandleStruct> candles)
         {
             logger.Trace("\n[FlatIdentifier] initialized");
@@ -342,5 +340,9 @@ namespace Candles
         /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
         /// </summary>
         public string reasonsOfApertureHasNoFlat { get; private set; }
+        /// <summary>
+        /// Снизу или сверху сформировался боковик
+        /// </summary>
+        public Enum formedFrom { get; set; }
     }
 }
