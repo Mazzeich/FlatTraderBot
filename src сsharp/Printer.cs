@@ -30,9 +30,9 @@ namespace Candles
         public void OutputApertureInfo()
         {
             logger.Trace("Окно {0} с {1} по {2}", 
-                flatIdentifier.flatBounds.leftBound.date, 
-                flatIdentifier.flatBounds.leftBound.time, 
-                flatIdentifier.flatBounds.rightBound.time);
+                flatIdentifier.flatBounds.left.date, 
+                flatIdentifier.flatBounds.left.time, 
+                flatIdentifier.flatBounds.right.time);
 
             logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", flatIdentifier.gMin, flatIdentifier.idxGmin + 1, flatIdentifier.gMax, flatIdentifier.idxGmax + 1);
             logger.Trace("[k] = {0}", flatIdentifier.k);
@@ -40,7 +40,7 @@ namespace Candles
             logger.Trace("[candles.Count] = {0}", flatIdentifier.candles.Count);
             logger.Trace("[SDMean] = {0}\t[SDL] = {1}\t[SDH] = {2}", flatIdentifier.SDMean, flatIdentifier.SDL, flatIdentifier.SDH);
             logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", flatIdentifier.exsNearSDL, flatIdentifier.exsNearSDH);
-            logger.Trace("[Границы окна]: [{0}]\t[{1}]", flatIdentifier.flatBounds.leftBound.date, flatIdentifier.flatBounds.rightBound.date);
+            logger.Trace("[Границы окна]: [{0}]\t[{1}]", flatIdentifier.flatBounds.left.date, flatIdentifier.flatBounds.right.date);
             
             switch (flatIdentifier.trend)
             {
@@ -88,9 +88,9 @@ namespace Candles
                 for (int i = 0; i < historicalFlatFinder.flatList.Count; i++)
                 {
                     logger.Trace("[{0}] с [{1}] по [{2}]",
-                        historicalFlatFinder.flatList[i].flatBounds.leftBound.date,
-                        historicalFlatFinder.flatList[i].flatBounds.leftBound.time,
-                        historicalFlatFinder.flatList[i].flatBounds.rightBound.time);
+                        historicalFlatFinder.flatList[i].flatBounds.left.date,
+                        historicalFlatFinder.flatList[i].flatBounds.left.time,
+                        historicalFlatFinder.flatList[i].flatBounds.right.time);
                 }
             }
             else
@@ -102,9 +102,9 @@ namespace Candles
         public void PrintReasonsApertureIsNotFlat()
         {
             logger.Trace("Окно {0} с {1} по {2}", 
-                flatIdentifier.flatBounds.leftBound.date,
-                flatIdentifier.flatBounds.leftBound.time,
-                flatIdentifier.flatBounds.rightBound.time);
+                flatIdentifier.flatBounds.left.date,
+                flatIdentifier.flatBounds.left.time,
+                flatIdentifier.flatBounds.right.time);
             logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
             logger.Trace(flatIdentifier.reasonsOfApertureHasNoFlat);
         }

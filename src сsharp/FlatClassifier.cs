@@ -58,13 +58,13 @@ namespace Candles
 				{
 					case (FormedFrom.Ascending):
 					{
-						logger.Trace("[{0}]: {1} from Asceding", flatCollection[i].flatBounds.leftBound.date, flatCollection[i].flatBounds.leftBound.time);
+						logger.Trace("[{0}]: {1} from Asceding", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
 						fromAscending++;
 						break;
 					}
 					case (FormedFrom.Descending):
 					{
-						logger.Trace("[{0}]: {1} from Descending", flatCollection[i].flatBounds.leftBound.date, flatCollection[i].flatBounds.leftBound.time);
+						logger.Trace("[{0}]: {1} from Descending", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
 						fromDescending++;
 						break;
 					}
@@ -89,26 +89,24 @@ namespace Candles
 		/// <returns>Свеча</returns>
 		private _CandleStruct ClosestExtremum(int flatNumber)
 		{
-			_CandleStruct closestExtremum;
 			int candlesPassed = 0;
-			bool extremumFound = false;
 			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
 			{
-				closestExtremum = globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed];
+				_CandleStruct closestExtremum = globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed];
 
 				if (closestExtremum.low < flatCollection[flatNumber].gMin &&
-				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].low &&
-				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 1].low &&
-				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed + 1].low &&
-				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].low)
+				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 2].low &&
+				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 1].low &&
+				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed + 1].low &&
+				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 2].low)
 				{
 					return closestExtremum;
 				}
 				else if (closestExtremum.high > flatCollection[flatNumber].gMax &&
-				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].high &&
-				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 1].high &&
-				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed + 1].high &&
-				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].high)
+				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 2].high &&
+				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 1].high &&
+				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed + 1].high &&
+				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 2].high)
 				{
 					return closestExtremum;
 				}
@@ -116,7 +114,6 @@ namespace Candles
 				{
 					candlesPassed++;
 				}
-
 			}
 
 			return globalCandles[0];

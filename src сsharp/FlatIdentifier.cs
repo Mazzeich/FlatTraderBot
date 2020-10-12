@@ -33,9 +33,9 @@ namespace Candles
             
             flatBounds = SetBounds(candles[0], candles[^1]);
             logger.Trace("[{0}]: Окно с {1} по {2}", 
-                flatBounds.leftBound.date,
-                flatBounds.leftBound.time,
-                flatBounds.rightBound.time);
+                flatBounds.left.date,
+                flatBounds.left.time,
+                flatBounds.right.time);
 
             isFlat = false;
             
@@ -262,9 +262,9 @@ namespace Candles
         {
             logger.Trace("Setting bounds...");
             _Bounds result = flatBounds;
-            result.leftBound = left;
-            result.rightBound = right;
-            logger.Trace("_Bounds set: [{0}] [{1}]", result.leftBound.index, result.rightBound.index);
+            result.left = left;
+            result.right = right;
+            logger.Trace("_Bounds set: [{0}] [{1}]", result.left.index, result.right.index);
             return result;
         }
         

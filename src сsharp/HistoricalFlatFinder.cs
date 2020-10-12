@@ -94,9 +94,9 @@ namespace Candles
                     flatList.Add(flatIdentifier);
                     flatsFound++;
                     logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
-                        flatIdentifier.flatBounds.leftBound.date, 
-                        flatIdentifier.flatBounds.leftBound.time,
-                        flatIdentifier.flatBounds.rightBound.time);
+                        flatIdentifier.flatBounds.left.date, 
+                        flatIdentifier.flatBounds.left.time,
+                        flatIdentifier.flatBounds.right.time);
                     
                     
                     globalIterator += aperture.Count; // Переместить i на следующую после найденного окна свечу
