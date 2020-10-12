@@ -82,12 +82,17 @@ namespace Candles
 			return closestExtremum.avg > flatIdentifier.mean ? FormedFrom.Ascending : FormedFrom.Descending;
 		}
 
+		/// <summary>
+		/// Функция находит ближайший эксремум, начиная поиск с левого края окна
+		/// </summary>
+		/// <param name="flatNumber">Номер объекта в списке боковиков</param>
+		/// <returns>Свеча</returns>
 		private _CandleStruct ClosestExtremum(int flatNumber)
 		{
 			_CandleStruct closestExtremum;
 			int candlesPassed = 0;
 			bool extremumFound = false;
-			while (candlesPassed < 100) // TODO: Сделать константу
+			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
 			{
 				closestExtremum = globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed];
 

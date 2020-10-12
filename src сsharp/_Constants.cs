@@ -20,6 +20,11 @@ namespace Candles
         /// На сколько свечей увеличивать окно
         /// </summary>
         public const int ExpansionRate = 3;
+
+        /// <summary>
+        /// Максимально возможное количество свечей между экстремумом и боковиком
+        /// </summary>
+        public const int MaxFlatExtremumDistance = 100;
     
         /// <summary>
         /// Минимальная ширина коридора (коэфф. от цены инструмента)
