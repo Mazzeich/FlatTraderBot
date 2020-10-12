@@ -58,11 +58,13 @@ namespace Candles
 				{
 					case (FormedFrom.Ascending):
 					{
+						logger.Trace("[{0}]: {1} from Asceding", flatCollection[i].flatBounds.leftBound.date, flatCollection[i].flatBounds.leftBound.time);
 						fromAscending++;
 						break;
 					}
 					case (FormedFrom.Descending):
 					{
+						logger.Trace("[{0}]: {1} from Descending", flatCollection[i].flatBounds.leftBound.date, flatCollection[i].flatBounds.leftBound.time);
 						fromDescending++;
 						break;
 					}
@@ -76,70 +78,43 @@ namespace Candles
 
 		private Enum Classify(FlatIdentifier flatIdentifier, int flatNumber)
 		{
-			_CandleStruct closesExtremum = ClosestExtremum(flatNumber);
-			return closesExtremum.avg > flatIdentifier.mean ? FormedFrom.Ascending : FormedFrom.Descending;
+			_CandleStruct closestExtremum = ClosestExtremum(flatNumber);
+			return closestExtremum.avg > flatIdentifier.mean ? FormedFrom.Ascending : FormedFrom.Descending;
 		}
 
 		private _CandleStruct ClosestExtremum(int flatNumber)
 		{
-			_CandleStruct closestMinimum = FindClosestMinimum(flatNumber);
-			_CandleStruct closestMaximum = FindClosestMaximum(flatNumber);
-			
-			logger.Trace("Closest [Min] is at {0} | Closest [Max] is at {1}", closestMinimum.time, closestMaximum.time);
-
-			return closestMaximum.index > closestMinimum.index ? closestMaximum : closestMinimum;
-		}
-
-		/// <summary>
-		/// Функция находит ближаший к боковику минимум, экстремальнее глобального в боковике
-		/// </summary>
-		/// <returns>Свеча</returns>
-		private _CandleStruct FindClosestMinimum(int flatNumber)
-		{
-			_CandleStruct temp = globalCandles[0];
-			bool found = false;
+			_CandleStruct closestExtremum;
 			int candlesPassed = 0;
-			while (!found)
+			bool extremumFound = false;
+			while (candlesPassed < 100) // TODO: Сделать константу
 			{
-				temp = globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed];
-				if (temp.low < flatCollection[flatNumber].gMin &&
-				    temp.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].low &&
-				    temp.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 1].low &&
-				    temp.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed + 1].low &&
-				    temp.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed + 2].low)
+				closestExtremum = globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed];
+
+				if (closestExtremum.low < flatCollection[flatNumber].gMin &&
+				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].low &&
+				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 1].low &&
+				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed + 1].low &&
+				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].low)
 				{
-					found = true;
+					return closestExtremum;
+				}
+				else if (closestExtremum.high > flatCollection[flatNumber].gMax &&
+				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].high &&
+				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 1].high &&
+				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed + 1].high &&
+				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].high)
+				{
+					return closestExtremum;
+				}
+				else
+				{
+					candlesPassed++;
 				}
 
-				candlesPassed++;
 			}
-			return temp;
-		}
 
-		/// <summary>
-		/// Функция находит ближаший к боковику максимум, экстремальнее глобального в боковике
-		/// </summary>
-		/// <returns>Свеча</returns>
-		private _CandleStruct FindClosestMaximum(int flatNumber)
-		{
-			_CandleStruct temp = globalCandles[0];
-			bool found = false;
-			int candlesPassed = 0;
-			while (!found)
-			{
-				temp = globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed];
-				if (temp.high > flatCollection[flatNumber].gMax &&
-				    temp.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 2].high &&
-				    temp.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed - 1].high &&
-				    temp.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed + 1].high &&
-				    temp.high > globalCandles[flatCollection[flatNumber].flatBounds.leftBound.index - candlesPassed + 2].high)
-				{
-					found = true;
-				}
-
-				candlesPassed++;
-			}
-			return temp;
+			return globalCandles[0];
 		}
 	}
 }
