@@ -4,7 +4,7 @@ using NLog;
 
 // ReSharper disable CommentTypo
 
-namespace Candles
+namespace FlatTraderBot
 {
     public class HistoricalFlatFinder
     {

@@ -1,5 +1,5 @@
 // ReSharper disable CommentTypo
-namespace Candles
+namespace FlatTraderBot
 {
     /// <summary>
     /// Структура постоянных величин

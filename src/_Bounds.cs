@@ -1,4 +1,4 @@
-namespace Candles
+﻿namespace FlatTraderBot
 {
 	public struct _Bounds
 	{

@@ -1,5 +1,5 @@
 // ReSharper disable CommentTypo
-namespace Candles
+namespace FlatTraderBot
 {
     /// <summary>
     /// Структура свечи (high, low, close, avg, date)

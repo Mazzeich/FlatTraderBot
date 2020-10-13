@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NLog;
 
 // ReSharper disable CommentTypo
 
-namespace Candles
+namespace FlatTraderBot
 {
     internal static class Program
     {

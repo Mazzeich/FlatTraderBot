@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NLog;
 
-// ReSharper disable IdentifierTypo
-// ReSharper disable StringLiteralTypo
-
-namespace Candles
+namespace FlatTraderBot
 {
     /// <summary>
     /// Класс, реализующий определение бокового движения в заданном интервале свечей
@@ -15,11 +12,6 @@ namespace Candles
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class FlatIdentifier
     {
-        /// <summary>
-        /// Логгер в logFlatIdentifier.txt
-        /// </summary>
-        private readonly Logger logger = LogManager.GetCurrentClassLogger();
-
         public FlatIdentifier(ref List<_CandleStruct> candles)
         {
             logger.Trace("\n[FlatIdentifier] initialized");
@@ -93,6 +85,7 @@ namespace Candles
             
             mean = 0;
 
+            // Находим глобальный минимум
             gMin = double.PositiveInfinity;
             for (int i = 0; i < candles.Count; i++)
             {
@@ -103,6 +96,7 @@ namespace Candles
                 }
             }
 
+            // Находим глоабльный максимум
             gMax = double.NegativeInfinity;
             for (int i = 0; i < candles.Count; i++)
             {
@@ -118,10 +112,12 @@ namespace Candles
             {
                 mean += candles[i].avg;
             }
-
             mean /= candles.Count;
             
-            logger.Trace("Global extremums and [mean] calculated.\t[gMin] = {0} [gMax] = {1} [mean] = {2}", gMin, gMax, mean);
+            logger.Trace("Global extremums and [mean] calculated.\t[gMin] = {0} [gMax] = {1} [mean] = {2}", 
+                gMin, 
+                gMax, 
+                mean);
         }
 
         /// <summary>
@@ -130,6 +126,7 @@ namespace Candles
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
         private double FindK(List<_CandleStruct> candles)
         {
+            // https://prog-cpp.ru/mnk/
             logger.Trace("Finding [k]...");
             k = 0;
             int n = candles.Count; 
@@ -184,7 +181,6 @@ namespace Candles
             double sumLow = 0;
             double sumHigh = 0;
 
-            // Количество low и high, находящихся шире минимальной ширины коридора
             int lowsCount = 0;
             int highsCount = 0;
 
@@ -310,6 +306,10 @@ namespace Candles
         }
         
         /// <summary>
+        /// Логгер в logFlatIdentifier.txt
+        /// </summary>
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+        /// <summary>
         /// Массив структур свечей
         /// </summary>
         public List<_CandleStruct> candles { get; }
@@ -317,18 +317,53 @@ namespace Candles
         /// Границы начала и конца найденного боковика
         /// </summary>
         public _Bounds flatBounds { get; private set; }
-
-        public  double flatWidth; // Ширина коридора текущего окна
+        /// <summary>
+        /// Ширина текущего коридора
+        /// </summary>
+        public  double flatWidth;
+        /// <summary>
+        /// Глобальный минимум в боковике
+        /// </summary>
         public double gMin { get; private set; }
+        /// <summary>
+        /// Глобальный максимум в боковике
+        /// </summary>
         public double gMax { get; private set; }
+        /// <summary>
+        /// Индекс глобального минимума относительно окна
+        /// </summary>
         public int idxGmin { get; private set; }
+        /// <summary>
+        /// Индекс глобального максимума относительно окна
+        /// </summary>
         public int idxGmax { get; private set; }
+        /// <summary>
+        /// Значение математического ожидания в боковике
+        /// </summary>
         public double mean { get; private set; }
+        /// <summary>
+        /// Угловой коэффициент аппроксимирущей прямой
+        /// </summary>
         public double k { get; private set; }
+        /// <summary>
+        /// Среднеквадратическое отклонение снизу
+        /// </summary>
         public double SDL { get; private set; }
+        /// <summary>
+        /// Среднеквадратическое отклонение сверху
+        /// </summary>
         public double SDH { get; private set; }
+        /// <summary>
+        /// Среднеквадратическое отклонение в боковике
+        /// </summary>
         public double SDMean { get; private set; }
+        /// <summary>
+        /// Количество экстремумов возле среднеквадратического отклонения снизу
+        /// </summary>
         public int exsNearSDL { get; private set; }
+        /// <summary>
+        /// Количество экстремумов возле среднеквадратического отклонения сверху
+        /// </summary>
         public int exsNearSDH { get; private set; }
         /// <summary>
         /// Действительно ли мы нашли боковик в заданном окне
