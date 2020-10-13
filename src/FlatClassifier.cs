@@ -13,16 +13,16 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Список всех найденных боковиков
 		/// </summary>
-		private List<FlatIdentifier> flatCollection = new List<FlatIdentifier>();
+		private readonly List<FlatIdentifier> flatCollection;
 		/// <summary>
 		/// Глобальный список свечей
 		/// </summary>
 		/// 
-		private List<_CandleStruct> globalCandles = new List<_CandleStruct>();
+		private readonly List<_CandleStruct> globalCandles;
 		/// <summary>
 		/// Всего боковиков
 		/// </summary>
-		private int flatsOverall;
+		private readonly int flatsOverall;
 		/// <summary>
 		/// Сколько боковиков сформировано после падения
 		/// </summary>
@@ -48,8 +48,6 @@ namespace FlatTraderBot
 		{
 			logger.Trace("Classification started...");
 
-			int fromAscending = 0;
-			int fromDescending = 0;
 			for (int i = 0; i < flatsOverall; i++)
 			{
 				Enum flatFormedFrom = Classify(flatCollection[i], i);
@@ -58,13 +56,13 @@ namespace FlatTraderBot
 					case (FormedFrom.Ascending):
 					{
 						logger.Trace("[{0}]: {1} from Asceding", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
-						fromAscending++;
+						flatsFromAscension++;
 						break;
 					}
 					case (FormedFrom.Descending):
 					{
 						logger.Trace("[{0}]: {1} from Descending", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
-						fromDescending++;
+						flatsFromDescension++;
 						break;
 					}
 					default:
@@ -72,10 +70,10 @@ namespace FlatTraderBot
 				}
 			}
 
-			logger.Trace("From ascending = {0} | From descending = {1}", fromAscending, fromDescending);
+			logger.Trace("From ascending = {0} | From descending = {1}", flatsFromAscension, flatsFromDescension);
 			logger.Trace("[fromAscening/fromDescending] = {0}%/{1}%", 
-				fromAscending * 100 / flatsOverall,
-				fromDescending * 100 / flatsOverall);
+				flatsFromAscension * 100/ flatsOverall,
+				flatsFromDescension * 100/ flatsOverall);
 		}
 
 		/// <summary>
@@ -109,6 +107,7 @@ namespace FlatTraderBot
 			int candlesPassed = 0;
 			FlatIdentifier currentFlat = flatCollection[flatNumber];
 
+			// Цикл выполняется, пока на найдётся подходящий экстремум либо не пройдёт константное число итераций
 			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
 			{
 				_CandleStruct closestExtremum = globalCandles[currentFlat.flatBounds.left.index - candlesPassed];
