@@ -10,18 +10,29 @@ namespace FlatTraderBot
         /// Индекс свечи относительно глобальных данных
         /// </summary>
         public int index;
-        /// <value> Хай текущей свечи </value>
-        public double high;
-        /// <value> Лоу текущей свечи </value>
+        /// <summary>
+        /// Хай текущей свечи
+        /// </summary>
+        public double high; 
+        /// <summary>
+        /// Лоу текущей свечи
+        /// </summary>
         public double low;
-        /// <value> Цена закрытия текущей свечи </value>
+        /// <summary>
+        /// Цена закрытия текущей свеич
+        /// </summary>
         public double close;
-        /// <value> Средняя цена по свече (= (хай - лоу)/*0.5) </value>
+        /// <summary>
+        /// Средняя цена по свече (= (хай - лоу)/*0.5)
+        /// </summary>
         public double avg;
-    
-        /// <value> Дата закрытия свечи </value>
+        /// <summary>
+        /// Дата закрытия текущей свечи
+        /// </summary>
         public string date;
-        /// <value> Время закрытия свечи </value>
+        /// <summary>
+        /// Время закрытия текущей свечи
+        /// </summary>
         public string time;
     }
 }
