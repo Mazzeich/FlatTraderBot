@@ -1,14 +1,4 @@
-*.txt
-*.xlsx
-*.csv
-*.user
-*csproj*
-
-/.idea/
-/.vscode/
-/bin/
-/Data/
-/obj/
-/Tests/
-
+*
+!/src/
 !*/Debug/netcoreapp3.1/NLog.config
+!README.md
