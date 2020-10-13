@@ -73,6 +73,9 @@ namespace FlatTraderBot
 			}
 
 			logger.Trace("From ascending = {0} | From descending = {1}", fromAscending, fromDescending);
+			logger.Trace("[fromAscening/fromDescending] = {0}%/{1}%", 
+				fromAscending * 100 / flatsOverall,
+				fromDescending * 100 / flatsOverall);
 		}
 
 		/// <summary>
