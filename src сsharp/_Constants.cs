@@ -12,6 +12,11 @@ namespace Candles
         public const int NAperture = 50;
 
         /// <summary>
+        /// Минимальное количество вершин сверху или снизу возле СКО
+        /// </summary>
+        public const int MinExtremumsNearSD = 3;
+
+        /// <summary>
         /// Минимальное расстояние между боковиками, чтобы не склеивать их в один
         /// </summary>
         public const int MinFlatGap = 5;

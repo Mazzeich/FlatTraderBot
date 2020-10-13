@@ -58,7 +58,7 @@ namespace Candles
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > 2) && (exsNearSDH > 2) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
+                if ((exsNearSDL > _Constants.MinExtremumsNearSD) && (exsNearSDH > _Constants.MinExtremumsNearSD) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
                 {
                     isFlat = true;
                 }
@@ -313,8 +313,10 @@ namespace Candles
         /// Массив структур свечей
         /// </summary>
         public List<_CandleStruct> candles { get; }
-
-        public _Bounds flatBounds { get; private set; } // Границы начала и конца найденного боковика
+        /// <summary>
+        /// Границы начала и конца найденного боковика
+        /// </summary>
+        public _Bounds flatBounds { get; private set; }
 
         public  double flatWidth; // Ширина коридора текущего окна
         public double gMin { get; private set; }
@@ -335,7 +337,7 @@ namespace Candles
         /// <summary>
         /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
         /// </summary>
-        public Enum trend;
+        public Trend trend;
         /// <summary>
         /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
         /// </summary>
@@ -343,6 +345,6 @@ namespace Candles
         /// <summary>
         /// Снизу или сверху сформировался боковик
         /// </summary>
-        public Enum formedFrom { get; set; }
+        public FormedFrom formedFrom { get; set; }
     }
 }

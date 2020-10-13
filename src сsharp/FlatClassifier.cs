@@ -76,37 +76,54 @@ namespace Candles
 			logger.Trace("From ascending = {0} | From descending = {1}", fromAscending, fromDescending);
 		}
 
-		private Enum Classify(FlatIdentifier flatIdentifier, int flatNumber)
+		/// <summary>
+		/// Функция, задающая поле formedFrom объекта класса FlatIdentifier
+		/// </summary>
+		/// <param name="flatIdentifier">Боковик</param>
+		/// <param name="flatNumber">Номер боковика</param>
+		/// <returns>Enum FormedFrom</returns>
+		private FormedFrom Classify(FlatIdentifier flatIdentifier, int flatNumber)
 		{
 			_CandleStruct closestExtremum = ClosestExtremum(flatNumber);
-			return closestExtremum.avg > flatIdentifier.mean ? FormedFrom.Ascending : FormedFrom.Descending;
+			if (closestExtremum.avg > flatIdentifier.mean)
+			{
+				flatIdentifier.formedFrom = FormedFrom.Ascending;
+				return FormedFrom.Ascending;
+			}
+			else
+			{
+				flatIdentifier.formedFrom = FormedFrom.Descending;
+				return FormedFrom.Descending;
+			}
 		}
 
 		/// <summary>
-		/// Функция находит ближайший эксремум, начиная поиск с левого края окна
+		/// Функция находит ближайший экстремум, начиная поиск с левого края окна
 		/// </summary>
 		/// <param name="flatNumber">Номер объекта в списке боковиков</param>
 		/// <returns>Свеча</returns>
 		private _CandleStruct ClosestExtremum(int flatNumber)
 		{
 			int candlesPassed = 0;
+			FlatIdentifier currentFlat = flatCollection[flatNumber];
+
 			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
 			{
-				_CandleStruct closestExtremum = globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed];
+				_CandleStruct closestExtremum = globalCandles[currentFlat.flatBounds.left.index - candlesPassed];
 
-				if (closestExtremum.low < flatCollection[flatNumber].gMin &&
-				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 2].low &&
-				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 1].low &&
-				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed + 1].low &&
-				    closestExtremum.low < globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 2].low)
+				if (closestExtremum.low < currentFlat.gMin &&
+				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low &&
+				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].low &&
+				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].low &&
+				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low)
 				{
 					return closestExtremum;
 				}
-				else if (closestExtremum.high > flatCollection[flatNumber].gMax &&
-				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 2].high &&
-				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 1].high &&
-				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed + 1].high &&
-				         closestExtremum.high > globalCandles[flatCollection[flatNumber].flatBounds.left.index - candlesPassed - 2].high)
+				else if (closestExtremum.high > currentFlat.gMax &&
+				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].high &&
+				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].high &&
+				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].high &&
+				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].high)
 				{
 					return closestExtremum;
 				}
