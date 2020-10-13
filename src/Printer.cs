@@ -3,7 +3,7 @@ using NLog;
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
 
-namespace Candles
+namespace FlatTraderBot
 {
     class Printer
     {

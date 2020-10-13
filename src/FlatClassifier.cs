@@ -1,10 +1,8 @@
-﻿using NLog;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using NLog;
 
-namespace Candles
+namespace FlatTraderBot
 {
 	public class FlatClassifier
 	{
@@ -19,6 +17,7 @@ namespace Candles
 		/// <summary>
 		/// Глобальный список свечей
 		/// </summary>
+		/// 
 		private List<_CandleStruct> globalCandles = new List<_CandleStruct>();
 		/// <summary>
 		/// Всего боковиков
@@ -84,7 +83,7 @@ namespace Candles
 		/// <returns>Enum FormedFrom</returns>
 		private FormedFrom Classify(FlatIdentifier flatIdentifier, int flatNumber)
 		{
-			_CandleStruct closestExtremum = ClosestExtremum(flatNumber);
+			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
 			if (closestExtremum.avg > flatIdentifier.mean)
 			{
 				flatIdentifier.formedFrom = FormedFrom.Ascending;
@@ -102,7 +101,7 @@ namespace Candles
 		/// </summary>
 		/// <param name="flatNumber">Номер объекта в списке боковиков</param>
 		/// <returns>Свеча</returns>
-		private _CandleStruct ClosestExtremum(int flatNumber)
+		private _CandleStruct FindClosestExtremum(int flatNumber)
 		{
 			int candlesPassed = 0;
 			FlatIdentifier currentFlat = flatCollection[flatNumber];
