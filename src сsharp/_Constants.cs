@@ -1,5 +1,5 @@
 // ReSharper disable CommentTypo
-namespace Lua
+namespace Candles
 {
     /// <summary>
     /// Структура постоянных величин
@@ -12,6 +12,11 @@ namespace Lua
         public const int NAperture = 50;
 
         /// <summary>
+        /// Минимальное количество вершин сверху или снизу возле СКО
+        /// </summary>
+        public const int MinExtremumsNearSD = 3;
+
+        /// <summary>
         /// Минимальное расстояние между боковиками, чтобы не склеивать их в один
         /// </summary>
         public const int MinFlatGap = 5;
@@ -19,7 +24,12 @@ namespace Lua
         /// <summary>
         /// На сколько свечей увеличивать окно
         /// </summary>
-        public const int ExpansionRate = 2;
+        public const int ExpansionRate = 3;
+
+        /// <summary>
+        /// Максимально возможное количество свечей между экстремумом и боковиком
+        /// </summary>
+        public const int MaxFlatExtremumDistance = 100;
     
         /// <summary>
         /// Минимальная ширина коридора (коэфф. от цены инструмента)

@@ -1,5 +1,5 @@
 // ReSharper disable CommentTypo
-namespace Lua
+namespace Candles
 {
     /// <summary>
     /// Структура свечи (high, low, close, avg, date)

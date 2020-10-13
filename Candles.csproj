@@ -14,4 +14,12 @@
     <PackageReference Include="NUnit" Version="3.12.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="bin\Debug\netcoreapp3.1\logs\logFlatIdentifier.txt" />
+    <Content Include="bin\Debug\netcoreapp3.1\logs\logHistoricalFlatFinder.txt" />
+    <Content Include="bin\Debug\netcoreapp3.1\logs\logMain.txt" />
+    <Content Include="bin\Debug\netcoreapp3.1\logs\logPrinter.txt" />
+    <Content Include="bin\Debug\netcoreapp3.1\logs\logReader.txt" />
+  </ItemGroup>
+
 </Project>

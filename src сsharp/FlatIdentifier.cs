@@ -6,7 +6,7 @@ using NLog;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
-namespace Lua
+namespace Candles
 {
     /// <summary>
     /// Класс, реализующий определение бокового движения в заданном интервале свечей
@@ -20,38 +20,6 @@ namespace Lua
         /// </summary>
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        /// <summary>
-        /// Массив структур свечей
-        /// </summary>
-        public List<_CandleStruct> candles { get; }
-
-        public _Bounds flatBounds { get; private set; } // Границы начала и конца найденного боковика
-
-        public  double flatWidth; // Ширина коридора текущего окна
-        public double gMin { get; private set; }
-        public double gMax { get; private set; }
-        public int idxGmin { get; private set; }
-        public int idxGmax { get; private set; }
-        public double mean { get; private set; }
-        public double k { get; private set; }
-        public double SDL { get; private set; }
-        public double SDH { get; private set; }
-        public double SDMean { get; private set; }
-        public int exsNearSDL { get; private set; }
-        public int exsNearSDH { get; private set; }
-        /// <summary>
-        /// Действительно ли мы нашли боковик в заданном окне
-        /// </summary>
-        public bool isFlat { get; private set; }
-        /// <summary>
-        /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
-        /// </summary>
-        public Enum trend;
-        /// <summary>
-        /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
-        /// </summary>
-        public string reasonsOfApertureHasNoFlat { get; private set; }
-        
         public FlatIdentifier(ref List<_CandleStruct> candles)
         {
             logger.Trace("\n[FlatIdentifier] initialized");
@@ -65,9 +33,9 @@ namespace Lua
             
             flatBounds = SetBounds(candles[0], candles[^1]);
             logger.Trace("[{0}]: Окно с {1} по {2}", 
-                flatBounds.leftBound.date,
-                flatBounds.leftBound.time,
-                flatBounds.rightBound.time);
+                flatBounds.left.date,
+                flatBounds.left.time,
+                flatBounds.right.time);
 
             isFlat = false;
             
@@ -90,7 +58,7 @@ namespace Lua
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > 1) && (exsNearSDH > 1) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
+                if ((exsNearSDL > _Constants.MinExtremumsNearSD) && (exsNearSDH > _Constants.MinExtremumsNearSD) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
                 {
                     isFlat = true;
                 }
@@ -294,9 +262,9 @@ namespace Lua
         {
             logger.Trace("Setting bounds...");
             _Bounds result = flatBounds;
-            result.leftBound = left;
-            result.rightBound = right;
-            logger.Trace("_Bounds set: [{0}] [{1}]", result.leftBound.index, result.rightBound.index);
+            result.left = left;
+            result.right = right;
+            logger.Trace("_Bounds set: [{0}] [{1}]", result.left.index, result.right.index);
             return result;
         }
         
@@ -340,5 +308,43 @@ namespace Lua
             }
             return result;
         }
+        
+        /// <summary>
+        /// Массив структур свечей
+        /// </summary>
+        public List<_CandleStruct> candles { get; }
+        /// <summary>
+        /// Границы начала и конца найденного боковика
+        /// </summary>
+        public _Bounds flatBounds { get; private set; }
+
+        public  double flatWidth; // Ширина коридора текущего окна
+        public double gMin { get; private set; }
+        public double gMax { get; private set; }
+        public int idxGmin { get; private set; }
+        public int idxGmax { get; private set; }
+        public double mean { get; private set; }
+        public double k { get; private set; }
+        public double SDL { get; private set; }
+        public double SDH { get; private set; }
+        public double SDMean { get; private set; }
+        public int exsNearSDL { get; private set; }
+        public int exsNearSDH { get; private set; }
+        /// <summary>
+        /// Действительно ли мы нашли боковик в заданном окне
+        /// </summary>
+        public bool isFlat { get; private set; }
+        /// <summary>
+        /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
+        /// </summary>
+        public Trend trend;
+        /// <summary>
+        /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
+        /// </summary>
+        public string reasonsOfApertureHasNoFlat { get; private set; }
+        /// <summary>
+        /// Снизу или сверху сформировался боковик
+        /// </summary>
+        public FormedFrom formedFrom { get; set; }
     }
 }

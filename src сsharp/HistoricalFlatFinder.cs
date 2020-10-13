@@ -4,7 +4,7 @@ using NLog;
 
 // ReSharper disable CommentTypo
 
-namespace Lua
+namespace Candles
 {
     public class HistoricalFlatFinder
     {
@@ -31,7 +31,7 @@ namespace Lua
         /// <summary>
         /// Список всех найденных боковиков
         /// </summary>
-        public List<FlatIdentifier> flatList;
+        public readonly List<FlatIdentifier> flatList = new List<FlatIdentifier>();
 
         private HistoricalFlatFinder()
         {
@@ -51,11 +51,8 @@ namespace Lua
         public void FindAllFlats()
         {
             // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
-            for (int globalIterator = 0; globalIterator < globalCandles.Count;) 
+            for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture - 1;) 
             {
-                if (globalIterator + _Constants.NAperture > globalCandles.Count - 1)
-                    return;
-
                 FlatIdentifier flatIdentifier = new FlatIdentifier(ref aperture);
                 flatIdentifier.Identify(); // Определяем начальное окно
                 
@@ -63,18 +60,20 @@ namespace Lua
                 if (!flatIdentifier.isFlat)
                 {
                     Printer printer = new Printer(flatIdentifier);
-                    printer.ReasonsApertureIsNotFlat();
+                    printer.PrintReasonsApertureIsNotFlat();
                     globalIterator++;
-                    MoveAperture(globalIterator);
+                    MoveAperture(ref globalIterator);
                     continue;
                 }
 
                 while (flatIdentifier.isFlat)
                 {
+                    // ExpansionRate раз...
                     for (int j = 0; j < _Constants.ExpansionRate; j++)
                     {
                         try
                         {
+                            // ... расширяем окно на 1 свечу
                             ExpandAperture(globalIterator);
                         }
                         catch (Exception exception)
@@ -83,52 +82,76 @@ namespace Lua
                             return;
                         }
                     }
-                    
+
                     flatIdentifier.Identify(); // Identify() вызывает SetBounds() сам
 
                     if (flatIdentifier.isFlat) 
                         continue; // Райдер предложил
                     
                     Printer printer = new Printer(flatIdentifier);
-                    printer.ReasonsApertureIsNotFlat();
+                    printer.PrintReasonsApertureIsNotFlat();
                     //flatsBounds.Add(flatIdentifier.flatBounds);
                     flatList.Add(flatIdentifier);
                     flatsFound++;
                     logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
-                        flatIdentifier.flatBounds.leftBound.date, 
-                        flatIdentifier.flatBounds.leftBound.time,
-                        flatIdentifier.flatBounds.rightBound.time);
+                        flatIdentifier.flatBounds.left.date, 
+                        flatIdentifier.flatBounds.left.time,
+                        flatIdentifier.flatBounds.right.time);
                     
                     
                     globalIterator += aperture.Count; // Переместить i на следующую после найденного окна свечу
 
                     try
                     {
-                        MoveAperture(globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
+                        MoveAperture(ref globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
                     }
-                    catch (Exception exception)
+                    catch (ArgumentOutOfRangeException exception)
                     {
-                        logger.Trace(exception);
+                        logger.Warn("Argument out of range");
                         return;
                     }
                 }
             }
-            
-            UniteFlats(ref flatList);
         }
-        
+
         /// <summary>
         /// Перемещает окно в следующую позицию (переинициализирует в следующем интервале)
         /// </summary>
         /// <param name="i">Начальный индекс, с которого будет начинать новое окно на + _Constants.NAperture</param>
-        private void MoveAperture(int i)
+        private void MoveAperture(ref int i)
         {
             logger.Trace("[MoveAperture()]");
             
             aperture.Clear();
-            for (int j = i; j < i + _Constants.NAperture; j++)
+            // Если первая и последняя свечи будущего окна находятся в пределах одного дня
+            if (globalCandles[i].date == globalCandles[i + _Constants.NAperture].date)
             {
-                aperture.Add(globalCandles[j]);
+                for (int j = i; j < i + _Constants.NAperture; j++)
+                {
+                    aperture.Add(globalCandles[j]);
+                }
+            }
+            else // иначе
+            {
+                logger.Trace("Начало и конец предполагаемого окна находятся в разных днях.");
+                int indexOfTheNextDay = 0;
+                // Находим начало следующего дня, где дата свечи не совпадает с датой свечи самого начала окна
+                for (int j = i + 1; j < i + _Constants.NAperture; j++)
+                {
+                    indexOfTheNextDay = globalCandles[j].index;
+
+                    if (globalCandles[j].date != globalCandles[i].date)
+                    {
+                        break;
+                    }
+                }
+
+                i = indexOfTheNextDay + 1;
+
+                for (int j = i; j < i + _Constants.NAperture; j++)
+                {
+                    aperture.Add(globalCandles[j]);
+                }
             }
         }
 
@@ -150,8 +173,7 @@ namespace Lua
         private void UniteFlats(ref List<FlatIdentifier> _flats)
         {
             logger.Trace("Uniting flatList...");
-            
-            
+            // TODO: Разобраться, на кой хрен мне оно вообще надо
         }
     }
 }
