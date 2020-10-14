@@ -17,7 +17,6 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Глобальный список свечей
 		/// </summary>
-		/// 
 		private readonly List<_CandleStruct> globalCandles;
 		/// <summary>
 		/// Всего боковиков
@@ -132,6 +131,11 @@ namespace FlatTraderBot
 				{
 					candlesPassed++;
 				}
+			}
+
+			if (candlesPassed == 100)
+			{
+				logger.Trace("Extremum haven't found");
 			}
 
 			return globalCandles[0];

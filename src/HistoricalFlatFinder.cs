@@ -9,26 +9,6 @@ namespace FlatTraderBot
     public class HistoricalFlatFinder
     {
         /// <summary>
-        /// Инициализация логгера
-        /// </summary>
-        private readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
-        /// <summary>
-        /// Основной, глобальный список свечей
-        /// </summary>
-        private readonly List<_CandleStruct> globalCandles;
-        
-        private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
-
-        /// <summary>
-        /// Сколько боковиков было найдено
-        /// </summary>
-        public int flatsFound { get; private set; }
-        
-        [Obsolete("The field used to contain bounds of all founded flats")]
-        public List<_Bounds> flatsBounds { get; private set; } = new List<_Bounds>();
-
-        /// <summary>
         /// Список всех найденных боковиков
         /// </summary>
         public readonly List<FlatIdentifier> flatList = new List<FlatIdentifier>();
@@ -175,5 +155,25 @@ namespace FlatTraderBot
             logger.Trace("Uniting flatList...");
             // TODO: Разобраться, на кой хрен мне оно вообще надо
         }
+        
+        /// <summary>
+        /// Инициализация логгера
+        /// </summary>
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+        
+        /// <summary>
+        /// Основной, глобальный список свечей
+        /// </summary>
+        private readonly List<_CandleStruct> globalCandles;
+        
+        /// <summary>
+        /// Маленький список свечей, формирующий окно
+        /// </summary>
+        private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
+
+        /// <summary>
+        /// Сколько боковиков было найдено
+        /// </summary>
+        public int flatsFound { get; private set; }
     }
 }

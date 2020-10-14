@@ -23,7 +23,7 @@ namespace FlatTraderBot
         /// </summary>
         public double close;
         /// <summary>
-        /// Средняя цена по свече (= (хай - лоу)/*0.5)
+        /// Средняя цена по свече (= (хай + лоу)/*0.5)
         /// </summary>
         public double avg;
         /// <summary>
