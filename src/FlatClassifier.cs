@@ -111,7 +111,7 @@ namespace FlatTraderBot
 			{
 				_CandleStruct closestExtremum = globalCandles[currentFlat.flatBounds.left.index - candlesPassed];
 
-				if (closestExtremum.low < currentFlat.gMin &&
+				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
 				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low &&
 				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].low &&
 				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].low &&
@@ -119,7 +119,7 @@ namespace FlatTraderBot
 				{
 					return closestExtremum;
 				}
-				else if (closestExtremum.high > currentFlat.gMax &&
+				else if (closestExtremum.high > currentFlat.gMax + _Constants.flatClassifyOffset * currentFlat.gMax &&
 				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].high &&
 				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].high &&
 				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].high &&
@@ -127,10 +127,7 @@ namespace FlatTraderBot
 				{
 					return closestExtremum;
 				}
-				else
-				{
-					candlesPassed++;
-				}
+				candlesPassed++;
 			}
 
 			if (candlesPassed == 100)

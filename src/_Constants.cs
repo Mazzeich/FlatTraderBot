@@ -41,5 +41,9 @@ namespace FlatTraderBot
         /// Количество фазовых свечей, которые не нужно учитывать при вычислении уголового коэффициента
         /// </summary>
         public const double PhaseCandlesCoeff = 0.05;
+        /// <summary>
+        /// Необходимое отклонение от цены, чтобы можно было учесть экстремум перед боковиком
+        /// </summary>
+        public const double flatClassifyOffset = 0.005;
     }
 }
