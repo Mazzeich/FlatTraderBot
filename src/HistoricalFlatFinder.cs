@@ -144,7 +144,7 @@ namespace FlatTraderBot
         {
             int indexOfAddingCandle = i + aperture.Count + 1;
             aperture.Add(globalCandles[indexOfAddingCandle]);
-            logger.Trace("Aperture extended...\t[aperture.Count] = {0}\t[{1}][{2}]", aperture.Count, aperture[0].time, aperture[^1].time);
+            logger.Trace("Aperture extended...\t[{0}][{1}]\t[aperture.Count] = {2}", aperture[0].time, aperture[^1].time, aperture.Count);
         }
 
         /// <summary>

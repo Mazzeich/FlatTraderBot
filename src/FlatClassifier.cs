@@ -51,6 +51,9 @@ namespace FlatTraderBot
 			flatsOverall = flatCollection.Count;
 		}
 
+		/// <summary>
+		/// Функция, запускающая анализ флетов
+		/// </summary>
 		public void ClassifyAllFlats()
 		{
 			logger.Trace("Classification started...");
@@ -174,11 +177,13 @@ namespace FlatTraderBot
 		/// Функция вычисляет среднее расстояние между боковиками и их предстоящими отклонениями
 		/// </summary>
 		/// <param name="flatIdentifiers"></param>
+		/// <param name="candleStructs"></param>
 		/// <returns></returns>
 		private double CalculateMeanOffsetDistance(List<FlatIdentifier> flatIdentifiers, List<_CandleStruct> candleStructs)
 		{
 			double meanDistance = 0;
 			double distance = 0;
+			int offsetsFound = 0;
 
 			for (int i = 0; i < flatIdentifiers.Count - 1; i++)
 			{
@@ -187,14 +192,21 @@ namespace FlatTraderBot
 					double currentOffset = Math.Abs(candleStructs[j].avg - flatIdentifiers[i].mean);
 					if (currentOffset >= flatIdentifiers[i].flatWidth)
 					{
-						distance = candleStructs[j].index - flatIdentifiers[i].flatBounds.right.index;
-					} else continue;
+						meanDistance += candleStructs[j].index - flatIdentifiers[i].flatBounds.right.index;
+						offsetsFound++;
+						logger.Trace("For flat {0} [{1} {2}] offset is at [{3}]: {4}", 
+							flatIdentifiers[i].flatBounds.left.date,
+							flatIdentifiers[i].flatBounds.left.time,
+							flatIdentifiers[i].flatBounds.right.time,
+							candleStructs[j].date, 
+							candleStructs[j].time);
+						break;
+					}
 				}
-
-				meanDistance += distance;
 			}
+			logger.Trace("[offsetsFound] = {0}", offsetsFound);
 
-			meanDistance /= flatIdentifiers.Count - 1;
+			meanDistance /= offsetsFound;
 			return meanDistance;
 		}
 	}

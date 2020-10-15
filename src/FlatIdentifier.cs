@@ -22,12 +22,7 @@ namespace FlatTraderBot
         public void Identify()
         {
             logger.Trace("[Identify] started");
-            
-            flatBounds = SetBounds(candles[0], candles[^1]);
-            logger.Trace("[{0}]: Окно с {1} по {2}", 
-                flatBounds.left.date,
-                flatBounds.left.time,
-                flatBounds.right.time);
+            logger.Trace("[{0}]: Окно с {1} по {2}", candles[0].date, candles[0].time, candles[^1].time);
 
             isFlat = false;
             
@@ -50,9 +45,10 @@ namespace FlatTraderBot
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > _Constants.MinExtremumsNearSD) && (exsNearSDH > _Constants.MinExtremumsNearSD) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
+                if ((exsNearSDL > _Constants.MinExtremumsNearSD) && (exsNearSDH > _Constants.MinExtremumsNearSD) && (flatWidth > (_Constants.MinWidthCoeff * candles[^1].close)))
                 {
                     isFlat = true;
+                    flatBounds = SetBounds(candles[0], candles[^1]);
                 }
                 else
                 {
@@ -63,14 +59,16 @@ namespace FlatTraderBot
                 trend = Trend.Down;
                 isFlat = false;
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
-                flatBounds = SetBounds(candles[0], candles[^_Constants.ExpansionRate]);
+                // candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
+                // flatBounds = SetBounds(candles[0], candles[^1]);
             }
             else
             {
                 trend = Trend.Up;
                 isFlat = false;
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
-                flatBounds = SetBounds(candles[0], candles[^_Constants.ExpansionRate]);
+                // candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
+                // flatBounds = SetBounds(candles[0], candles[^1]);
             }
 
             logger.Trace("isFlat = {0}\n[Identify] finished", isFlat);
@@ -81,8 +79,6 @@ namespace FlatTraderBot
         /// </summary>
         private void GetGlobalExtremumsAndMean(List<_CandleStruct> candles)
         {
-            logger.Trace("Calculating global extremums and [mean] of current aperture");
-            
             mean = 0;
 
             // Находим глобальный минимум
@@ -114,7 +110,7 @@ namespace FlatTraderBot
             }
             mean /= candles.Count;
             
-            logger.Trace("Global extremums and [mean] calculated.\t[gMin] = {0} [gMax] = {1} [mean] = {2}", 
+            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", 
                 gMin, 
                 gMax, 
                 mean);
@@ -127,7 +123,6 @@ namespace FlatTraderBot
         private double FindK(List<_CandleStruct> candles)
         {
             // https://prog-cpp.ru/mnk/
-            logger.Trace("Finding [k]...");
             k = 0;
             int n = candles.Count; 
 
@@ -177,7 +172,6 @@ namespace FlatTraderBot
         [Obsolete("Method was used to calculate standart deviations way extreme than it should have been")]
         private (double, double) GetStandartDeviations()
         {
-            logger.Trace("Calculation standart deviations in current aperture...");
             double sumLow = 0;
             double sumHigh = 0;
 
@@ -230,7 +224,7 @@ namespace FlatTraderBot
                 }
             }
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL + distanceToSD);
+            logger.Trace("[SDL] - offset = {0}|[SDH] + offset = {1}", SDL - distanceToSD, SDL + distanceToSD);
 
             logger.Trace("[Попавшие в high свечи]: ");
             for (int i = 2; i < candles.Count - 2; i++)
@@ -250,7 +244,7 @@ namespace FlatTraderBot
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
             logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
             
-            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
+            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", resLow, resHigh);
             return (resLow, resHigh);
         }
 
@@ -260,7 +254,11 @@ namespace FlatTraderBot
             _Bounds result = flatBounds;
             result.left = left;
             result.right = right;
-            logger.Trace("_Bounds set: [{0}] [{1}]", result.left.index, result.right.index);
+            logger.Trace("_Bounds set: [{0}][{1}] [{2}][{3}]", 
+                result.left.time,
+                result.left.index,
+                result.right.time,
+                result.right.index);
             return result;
         }
         
