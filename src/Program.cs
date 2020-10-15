@@ -28,6 +28,8 @@ namespace FlatTraderBot
 
             FlatClassifier flatClassifier = new FlatClassifier(historicalFlatFinder.flatList, candles);
             flatClassifier.ClassifyAllFlats();
+            
+            
 
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();

@@ -30,6 +30,14 @@ namespace FlatTraderBot
 		/// Сколько боковиков сформировано после взлёта
 		/// </summary>
 		private int flatsFromAscension;
+		/// <summary>
+		/// Средний интервал между боковиками
+		/// </summary>
+		private double meanFlatInterval;
+		/// <summary>
+		/// Средний интервал между концом боковика и предстоящим отклоенением
+		/// </summary>
+		private double meanOffsetDistance;
 
 		private FlatClassifier()
 		{
@@ -73,6 +81,12 @@ namespace FlatTraderBot
 			logger.Trace("[fromAscening/fromDescending] = {0}%/{1}%", 
 				flatsFromAscension * 100/ flatsOverall,
 				flatsFromDescension * 100/ flatsOverall);
+
+			meanFlatInterval = CalculateMeanInterval(flatCollection);
+			logger.Trace("[meanFlatInterval] = {0}", meanFlatInterval);
+
+			meanOffsetDistance = CalculateMeanOffsetDistance(flatCollection, globalCandles);
+			logger.Trace("[meanOffsetDistance] = {0}", meanOffsetDistance);
 		}
 
 		/// <summary>
@@ -136,6 +150,52 @@ namespace FlatTraderBot
 			}
 
 			return globalCandles[0];
+		}
+
+		/// <summary>
+		/// Функция вычисляет среднее расстояние между боковиками
+		/// </summary>
+		/// <param name="flatIdentifiers">Коллекция боковиков</param>
+		/// <returns>Средний интервал</returns>
+		private double CalculateMeanInterval(List<FlatIdentifier> flatIdentifiers)
+		{
+			double meanDistance = 0;
+			for (int i = 1; i < flatIdentifiers.Count; i++)
+			{
+				double gap = flatIdentifiers[i].flatBounds.left.index - flatIdentifiers[i - 1].flatBounds.right.index;
+				meanDistance += gap;
+			}
+
+			meanDistance /= flatIdentifiers.Count - 1;
+			return meanDistance;
+		}
+
+		/// <summary>
+		/// Функция вычисляет среднее расстояние между боковиками и их предстоящими отклонениями
+		/// </summary>
+		/// <param name="flatIdentifiers"></param>
+		/// <returns></returns>
+		private double CalculateMeanOffsetDistance(List<FlatIdentifier> flatIdentifiers, List<_CandleStruct> candleStructs)
+		{
+			double meanDistance = 0;
+			double distance = 0;
+
+			for (int i = 0; i < flatIdentifiers.Count - 1; i++)
+			{
+				for (int j = flatIdentifiers[i].flatBounds.right.index + 1; j < flatIdentifiers[i + 1].flatBounds.left.index; j++)
+				{
+					double currentOffset = Math.Abs(candleStructs[j].avg - flatIdentifiers[i].mean);
+					if (currentOffset >= flatIdentifiers[i].flatWidth)
+					{
+						distance = candleStructs[j].index - flatIdentifiers[i].flatBounds.right.index;
+					} else continue;
+				}
+
+				meanDistance += distance;
+			}
+
+			meanDistance /= flatIdentifiers.Count - 1;
+			return meanDistance;
 		}
 	}
 }

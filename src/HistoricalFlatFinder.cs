@@ -153,7 +153,7 @@ namespace FlatTraderBot
         private void UniteFlats(ref List<FlatIdentifier> _flats)
         {
             logger.Trace("Uniting flatList...");
-            // TODO: Разобраться, на кой хрен мне оно вообще надо
+            // TODO: Объединять боковики, близко расположенные друг к другу, и находящиеся на одном уровне
         }
         
         /// <summary>
