@@ -12,11 +12,20 @@ namespace FlatTraderBot
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class FlatIdentifier
     {
-        public FlatIdentifier(ref List<_CandleStruct> candles)
+        /// <summary>
+        /// Получаем данные для анализа окна
+        /// </summary>
+        /// <param name="candles">Списк свечей в окне</param>
+        public FlatIdentifier()
         {
             logger.Trace("\n[FlatIdentifier] initialized");
             this.candles  = candles;
             isFlat = false;
+        }
+
+        public void AssignAperture(List<_CandleStruct> candleStructs)
+        {
+            candles = candleStructs;
         }
 
         public void Identify()
@@ -37,9 +46,7 @@ namespace FlatTraderBot
 
             SDL = mean - SDMean;
             SDH = mean + SDMean;
-
-            exsNearSDL = 0;
-            exsNearSDH = 0;
+            
             (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD(candles);
             
             if (Math.Abs(k) < _Constants.KOffset)
@@ -59,56 +66,52 @@ namespace FlatTraderBot
                 trend = Trend.Down;
                 isFlat = false;
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
-                // candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-                // flatBounds = SetBounds(candles[0], candles[^1]);
             }
             else
             {
                 trend = Trend.Up;
                 isFlat = false;
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
-                // candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-                // flatBounds = SetBounds(candles[0], candles[^1]);
             }
 
-            logger.Trace("isFlat = {0}\n[Identify] finished", isFlat);
+            logger.Trace("isFlat = {0}\n[Identify] finished\n------------------------------------", isFlat);
         }
 
         /// <summary>
         /// Функция поиска глобальных экстремумов в массиве структур свечей
         /// </summary>
-        private void GetGlobalExtremumsAndMean(List<_CandleStruct> candles)
+        private void GetGlobalExtremumsAndMean(List<_CandleStruct> candleStructs)
         {
             mean = 0;
 
             // Находим глобальный минимум
             gMin = double.PositiveInfinity;
-            for (int i = 0; i < candles.Count; i++)
+            for (int i = 0; i < candleStructs.Count; i++)
             {
-                if (gMin > candles[i].low)
+                if (gMin > candleStructs[i].low)
                 {
-                    gMin = candles[i].low;
+                    gMin = candleStructs[i].low;
                     idxGmin = i;
                 }
             }
 
             // Находим глоабльный максимум
             gMax = double.NegativeInfinity;
-            for (int i = 0; i < candles.Count; i++)
+            for (int i = 0; i < candleStructs.Count; i++)
             {
-                if (gMax < candles[i].high)
+                if (gMax < candleStructs[i].high)
                 {
-                    gMax = candles[i].high;
+                    gMax = candleStructs[i].high;
                     idxGmax = i;
                 }
             }
 
             // Вычисляем мат. ожидание
-            for (int i = 0; i < candles.Count; i++)
+            for (int i = 0; i < candleStructs.Count; i++)
             {
-                mean += candles[i].avg;
+                mean += candleStructs[i].avg;
             }
-            mean /= candles.Count;
+            mean /= candleStructs.Count;
             
             logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", 
                 gMin, 
@@ -120,11 +123,11 @@ namespace FlatTraderBot
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private double FindK(List<_CandleStruct> candles)
+        private double FindK(List<_CandleStruct> candleStructs)
         {
             // https://prog-cpp.ru/mnk/
             k = 0;
-            int n = candles.Count; 
+            int n = candleStructs.Count; 
 
             double sumX = 0;
             double sumY = 0;
@@ -134,9 +137,9 @@ namespace FlatTraderBot
             for (int i = 0; i < n; i++)
             {
                 sumX += i;
-                sumY += candles[i].avg;
+                sumY += candleStructs[i].avg;
                 sumXsquared += i * i;
-                sumXY += i * candles[i].avg;
+                sumXY += i * candleStructs[i].avg;
             }
             // Точка пересечения с осью ординат
 
@@ -310,7 +313,8 @@ namespace FlatTraderBot
         /// <summary>
         /// Массив структур свечей
         /// </summary>
-        public List<_CandleStruct> candles { get; }
+        public List<_CandleStruct> candles { get; set; }
+
         /// <summary>
         /// Границы начала и конца найденного боковика
         /// </summary>

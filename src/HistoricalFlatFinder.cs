@@ -33,7 +33,8 @@ namespace FlatTraderBot
             // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
             for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture - 1;) 
             {
-                FlatIdentifier flatIdentifier = new FlatIdentifier(ref aperture);
+                FlatIdentifier flatIdentifier = new FlatIdentifier();
+                flatIdentifier.AssignAperture(aperture);
                 flatIdentifier.Identify(); // Определяем начальное окно
                 
                 // Если не определили боковик сходу
@@ -43,6 +44,7 @@ namespace FlatTraderBot
                     printer.PrintReasonsApertureIsNotFlat();
                     globalIterator++;
                     MoveAperture(ref globalIterator);
+                    flatIdentifier.AssignAperture(aperture);
                     continue;
                 }
 
@@ -53,8 +55,10 @@ namespace FlatTraderBot
                     {
                         try
                         {
+                            
                             // ... расширяем окно на 1 свечу
                             ExtendAperture(globalIterator);
+                            flatIdentifier.AssignAperture(aperture);
                         }
                         catch (Exception exception)
                         {
