@@ -54,7 +54,7 @@ namespace FlatTraderBot
                         try
                         {
                             // ... расширяем окно на 1 свечу
-                            ExpandAperture(globalIterator);
+                            ExtendAperture(globalIterator);
                         }
                         catch (Exception exception)
                         {
@@ -133,17 +133,18 @@ namespace FlatTraderBot
                     aperture.Add(globalCandles[j]);
                 }
             }
+            logger.Trace("[{0}] [{1}]", aperture[0].time, aperture[^1].time);
         }
 
         /// <summary>
         /// Расширяет окно на 1 свечу
         /// </summary>
         /// <param name="i">Начальный индекс, к которому добавить (aperture.Count + 1)</param>
-        private void ExpandAperture(int i)
+        private void ExtendAperture(int i)
         {
             int indexOfAddingCandle = i + aperture.Count + 1;
             aperture.Add(globalCandles[indexOfAddingCandle]);
-            logger.Trace("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
+            logger.Trace("Aperture extended...\t[aperture.Count] = {0}\t[{1}][{2}]", aperture.Count, aperture[0].time, aperture[^1].time);
         }
 
         /// <summary>
