@@ -313,8 +313,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Массив структур свечей
         /// </summary>
-        public List<_CandleStruct> candles { get; set; }
-
+        public List<_CandleStruct> candles { get; private set; }
         /// <summary>
         /// Границы начала и конца найденного боковика
         /// </summary>
@@ -322,7 +321,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Ширина текущего коридора
         /// </summary>
-        public  double flatWidth;
+        public  double flatWidth { get; private set; }
         /// <summary>
         /// Глобальный минимум в боковике
         /// </summary>

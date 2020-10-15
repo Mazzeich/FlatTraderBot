@@ -44,7 +44,6 @@ namespace FlatTraderBot
                     printer.PrintReasonsApertureIsNotFlat();
                     globalIterator++;
                     MoveAperture(ref globalIterator);
-                    flatIdentifier.AssignAperture(aperture);
                     continue;
                 }
 
