@@ -26,8 +26,8 @@ namespace FlatTraderBot
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
 
-            FlatClassifier flatClassifier = new FlatClassifier(historicalFlatFinder.flatList, candles);
-            flatClassifier.ClassifyAllFlats();
+            // FlatClassifier flatClassifier = new FlatClassifier(historicalFlatFinder.flatList, candles);
+            // flatClassifier.ClassifyAllFlats();
 
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();

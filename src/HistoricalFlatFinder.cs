@@ -9,26 +9,6 @@ namespace FlatTraderBot
     public class HistoricalFlatFinder
     {
         /// <summary>
-        /// Инициализация логгера
-        /// </summary>
-        private readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
-        /// <summary>
-        /// Основной, глобальный список свечей
-        /// </summary>
-        private readonly List<_CandleStruct> globalCandles;
-        
-        private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
-
-        /// <summary>
-        /// Сколько боковиков было найдено
-        /// </summary>
-        public int flatsFound { get; private set; }
-        
-        [Obsolete("The field used to contain bounds of all founded flats")]
-        public List<_Bounds> flatsBounds { get; private set; } = new List<_Bounds>();
-
-        /// <summary>
         /// Список всех найденных боковиков
         /// </summary>
         public readonly List<FlatIdentifier> flatList = new List<FlatIdentifier>();
@@ -53,7 +33,8 @@ namespace FlatTraderBot
             // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
             for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture - 1;) 
             {
-                FlatIdentifier flatIdentifier = new FlatIdentifier(ref aperture);
+                FlatIdentifier flatIdentifier = new FlatIdentifier();
+                flatIdentifier.AssignAperture(aperture);
                 flatIdentifier.Identify(); // Определяем начальное окно
                 
                 // Если не определили боковик сходу
@@ -73,8 +54,10 @@ namespace FlatTraderBot
                     {
                         try
                         {
+                            
                             // ... расширяем окно на 1 свечу
-                            ExpandAperture(globalIterator);
+                            ExtendAperture(globalIterator);
+                            flatIdentifier.AssignAperture(aperture);
                         }
                         catch (Exception exception)
                         {
@@ -153,17 +136,18 @@ namespace FlatTraderBot
                     aperture.Add(globalCandles[j]);
                 }
             }
+            logger.Trace("[{0}] [{1}]", aperture[0].time, aperture[^1].time);
         }
 
         /// <summary>
         /// Расширяет окно на 1 свечу
         /// </summary>
         /// <param name="i">Начальный индекс, к которому добавить (aperture.Count + 1)</param>
-        private void ExpandAperture(int i)
+        private void ExtendAperture(int i)
         {
             int indexOfAddingCandle = i + aperture.Count + 1;
             aperture.Add(globalCandles[indexOfAddingCandle]);
-            logger.Trace("Aperture expanded...\t[aperture.Count] = {0}", aperture.Count);
+            logger.Trace("Aperture extended...\t[{0}][{1}]\t[aperture.Count] = {2}", aperture[0].time, aperture[^1].time, aperture.Count);
         }
 
         /// <summary>
@@ -173,7 +157,27 @@ namespace FlatTraderBot
         private void UniteFlats(ref List<FlatIdentifier> _flats)
         {
             logger.Trace("Uniting flatList...");
-            // TODO: Разобраться, на кой хрен мне оно вообще надо
+            // TODO: Объединять боковики, близко расположенные друг к другу, и находящиеся на одном уровне
         }
+        
+        /// <summary>
+        /// Инициализация логгера
+        /// </summary>
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+        
+        /// <summary>
+        /// Основной, глобальный список свечей
+        /// </summary>
+        private readonly List<_CandleStruct> globalCandles;
+        
+        /// <summary>
+        /// Маленький список свечей, формирующий окно
+        /// </summary>
+        private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
+
+        /// <summary>
+        /// Сколько боковиков было найдено
+        /// </summary>
+        public int flatsFound { get; private set; }
     }
 }

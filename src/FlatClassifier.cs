@@ -17,7 +17,6 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Глобальный список свечей
 		/// </summary>
-		/// 
 		private readonly List<_CandleStruct> globalCandles;
 		/// <summary>
 		/// Всего боковиков
@@ -31,6 +30,14 @@ namespace FlatTraderBot
 		/// Сколько боковиков сформировано после взлёта
 		/// </summary>
 		private int flatsFromAscension;
+		/// <summary>
+		/// Средний интервал между боковиками
+		/// </summary>
+		private double meanFlatInterval;
+		/// <summary>
+		/// Средний интервал между концом боковика и предстоящим отклоенением
+		/// </summary>
+		private double meanOffsetDistance;
 
 		private FlatClassifier()
 		{
@@ -44,6 +51,9 @@ namespace FlatTraderBot
 			flatsOverall = flatCollection.Count;
 		}
 
+		/// <summary>
+		/// Функция, запускающая анализ флетов
+		/// </summary>
 		public void ClassifyAllFlats()
 		{
 			logger.Trace("Classification started...");
@@ -74,6 +84,12 @@ namespace FlatTraderBot
 			logger.Trace("[fromAscening/fromDescending] = {0}%/{1}%", 
 				flatsFromAscension * 100/ flatsOverall,
 				flatsFromDescension * 100/ flatsOverall);
+
+			meanFlatInterval = CalculateMeanInterval(flatCollection);
+			logger.Trace("[meanFlatInterval] = {0}", meanFlatInterval);
+
+			meanOffsetDistance = CalculateMeanOffsetDistance(flatCollection, globalCandles);
+			logger.Trace("[meanOffsetDistance] = {0}", meanOffsetDistance);
 		}
 
 		/// <summary>
@@ -112,7 +128,7 @@ namespace FlatTraderBot
 			{
 				_CandleStruct closestExtremum = globalCandles[currentFlat.flatBounds.left.index - candlesPassed];
 
-				if (closestExtremum.low < currentFlat.gMin &&
+				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
 				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low &&
 				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].low &&
 				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].low &&
@@ -120,7 +136,7 @@ namespace FlatTraderBot
 				{
 					return closestExtremum;
 				}
-				else if (closestExtremum.high > currentFlat.gMax &&
+				else if (closestExtremum.high > currentFlat.gMax + _Constants.flatClassifyOffset * currentFlat.gMax &&
 				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].high &&
 				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].high &&
 				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].high &&
@@ -128,13 +144,70 @@ namespace FlatTraderBot
 				{
 					return closestExtremum;
 				}
-				else
-				{
-					candlesPassed++;
-				}
+				candlesPassed++;
+			}
+
+			if (candlesPassed == 100)
+			{
+				logger.Trace("Extremum haven't found");
 			}
 
 			return globalCandles[0];
+		}
+
+		/// <summary>
+		/// Функция вычисляет среднее расстояние между боковиками
+		/// </summary>
+		/// <param name="flatIdentifiers">Коллекция боковиков</param>
+		/// <returns>Средний интервал</returns>
+		private double CalculateMeanInterval(List<FlatIdentifier> flatIdentifiers)
+		{
+			double meanDistance = 0;
+			for (int i = 1; i < flatIdentifiers.Count; i++)
+			{
+				double gap = flatIdentifiers[i].flatBounds.left.index - flatIdentifiers[i - 1].flatBounds.right.index;
+				meanDistance += gap;
+			}
+
+			meanDistance /= flatIdentifiers.Count - 1;
+			return meanDistance;
+		}
+
+		/// <summary>
+		/// Функция вычисляет среднее расстояние между боковиками и их предстоящими отклонениями
+		/// </summary>
+		/// <param name="flatIdentifiers"></param>
+		/// <param name="candleStructs"></param>
+		/// <returns></returns>
+		private double CalculateMeanOffsetDistance(List<FlatIdentifier> flatIdentifiers, List<_CandleStruct> candleStructs)
+		{
+			double meanDistance = 0;
+			double distance = 0;
+			int offsetsFound = 0;
+
+			for (int i = 0; i < flatIdentifiers.Count - 1; i++)
+			{
+				for (int j = flatIdentifiers[i].flatBounds.right.index + 1; j < flatIdentifiers[i + 1].flatBounds.left.index; j++)
+				{
+					double currentOffset = Math.Abs(candleStructs[j].avg - flatIdentifiers[i].mean);
+					if (currentOffset >= flatIdentifiers[i].flatWidth)
+					{
+						meanDistance += candleStructs[j].index - flatIdentifiers[i].flatBounds.right.index;
+						offsetsFound++;
+						logger.Trace("For flat {0} [{1} {2}] offset is at [{3}]: {4}", 
+							flatIdentifiers[i].flatBounds.left.date,
+							flatIdentifiers[i].flatBounds.left.time,
+							flatIdentifiers[i].flatBounds.right.time,
+							candleStructs[j].date, 
+							candleStructs[j].time);
+						break;
+					}
+				}
+			}
+			logger.Trace("[offsetsFound] = {0}", offsetsFound);
+
+			meanDistance /= offsetsFound;
+			return meanDistance;
 		}
 	}
 }

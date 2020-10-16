@@ -1,5 +1,4 @@
 *
 !src
 !src/*.cs
-!*/Debug/netcoreapp3.1/NLog.config
 !README.md

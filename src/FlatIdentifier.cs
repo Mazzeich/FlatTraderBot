@@ -12,22 +12,26 @@ namespace FlatTraderBot
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class FlatIdentifier
     {
-        public FlatIdentifier(ref List<_CandleStruct> candles)
+        /// <summary>
+        /// Получаем данные для анализа окна
+        /// </summary>
+        /// <param name="candles">Списк свечей в окне</param>
+        public FlatIdentifier()
         {
             logger.Trace("\n[FlatIdentifier] initialized");
             this.candles  = candles;
             isFlat = false;
         }
 
+        public void AssignAperture(List<_CandleStruct> candleStructs)
+        {
+            candles = candleStructs;
+        }
+
         public void Identify()
         {
             logger.Trace("[Identify] started");
-            
-            flatBounds = SetBounds(candles[0], candles[^1]);
-            logger.Trace("[{0}]: Окно с {1} по {2}", 
-                flatBounds.left.date,
-                flatBounds.left.time,
-                flatBounds.right.time);
+            logger.Trace("[{0}]: Окно с {1} по {2}", candles[0].date, candles[0].time, candles[^1].time);
 
             isFlat = false;
             
@@ -42,17 +46,16 @@ namespace FlatTraderBot
 
             SDL = mean - SDMean;
             SDH = mean + SDMean;
-
-            exsNearSDL = 0;
-            exsNearSDH = 0;
+            
             (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD(candles);
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > _Constants.MinExtremumsNearSD) && (exsNearSDH > _Constants.MinExtremumsNearSD) && (flatWidth > (_Constants.MinWidthCoeff * mean)))
+                if ((exsNearSDL > _Constants.MinExtremumsNearSD) && (exsNearSDH > _Constants.MinExtremumsNearSD) && (flatWidth > (_Constants.MinWidthCoeff * candles[^1].close)))
                 {
                     isFlat = true;
+                    flatBounds = SetBounds(candles[0], candles[^1]);
                 }
                 else
                 {
@@ -63,58 +66,54 @@ namespace FlatTraderBot
                 trend = Trend.Down;
                 isFlat = false;
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
-                flatBounds = SetBounds(candles[0], candles[^_Constants.ExpansionRate]);
             }
             else
             {
                 trend = Trend.Up;
                 isFlat = false;
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
-                flatBounds = SetBounds(candles[0], candles[^_Constants.ExpansionRate]);
             }
 
-            logger.Trace("isFlat = {0}\n[Identify] finished", isFlat);
+            logger.Trace("isFlat = {0}\n[Identify] finished\n------------------------------------", isFlat);
         }
 
         /// <summary>
         /// Функция поиска глобальных экстремумов в массиве структур свечей
         /// </summary>
-        private void GetGlobalExtremumsAndMean(List<_CandleStruct> candles)
+        private void GetGlobalExtremumsAndMean(List<_CandleStruct> candleStructs)
         {
-            logger.Trace("Calculating global extremums and [mean] of current aperture");
-            
             mean = 0;
 
             // Находим глобальный минимум
             gMin = double.PositiveInfinity;
-            for (int i = 0; i < candles.Count; i++)
+            for (int i = 0; i < candleStructs.Count; i++)
             {
-                if (gMin > candles[i].low)
+                if (gMin > candleStructs[i].low)
                 {
-                    gMin = candles[i].low;
+                    gMin = candleStructs[i].low;
                     idxGmin = i;
                 }
             }
 
             // Находим глоабльный максимум
             gMax = double.NegativeInfinity;
-            for (int i = 0; i < candles.Count; i++)
+            for (int i = 0; i < candleStructs.Count; i++)
             {
-                if (gMax < candles[i].high)
+                if (gMax < candleStructs[i].high)
                 {
-                    gMax = candles[i].high;
+                    gMax = candleStructs[i].high;
                     idxGmax = i;
                 }
             }
 
             // Вычисляем мат. ожидание
-            for (int i = 0; i < candles.Count; i++)
+            for (int i = 0; i < candleStructs.Count; i++)
             {
-                mean += candles[i].avg;
+                mean += candleStructs[i].avg;
             }
-            mean /= candles.Count;
+            mean /= candleStructs.Count;
             
-            logger.Trace("Global extremums and [mean] calculated.\t[gMin] = {0} [gMax] = {1} [mean] = {2}", 
+            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", 
                 gMin, 
                 gMax, 
                 mean);
@@ -124,12 +123,11 @@ namespace FlatTraderBot
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private double FindK(List<_CandleStruct> candles)
+        private double FindK(List<_CandleStruct> candleStructs)
         {
             // https://prog-cpp.ru/mnk/
-            logger.Trace("Finding [k]...");
             k = 0;
-            int n = candles.Count; 
+            int n = candleStructs.Count; 
 
             double sumX = 0;
             double sumY = 0;
@@ -139,9 +137,9 @@ namespace FlatTraderBot
             for (int i = 0; i < n; i++)
             {
                 sumX += i;
-                sumY += candles[i].avg;
+                sumY += candleStructs[i].avg;
                 sumXsquared += i * i;
-                sumXY += i * candles[i].avg;
+                sumXY += i * candleStructs[i].avg;
             }
             // Точка пересечения с осью ординат
 
@@ -177,7 +175,6 @@ namespace FlatTraderBot
         [Obsolete("Method was used to calculate standart deviations way extreme than it should have been")]
         private (double, double) GetStandartDeviations()
         {
-            logger.Trace("Calculation standart deviations in current aperture...");
             double sumLow = 0;
             double sumHigh = 0;
 
@@ -230,7 +227,7 @@ namespace FlatTraderBot
                 }
             }
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL + distanceToSD);
+            logger.Trace("[SDL] - offset = {0}|[SDH] + offset = {1}", SDL - distanceToSD, SDL + distanceToSD);
 
             logger.Trace("[Попавшие в high свечи]: ");
             for (int i = 2; i < candles.Count - 2; i++)
@@ -250,7 +247,7 @@ namespace FlatTraderBot
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
             logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
             
-            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
+            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", resLow, resHigh);
             return (resLow, resHigh);
         }
 
@@ -260,7 +257,11 @@ namespace FlatTraderBot
             _Bounds result = flatBounds;
             result.left = left;
             result.right = right;
-            logger.Trace("_Bounds set: [{0}] [{1}]", result.left.index, result.right.index);
+            logger.Trace("_Bounds set: [{0}][{1}] [{2}][{3}]", 
+                result.left.time,
+                result.left.index,
+                result.right.time,
+                result.right.index);
             return result;
         }
         
@@ -312,7 +313,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Массив структур свечей
         /// </summary>
-        public List<_CandleStruct> candles { get; }
+        public List<_CandleStruct> candles { get; private set; }
         /// <summary>
         /// Границы начала и конца найденного боковика
         /// </summary>
@@ -320,7 +321,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Ширина текущего коридора
         /// </summary>
-        public  double flatWidth;
+        public  double flatWidth { get; private set; }
         /// <summary>
         /// Глобальный минимум в боковике
         /// </summary>
