@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NLog;
 
 // ReSharper disable CommentTypo
@@ -91,11 +92,19 @@ namespace FlatTraderBot
                         historicalFlatFinder.flatList[i].flatBounds.left.date,
                         historicalFlatFinder.flatList[i].flatBounds.left.time,
                         historicalFlatFinder.flatList[i].flatBounds.right.time);
-                }
+                }                            
             }
             else
             {
                 logger.Trace("[Printer.OutputHistoricalInfo().historicalFlatFinder] == null");
+            }
+        }
+
+        public void PrintFlatListInfo(List<FlatIdentifier> flatList)
+        {
+            foreach (FlatIdentifier flat in flatList)
+            {
+                // TODO: Краисвый logger.Trace() всех полей объекта
             }
         }
 
