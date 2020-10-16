@@ -154,19 +154,35 @@ namespace FlatTraderBot
         /// <summary>
         /// Функция склеивает находящиеся близко друг к другу боковики
         /// </summary>
-        private void UniteFlats()
+        public void UniteFlats()
         {
             logger.Trace("Uniting [flatList]...");
             for (int i = 1; i < flatsFound; i++)
             {
                 FlatIdentifier currentFlat = flatList[i];
                 FlatIdentifier prevFlat = flatList[i-1];
-                
+
+                // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
+                // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА
+                // И ЕСЛИ разница в цене между мат. ожиданиями текущего и предыдущего <= ОФФСЕТ * среднее между мат. ожиданиями обоих боковиков
                 if (currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date &&
                     currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap &&
-                    Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.flatsMeanOffset)
+                    Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.flatsMeanOffset *  ((currentFlat.mean + prevFlat.mean) * 0.5))
                 {
+                    logger.Trace("Нашли, что объединять");
+                    List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.flatBounds.right.index - prevFlat.flatBounds.left.index);
+                    for (int j = prevFlat.flatBounds.left.index; j < currentFlat.flatBounds.right.index; j++)
+                    {
+                        newAperture.Add(globalCandles[j]);
+                    }
+                    FlatIdentifier newFlat = CreateInstance(newAperture);
+                    newFlat.CalculateFlatProperties();
+                    newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
                     
+                    flatList.RemoveRange(i, 2);
+                    flatList.Insert(i, newFlat);
+                    flatsFound--;
+                    i++;
                 }
             }
         }
@@ -188,12 +204,12 @@ namespace FlatTraderBot
         /// </summary>
         public int flatsFound { get; private set; }
         /// <summary>
-        /// Маленький список свечей, формирующий окно
-        /// </summary>
-        private protected List<_CandleStruct> aperture => _aperture;
-        /// <summary>
         /// Список всех найденных боковиков
         /// </summary>
-        public readonly List<FlatIdentifier> flatList = new List<FlatIdentifier>();
+        public  List<FlatIdentifier> flatList
+        {
+            get => flatList;
+            private set => flatList = value;
+        }
     }
 }

@@ -255,7 +255,7 @@ namespace FlatTraderBot
             return (resLow, resHigh);
         }
 
-        private _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
+        public _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
             logger.Trace("Setting bounds...");
             _Bounds result = flatBounds;
