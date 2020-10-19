@@ -39,7 +39,7 @@ namespace FlatTraderBot
                 
                 bool isEnoughExtremumsNearSDL = exsNearSDL > _Constants.MinExtremumsNearSD;
                 bool isEnoughExtremumsNearSDH = exsNearSDH > _Constants.MinExtremumsNearSD;
-                bool isEnoughFlatWidth = flatWidth > (_Constants.MinWidthCoeff * candles[^1].close);
+                bool isEnoughFlatWidth        = flatWidth  > _Constants.MinWidthCoeff * candles[^1].close;
                 
                 if (isEnoughExtremumsNearSDL && isEnoughExtremumsNearSDH && isEnoughFlatWidth)
                 {
@@ -74,10 +74,10 @@ namespace FlatTraderBot
             
             GetGlobalExtremumsAndMean(candles);
             SDMean = GetStandartDeviationMean();
-            flatWidth = gMax - gMin;
-            k = FindK(candles);
             SDL = mean - SDMean;
             SDH = mean + SDMean;
+            flatWidth = gMax - gMin;
+            k = FindK(candles);
             (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD();
             
             LogFlatProperties();

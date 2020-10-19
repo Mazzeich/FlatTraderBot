@@ -56,8 +56,6 @@ namespace FlatTraderBot
 		/// </summary>
 		public void ClassifyAllFlats()
 		{
-			logger.Trace("Classification started...");
-
 			for (int i = 0; i < flatsOverall; i++)
 			{
 				Enum flatFormedFrom = Classify(flatCollection[i], i);
@@ -65,13 +63,13 @@ namespace FlatTraderBot
 				{
 					case (FormedFrom.Ascending):
 					{
-						logger.Trace("[{0}]: {1} from Asceding", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
+						logger.Trace("[{0}]: {1} from asceding", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
 						flatsFromAscension++;
 						break;
 					}
 					case (FormedFrom.Descending):
 					{
-						logger.Trace("[{0}]: {1} from Descending", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
+						logger.Trace("[{0}]: {1} from descending", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
 						flatsFromDescension++;
 						break;
 					}
@@ -147,10 +145,7 @@ namespace FlatTraderBot
 				candlesPassed++;
 			}
 
-			if (candlesPassed == 100)
-			{
-				logger.Trace("Extremum haven't found");
-			}
+			logger.Trace("Extremum haven't found");
 
 			return globalCandles[0];
 		}
