@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using NLog;
 
 namespace FlatTraderBot
@@ -8,19 +9,26 @@ namespace FlatTraderBot
     /// <summary>
     /// Класс, реализующий определение бокового движения в заданном интервале свечей
     /// </summary>
-    [SuppressMessage("ReSharper", "CommentTypo")]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class FlatIdentifier
     {
-        /// <summary>
-        /// Получаем данные для анализа окна
-        /// </summary>
-        /// <param name="candleStructs">Списк свечей в окне</param>
-        public FlatIdentifier(List<_CandleStruct> candleStructs)
+        public FlatIdentifier()
         {
             logger.Trace("\n[FlatIdentifier] initialized");
             isFlat = false;
-            candles = candleStructs;
+        }
+
+        /// <summary>
+        /// Получаем данные для анализа окна
+        /// </summary>
+        /// <param name="candleStructs">Список свечей в окне</param>
+        // public FlatIdentifier(ref List<_CandleStruct> candleStructs) : this()
+        // {
+        //     candles = new List<_CandleStruct>(candleStructs);
+        // }
+
+        public void AssignAperture(List<_CandleStruct> aperture)
+        {
+            candles = new List<_CandleStruct>(aperture);
         }
 
         public void Identify()
@@ -281,11 +289,11 @@ namespace FlatTraderBot
             {
                 result += "Недостаточная ширина коридора. ";
             }
-            if (exsNearSDL < 2)
+            if (exsNearSDL < _Constants.MinExtremumsNearSD)
             {
                 result += "Недостаточно вершин снизу возле СКО.  ";
             }
-            if (exsNearSDH < 2)
+            if (exsNearSDH < _Constants.MinExtremumsNearSD)
             {
                 result += "Недостаточно вершин сверху возле СКО. ";
             }
