@@ -99,8 +99,6 @@ namespace FlatTraderBot
         /// <param name="i">Начальный индекс, с которого будет начинать новое окно на + _Constants.NAperture</param>
         private void MoveAperture(ref int i)
         {
-            logger.Trace("[MoveAperture()]");
-            
             aperture.Clear();
             // Если первая и последняя свечи будущего окна находятся в пределах одного дня
             if (globalCandles[i].date == globalCandles[i + _Constants.NAperture].date)
@@ -132,7 +130,6 @@ namespace FlatTraderBot
                     aperture.Add(globalCandles[j]);
                 }
             }
-            logger.Trace("[{0}] [{1}]", aperture[0].time, aperture[^1].time);
         }
 
         /// <summary>
@@ -143,7 +140,6 @@ namespace FlatTraderBot
         {
             int indexOfAddingCandle = i + _aperture.Count + 1;
             _aperture.Add(globalCandles[indexOfAddingCandle]);
-            logger.Trace("Aperture extended...\t[{0}][{1}]\t[_aperture.Count] = {2}", _aperture[0].time, _aperture[^1].time, _aperture.Count);
         }
 
         /// <summary>
@@ -151,7 +147,6 @@ namespace FlatTraderBot
         /// </summary>
         public void UniteFlats()
         {
-            logger.Trace("Uniting [flatList]...");
             for (int i = 1; i < flatsFound; i++)
             {
                 FlatIdentifier currentFlat = flatList[i];
@@ -164,18 +159,26 @@ namespace FlatTraderBot
                     currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap &&
                     Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.flatsMeanOffset * ((currentFlat.mean + prevFlat.mean) * 0.5))
                 {
-                    logger.Trace("Нашли, что объединять");
+                    logger.Trace("{0}: Uniting [{1}] [{2}] and [{3}] [{4}]",
+                        prevFlat.candles[0].date,
+                        prevFlat.flatBounds.left.time,
+                        prevFlat.flatBounds.right.time,
+                        currentFlat.flatBounds.left.time,
+                        currentFlat.flatBounds.right.time);
+                    
                     List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.flatBounds.right.index - prevFlat.flatBounds.left.index);
-                    for (int j = prevFlat.flatBounds.left.index; j < currentFlat.flatBounds.right.index; j++)
+                    for (int j = prevFlat.flatBounds.left.index; j <= currentFlat.flatBounds.right.index; j++)
                     {
                         newAperture.Add(globalCandles[j]);
                     }
                     FlatIdentifier newFlat = new FlatIdentifier();
+                    newFlat.AssignAperture(newAperture);
                     newFlat.CalculateFlatProperties();
+                    newFlat.flatBounds = newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
                     newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
                     
-                    flatList.RemoveRange(i, 2);
-                    flatList.Insert(i, newFlat);
+                    flatList.RemoveRange(i-1, 2);
+                    flatList.Insert(i-1, newFlat);
                     flatsFound--;
                     i++;
                 }
