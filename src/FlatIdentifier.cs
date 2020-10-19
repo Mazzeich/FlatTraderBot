@@ -18,14 +18,9 @@ namespace FlatTraderBot
         }
 
         /// <summary>
-        /// Получаем данные для анализа окна
+        /// Функция устанавливает поле candles
         /// </summary>
-        /// <param name="candleStructs">Список свечей в окне</param>
-        // public FlatIdentifier(ref List<_CandleStruct> candleStructs) : this()
-        // {
-        //     candles = new List<_CandleStruct>(candleStructs);
-        // }
-
+        /// <param name="aperture">Рассматриваемое окно</param>
         public void AssignAperture(List<_CandleStruct> aperture)
         {
             candles = new List<_CandleStruct>(aperture);
@@ -41,7 +36,12 @@ namespace FlatTraderBot
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > _Constants.MinExtremumsNearSD) && (exsNearSDH > _Constants.MinExtremumsNearSD) && (flatWidth > (_Constants.MinWidthCoeff * candles[^1].close)))
+                
+                bool isEnoughExtremumsNearSDL = exsNearSDL > _Constants.MinExtremumsNearSD;
+                bool isEnoughExtremumsNearSDH = exsNearSDH > _Constants.MinExtremumsNearSD;
+                bool isEnoughFlatWidth = flatWidth > (_Constants.MinWidthCoeff * candles[^1].close);
+                
+                if (isEnoughExtremumsNearSDL && isEnoughExtremumsNearSDH && isEnoughFlatWidth)
                 {
                     isFlat = true;
                     flatBounds = SetBounds(candles[0], candles[^1]);
@@ -50,19 +50,16 @@ namespace FlatTraderBot
                 {
                     reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
                 }
-            } else if (k < 0)
+            } 
+            else if (k < 0)
             {
                 trend = Trend.Down;
-                isFlat = false;
-                candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-                reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
+                SetApertureStateToTrend();
             }
             else
             {
                 trend = Trend.Up;
-                isFlat = false;
-                candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-                reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
+                SetApertureStateToTrend();
             }
 
             logger.Trace("isFlat = {0}\n[Identify] finished\n------------------------------------", isFlat);
@@ -74,25 +71,41 @@ namespace FlatTraderBot
         public void CalculateFlatProperties()
         {
             logger.Trace("Calculating flat properties...");
+            
             GetGlobalExtremumsAndMean(candles);
             SDMean = GetStandartDeviationMean();
-
             flatWidth = gMax - gMin;
-            logger.Trace("[flatWidth] = {0}", flatWidth);
-
-            // Вычисляем поле k
             k = FindK(candles);
-
             SDL = mean - SDMean;
             SDH = mean + SDMean;
+            (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD();
             
-            (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD(candles);
+            LogFlatProperties();
+        }
+
+        /// <summary>
+        /// Логгирует все поля объекта
+        /// </summary>
+        private void LogFlatProperties()
+        {
+            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", gMin, gMax, mean);
+            logger.Trace("[Standart Deviation on mean] = {0}", SDMean);
+            logger.Trace("[flatWidth] = {0}", flatWidth);
+            logger.Trace("[k] = {0}", k);
+            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
+        }
+
+        private void SetApertureStateToTrend()
+        {
+            isFlat = false;
+            candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
+            reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
         }
 
         /// <summary>
         /// Функция поиска глобальных экстремумов в массиве структур свечей
         /// </summary>
-        private void GetGlobalExtremumsAndMean(List<_CandleStruct> candleStructs)
+        private void GetGlobalExtremumsAndMean(IReadOnlyList<_CandleStruct> candleStructs)
         {
             mean = 0;
 
@@ -124,11 +137,6 @@ namespace FlatTraderBot
                 mean += candleStructs[i].avg;
             }
             mean /= candleStructs.Count;
-            
-            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", 
-                gMin, 
-                gMax, 
-                mean);
         }
 
         /// <summary>
@@ -157,8 +165,6 @@ namespace FlatTraderBot
 
             double result = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
             double b = (sumY - result * sumX)/n;
-
-            logger.Trace("[k] = {0}\t [b] = {1}", result, b);
             
             return result;
         }
@@ -175,7 +181,6 @@ namespace FlatTraderBot
                 sumMean += Math.Pow(mean - candles[i].avg, 2);
             }
             double result = Math.Sqrt(sumMean / candles.Count);
-            logger.Trace("[Standart Deviation on mean] = {0}", result);
             return result;
         }
 
@@ -203,7 +208,7 @@ namespace FlatTraderBot
                 else if ((candles[i].high) >= mean)
                 {
                     sumHigh += Math.Pow(candles[i].high - mean, 2);
-                    highsCount++;
+                    highsCount++; 
                 }
             }
             double SDLow = Math.Sqrt(sumLow / lowsCount);
@@ -216,15 +221,13 @@ namespace FlatTraderBot
         /// <summary>
         /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО
         /// </summary>
-        private (int, int) EstimateExtremumsNearSD(List<_CandleStruct> candles)
+        private (int, int) EstimateExtremumsNearSD()
         {
-            logger.Trace("Counting extremums near standart deviations...");
-
             int resLow  = 0;
             int resHigh = 0;
             double distanceToSD = mean * _Constants.SDOffset;
 
-            logger.Trace("[Попавшие в low свечи]: ");
+            logger.Trace("Near [SDL]:");
             for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
             {
                 if (Math.Abs(candles[i].low - SDL) <= distanceToSD &&
@@ -239,9 +242,9 @@ namespace FlatTraderBot
                 }
             }
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDL] - offset = {0}|[SDH] + offset = {1}", SDL - distanceToSD, SDL + distanceToSD);
+            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL + distanceToSD);
 
-            logger.Trace("[Попавшие в high свечи]: ");
+            logger.Trace("Near [SDH]:");
             for (int i = 2; i < candles.Count - 2; i++)
             {
                 if (Math.Abs(candles[i].high - SDH) <= distanceToSD &&
@@ -259,21 +262,20 @@ namespace FlatTraderBot
             logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
             logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
             
-            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", resLow, resHigh);
             return (resLow, resHigh);
         }
 
+        /// <summary>
+        /// Функция устанавливает поле flatBounds
+        /// </summary>
+        /// <param name="left">Левая граница боковика (свеча)</param>
+        /// <param name="right">Правая граница боковика (свеча)</param>
+        /// <returns></returns>
         public _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
-            logger.Trace("Setting bounds...");
             _Bounds result = flatBounds;
             result.left = left;
             result.right = right;
-            logger.Trace("_Bounds set: [{0}][{1}] [{2}][{3}]", 
-                result.left.time,
-                result.left.index,
-                result.right.time,
-                result.right.index);
             return result;
         }
         

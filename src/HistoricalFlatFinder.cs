@@ -64,10 +64,10 @@ namespace FlatTraderBot
                         }
                     }
                     flatIdentifier.AssignAperture(aperture);
-                    flatIdentifier.Identify(); // Identify() вызывает SetBounds() сам
+                    flatIdentifier.Identify(); // Identify() вызывает SetBounds(), если isFlat == true
 
                     if (flatIdentifier.isFlat) 
-                        continue; // Райдер предложил
+                        continue; 
                     
                     Printer printer = new Printer(flatIdentifier);
                     printer.PrintReasonsApertureIsNotFlat();
@@ -78,7 +78,7 @@ namespace FlatTraderBot
                         flatIdentifier.flatBounds.left.time,
                         flatIdentifier.flatBounds.right.time);
 
-                    globalIterator += aperture.Count; // Переместить i на следующую после найденного окна свечу
+                    globalIterator += aperture.Count; // Переместить итератор на следующую после найденного окна свечу
 
                     try
                     {
@@ -96,7 +96,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Перемещает окно в следующую позицию (переинициализирует в следующем интервале)
         /// </summary>
-        /// <param name="i">Начальный индекс, с которого будет начинать новое окно на + _Constants.NAperture</param>
+        /// <param name="i">Начальный индекс, с которого будет начинаться новое окно до (i + _Constants.NAperture)</param>
         private void MoveAperture(ref int i)
         {
             aperture.Clear();
@@ -151,13 +151,15 @@ namespace FlatTraderBot
             {
                 FlatIdentifier currentFlat = flatList[i];
                 FlatIdentifier prevFlat = flatList[i-1];
+                
+                bool areFlatsInTheSameDay = currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
+                bool areFlatsTooClose = (currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index) <= _Constants.MinFlatGap;
+                bool areFlatsMeansRoughlyEqual = (Math.Abs(currentFlat.mean - prevFlat.mean) <= (_Constants.flatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5));
 
                 // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
                 // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА
                 // И ЕСЛИ разница в цене между мат. ожиданиями текущего и предыдущего <= ОФФСЕТ * среднее между мат. ожиданиями обоих боковиков
-                if (currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date &&
-                    currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap &&
-                    Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.flatsMeanOffset * ((currentFlat.mean + prevFlat.mean) * 0.5))
+                if (areFlatsInTheSameDay && areFlatsTooClose && areFlatsMeansRoughlyEqual)
                 {
                     logger.Trace("{0}: Uniting [{1}] [{2}] and [{3}] [{4}]",
                         prevFlat.candles[0].date,
