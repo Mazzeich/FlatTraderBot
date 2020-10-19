@@ -15,16 +15,11 @@ namespace FlatTraderBot
         /// <summary>
         /// Получаем данные для анализа окна
         /// </summary>
-        /// <param name="candles">Списк свечей в окне</param>
-        public FlatIdentifier()
+        /// <param name="candleStructs">Списк свечей в окне</param>
+        public FlatIdentifier(List<_CandleStruct> candleStructs)
         {
             logger.Trace("\n[FlatIdentifier] initialized");
-            this.candles  = candles;
             isFlat = false;
-        }
-
-        public void AssignAperture(List<_CandleStruct> candleStructs)
-        {
             candles = candleStructs;
         }
 
@@ -32,22 +27,8 @@ namespace FlatTraderBot
         {
             logger.Trace("[Identify] started");
             logger.Trace("[{0}]: Окно с {1} по {2}", candles[0].date, candles[0].time, candles[^1].time);
-
-            isFlat = false;
             
-            GetGlobalExtremumsAndMean(candles);
-            SDMean = GetStandartDeviationMean();
-
-            flatWidth = gMax - gMin;
-            logger.Trace("[flatWidth] = {0}", flatWidth);
-
-            // Вычисляем поле k
-            k = FindK(candles);
-
-            SDL = mean - SDMean;
-            SDH = mean + SDMean;
-            
-            (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD(candles);
+            CalculateFlatProperties();
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
@@ -65,16 +46,39 @@ namespace FlatTraderBot
             {
                 trend = Trend.Down;
                 isFlat = false;
+                candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
             }
             else
             {
                 trend = Trend.Up;
                 isFlat = false;
+                candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
                 reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
             }
 
             logger.Trace("isFlat = {0}\n[Identify] finished\n------------------------------------", isFlat);
+        }
+
+        /// <summary>
+        /// Функция вычислет все поля класса
+        /// </summary>
+        public void CalculateFlatProperties()
+        {
+            logger.Trace("Calculating flat properties...");
+            GetGlobalExtremumsAndMean(candles);
+            SDMean = GetStandartDeviationMean();
+
+            flatWidth = gMax - gMin;
+            logger.Trace("[flatWidth] = {0}", flatWidth);
+
+            // Вычисляем поле k
+            k = FindK(candles);
+
+            SDL = mean - SDMean;
+            SDH = mean + SDMean;
+            
+            (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD(candles);
         }
 
         /// <summary>
@@ -251,7 +255,7 @@ namespace FlatTraderBot
             return (resLow, resHigh);
         }
 
-        private _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
+        public _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
             logger.Trace("Setting bounds...");
             _Bounds result = flatBounds;
@@ -305,7 +309,7 @@ namespace FlatTraderBot
             }
             return result;
         }
-        
+
         /// <summary>
         /// Логгер в logFlatIdentifier.txt
         /// </summary>
@@ -317,7 +321,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Границы начала и конца найденного боковика
         /// </summary>
-        public _Bounds flatBounds { get; private set; }
+        public _Bounds flatBounds { get;  set; }
         /// <summary>
         /// Ширина текущего коридора
         /// </summary>

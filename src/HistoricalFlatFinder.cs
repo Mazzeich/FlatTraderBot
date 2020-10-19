@@ -9,9 +9,14 @@ namespace FlatTraderBot
     public class HistoricalFlatFinder
     {
         /// <summary>
-        /// Список всех найденных боковиков
+        /// Фабричный метод создания объектов
         /// </summary>
-        public readonly List<FlatIdentifier> flatList = new List<FlatIdentifier>();
+        /// <param name="candleStructs">Список свечей окна</param>
+        /// <returns></returns>
+        private static FlatIdentifier CreateInstance(List<_CandleStruct> candleStructs)
+        {
+            return new FlatIdentifier(candleStructs);
+        }
 
         private HistoricalFlatFinder()
         {
@@ -24,7 +29,7 @@ namespace FlatTraderBot
 
             for (int i = 1; i < _Constants.NAperture; i++) // Формируем стартовое окно
             {
-                aperture.Add(globalCandles[i]);
+                _aperture.Add(globalCandles[i]);
             }
         }
 
@@ -33,8 +38,7 @@ namespace FlatTraderBot
             // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
             for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture - 1;) 
             {
-                FlatIdentifier flatIdentifier = new FlatIdentifier();
-                flatIdentifier.AssignAperture(aperture);
+                FlatIdentifier flatIdentifier = CreateInstance(_aperture);
                 flatIdentifier.Identify(); // Определяем начальное окно
                 
                 // Если не определили боковик сходу
@@ -42,6 +46,7 @@ namespace FlatTraderBot
                 {
                     Printer printer = new Printer(flatIdentifier);
                     printer.PrintReasonsApertureIsNotFlat();
+                    flatIdentifier = null;
                     globalIterator++;
                     MoveAperture(ref globalIterator);
                     continue;
@@ -54,10 +59,8 @@ namespace FlatTraderBot
                     {
                         try
                         {
-                            
                             // ... расширяем окно на 1 свечу
                             ExtendAperture(globalIterator);
-                            flatIdentifier.AssignAperture(aperture);
                         }
                         catch (Exception exception)
                         {
@@ -65,7 +68,7 @@ namespace FlatTraderBot
                             return;
                         }
                     }
-
+                    
                     flatIdentifier.Identify(); // Identify() вызывает SetBounds() сам
 
                     if (flatIdentifier.isFlat) 
@@ -73,16 +76,14 @@ namespace FlatTraderBot
                     
                     Printer printer = new Printer(flatIdentifier);
                     printer.PrintReasonsApertureIsNotFlat();
-                    //flatsBounds.Add(flatIdentifier.flatBounds);
                     flatList.Add(flatIdentifier);
                     flatsFound++;
                     logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
                         flatIdentifier.flatBounds.left.date, 
                         flatIdentifier.flatBounds.left.time,
                         flatIdentifier.flatBounds.right.time);
-                    
-                    
-                    globalIterator += aperture.Count; // Переместить i на следующую после найденного окна свечу
+
+                    globalIterator += _aperture.Count; // Переместить i на следующую после найденного окна свечу
 
                     try
                     {
@@ -105,16 +106,16 @@ namespace FlatTraderBot
         {
             logger.Trace("[MoveAperture()]");
             
-            aperture.Clear();
+            _aperture.Clear();
             // Если первая и последняя свечи будущего окна находятся в пределах одного дня
             if (globalCandles[i].date == globalCandles[i + _Constants.NAperture].date)
             {
                 for (int j = i; j < i + _Constants.NAperture; j++)
                 {
-                    aperture.Add(globalCandles[j]);
+                    _aperture.Add(globalCandles[j]);
                 }
             }
-            else // иначе
+            else
             {
                 logger.Trace("Начало и конец предполагаемого окна находятся в разных днях.");
                 int indexOfTheNextDay = 0;
@@ -133,10 +134,10 @@ namespace FlatTraderBot
 
                 for (int j = i; j < i + _Constants.NAperture; j++)
                 {
-                    aperture.Add(globalCandles[j]);
+                    _aperture.Add(globalCandles[j]);
                 }
             }
-            logger.Trace("[{0}] [{1}]", aperture[0].time, aperture[^1].time);
+            logger.Trace("[{0}] [{1}]", _aperture[0].time, _aperture[^1].time);
         }
 
         /// <summary>
@@ -145,39 +146,70 @@ namespace FlatTraderBot
         /// <param name="i">Начальный индекс, к которому добавить (aperture.Count + 1)</param>
         private void ExtendAperture(int i)
         {
-            int indexOfAddingCandle = i + aperture.Count + 1;
-            aperture.Add(globalCandles[indexOfAddingCandle]);
-            logger.Trace("Aperture extended...\t[{0}][{1}]\t[aperture.Count] = {2}", aperture[0].time, aperture[^1].time, aperture.Count);
+            int indexOfAddingCandle = i + _aperture.Count + 1;
+            _aperture.Add(globalCandles[indexOfAddingCandle]);
+            logger.Trace("Aperture extended...\t[{0}][{1}]\t[aperture.Count] = {2}", _aperture[0].time, _aperture[^1].time, _aperture.Count);
         }
 
         /// <summary>
         /// Функция склеивает находящиеся близко друг к другу боковики
         /// </summary>
-        /// <param name="_flats">Список границ всех найденных боковиков</param>
-        private void UniteFlats(ref List<FlatIdentifier> _flats)
+        public void UniteFlats()
         {
-            logger.Trace("Uniting flatList...");
-            // TODO: Объединять боковики, близко расположенные друг к другу, и находящиеся на одном уровне
+            logger.Trace("Uniting [flatList]...");
+            for (int i = 1; i < flatsFound; i++)
+            {
+                FlatIdentifier currentFlat = flatList[i];
+                FlatIdentifier prevFlat = flatList[i-1];
+
+                // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
+                // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА
+                // И ЕСЛИ разница в цене между мат. ожиданиями текущего и предыдущего <= ОФФСЕТ * среднее между мат. ожиданиями обоих боковиков
+                if (currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date &&
+                    currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap &&
+                    Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.flatsMeanOffset *  ((currentFlat.mean + prevFlat.mean) * 0.5))
+                {
+                    logger.Trace("Нашли, что объединять");
+                    List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.flatBounds.right.index - prevFlat.flatBounds.left.index);
+                    for (int j = prevFlat.flatBounds.left.index; j < currentFlat.flatBounds.right.index; j++)
+                    {
+                        newAperture.Add(globalCandles[j]);
+                    }
+                    FlatIdentifier newFlat = CreateInstance(newAperture);
+                    newFlat.CalculateFlatProperties();
+                    newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
+                    
+                    flatList.RemoveRange(i, 2);
+                    flatList.Insert(i, newFlat);
+                    flatsFound--;
+                    i++;
+                }
+            }
         }
         
         /// <summary>
         /// Инициализация логгера
         /// </summary>
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
         /// <summary>
         /// Основной, глобальный список свечей
         /// </summary>
         private readonly List<_CandleStruct> globalCandles;
-        
         /// <summary>
         /// Маленький список свечей, формирующий окно
         /// </summary>
-        private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
-
+        private readonly List<_CandleStruct> _aperture = new List<_CandleStruct>(_Constants.NAperture);
         /// <summary>
         /// Сколько боковиков было найдено
         /// </summary>
         public int flatsFound { get; private set; }
+        /// <summary>
+        /// Список всех найденных боковиков
+        /// </summary>
+        public  List<FlatIdentifier> flatList
+        {
+            get => flatList;
+            private set => flatList = value;
+        }
     }
 }

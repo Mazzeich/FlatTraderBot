@@ -45,5 +45,9 @@ namespace FlatTraderBot
         /// Необходимое отклонение от цены, чтобы можно было учесть экстремум перед боковиком
         /// </summary>
         public const double flatClassifyOffset = 0.005;
+        /// <summary>
+        /// Возможное отклонение мат. ожиданий боковиков для их объединения
+        /// </summary>
+        public const double flatsMeanOffset = 0.0005;
     }
 }
