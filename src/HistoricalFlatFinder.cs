@@ -2,15 +2,13 @@ using System;
 using System.Collections.Generic;
 using NLog;
 
-// ReSharper disable CommentTypo
-
 namespace FlatTraderBot
 {
     public class HistoricalFlatFinder
     {
         private HistoricalFlatFinder()
         {
-            logger.Trace("\n[HistoricalFlatFinder] initialized");
+            
         }
 
         public HistoricalFlatFinder(List<_CandleStruct> candles) : this()
