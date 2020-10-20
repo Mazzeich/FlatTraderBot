@@ -70,8 +70,6 @@ namespace FlatTraderBot
         /// </summary>
         public void CalculateFlatProperties()
         {
-            logger.Trace("Calculating flat properties...");
-            
             gMin = GetGlobalMinimum(candles);
             gMax = GetGlobalMaximum(candles);
             mean = GetMean(candles);

@@ -103,7 +103,7 @@ namespace FlatTraderBot
         {
             foreach (FlatIdentifier flat in flatList)
             {
-                // TODO: Краисвый logger.Trace() всех полей объекта
+                // TODO: Красивый logger.Trace() всех полей объекта
             }
         }
 
