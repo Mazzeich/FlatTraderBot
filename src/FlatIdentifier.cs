@@ -54,12 +54,12 @@ namespace FlatTraderBot
             else if (k < 0)
             {
                 trend = Trend.Down;
-                SetApertureStateToTrend();
+                CutAperture();
             }
             else
             {
                 trend = Trend.Up;
-                SetApertureStateToTrend();
+                CutAperture();
             }
 
             logger.Trace("isFlat = {0}\n[Identify] finished\n------------------------------------", isFlat);
@@ -72,11 +72,13 @@ namespace FlatTraderBot
         {
             logger.Trace("Calculating flat properties...");
             
-            GetGlobalExtremumsAndMean(candles);
+            gMin = GetGlobalMinimum(candles);
+            gMax = GetGlobalMaximum(candles);
+            mean = GetMean(candles);
+            flatWidth = gMax - gMin;
             SDMean = GetStandartDeviationMean();
             SDL = mean - SDMean;
             SDH = mean + SDMean;
-            flatWidth = gMax - gMin;
             k = FindK(candles);
             (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD();
             
@@ -84,59 +86,56 @@ namespace FlatTraderBot
         }
 
         /// <summary>
-        /// Логгирует все поля объекта
+        /// Функция находит глобальный минимум окна
         /// </summary>
-        private void LogFlatProperties()
+        /// <param name="candleStructs">Список свечей окна</param>
+        private double GetGlobalMinimum(IReadOnlyList<_CandleStruct> candleStructs)
         {
-            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", gMin, gMax, mean);
-            logger.Trace("[Standart Deviation on mean] = {0}", SDMean);
-            logger.Trace("[flatWidth] = {0}", flatWidth);
-            logger.Trace("[k] = {0}", k);
-            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
-        }
-
-        private void SetApertureStateToTrend()
-        {
-            isFlat = false;
-            candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-            reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
-        }
-
-        /// <summary>
-        /// Функция поиска глобальных экстремумов в массиве структур свечей
-        /// </summary>
-        private void GetGlobalExtremumsAndMean(IReadOnlyList<_CandleStruct> candleStructs)
-        {
-            mean = 0;
-
-            // Находим глобальный минимум
-            gMin = double.PositiveInfinity;
+            double result = double.PositiveInfinity;
             for (int i = 0; i < candleStructs.Count; i++)
             {
-                if (gMin > candleStructs[i].low)
+                if (result > candleStructs[i].low)
                 {
-                    gMin = candleStructs[i].low;
+                    result = candleStructs[i].low;
                     idxGmin = i;
                 }
             }
 
-            // Находим глоабльный максимум
-            gMax = double.NegativeInfinity;
+            return result;
+        }
+
+        /// <summary>
+        /// Функция находит глобальный максимум окна
+        /// </summary>
+        /// <param name="candleStructs">Список свечей окна</param>
+        private double GetGlobalMaximum(IReadOnlyList<_CandleStruct> candleStructs)
+        {
+            double result = double.NegativeInfinity;
             for (int i = 0; i < candleStructs.Count; i++)
             {
-                if (gMax < candleStructs[i].high)
+                if (result < candleStructs[i].high)
                 {
-                    gMax = candleStructs[i].high;
+                    result = candleStructs[i].high;
                     idxGmax = i;
                 }
             }
 
-            // Вычисляем мат. ожидание
+            return result;
+        }
+
+        /// <summary>
+        /// Функция находит мат. ожидание окна
+        /// </summary>
+        /// <param name="candleStructs">Список свечей окна</param>
+        private double GetMean(IReadOnlyList<_CandleStruct> candleStructs)
+        {
+            double result = 0;
             for (int i = 0; i < candleStructs.Count; i++)
             {
-                mean += candleStructs[i].avg;
+                result += candleStructs[i].avg;
             }
-            mean /= candleStructs.Count;
+            result /= candleStructs.Count;
+            return result;
         }
 
         /// <summary>
@@ -264,6 +263,18 @@ namespace FlatTraderBot
             
             return (resLow, resHigh);
         }
+        
+        /// <summary>
+        /// Логгирует все поля объекта
+        /// </summary>
+        private void LogFlatProperties()
+        {
+            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", gMin, gMax, mean);
+            logger.Trace("[Standart Deviation on mean] = {0}", SDMean);
+            logger.Trace("[flatWidth] = {0}", flatWidth);
+            logger.Trace("[k] = {0}", k);
+            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
+        }
 
         /// <summary>
         /// Функция устанавливает поле flatBounds
@@ -318,6 +329,16 @@ namespace FlatTraderBot
                 }
             }
             return result;
+        }
+        
+        /// <summary>
+        /// Функция подрезает окн после того, как боковик не определился
+        /// </summary>
+        private void CutAperture()
+        {
+            isFlat = false;
+            candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
+            reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
         }
 
         /// <summary>
