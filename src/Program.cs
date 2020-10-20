@@ -22,7 +22,9 @@ namespace FlatTraderBot
             
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
             historicalFlatFinder.FindAllFlats();
-            historicalFlatFinder.UniteFlats();
+            
+            FlatPostprocessor flatPostprocessor = new FlatPostprocessor(historicalFlatFinder);
+            flatPostprocessor.UniteFlats();
 
             Printer printer = new Printer(historicalFlatFinder);
             printer.OutputHistoricalInfo();
