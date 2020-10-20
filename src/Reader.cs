@@ -34,17 +34,23 @@ namespace FlatTraderBot
         private string[] readCloses;
         private string[] readOpens;
         private string[] readVolumes;
-
-        public Reader(List<_CandleStruct> candleStruct)
+        
+        public Reader()
         {
             logger.Trace("\n[Class Reader initialized]");
+        }
+        
+        public Reader(List<_CandleStruct> candleStruct) : this()
+        {
             this.candleStruct = candleStruct;
             currentDirectory = Directory.GetCurrentDirectory();
         }
 
+        
+
         ~Reader()
         {
-            logger.Trace("[Class Reader destroyed]");
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -89,7 +95,7 @@ namespace FlatTraderBot
         public List<_CandleStruct> GetHistoricalData()
         {
             logger.Trace("[GetHistoricalData invoked]");
-            pathHistoricalData = Path.Combine(currentDirectory, @"Data/data.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"Data\data.csv");
 
             using StreamReader streamReader = new StreamReader(pathHistoricalData);
             using CsvReader csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
