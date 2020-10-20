@@ -20,7 +20,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Минимальное расстояние между боковиками, чтобы не склеивать их в один
         /// </summary>
-        public const int MinFlatGap = 5;
+        public const int MinFlatGap = 15;
         /// <summary>
         /// Максимально возможное количество свечей между экстремумом и боковиком
         /// </summary>
@@ -48,6 +48,6 @@ namespace FlatTraderBot
         /// <summary>
         /// Возможное отклонение мат. ожиданий боковиков для их объединения
         /// </summary>
-        public const double flatsMeanOffset = 0.0005;
+        public const double flatsMeanOffset = 0.0006;
     }
 }
