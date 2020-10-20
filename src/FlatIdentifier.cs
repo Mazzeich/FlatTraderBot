@@ -76,11 +76,12 @@ namespace FlatTraderBot
             gMax = GetGlobalMaximum(candles);
             mean = GetMean(candles);
             flatWidth = gMax - gMin;
-            SDMean = GetStandartDeviationMean();
+            SDMean = GetStandartDeviationMean(candles);
             SDL = mean - SDMean;
             SDH = mean + SDMean;
             k = FindK(candles);
-            (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD();
+            exsNearSDL = EstimateExtremumsNearSDL(candles);
+            exsNearSDH = EstimateExtremumsNearSDH(candles);
             
             LogFlatProperties();
         }
@@ -172,14 +173,14 @@ namespace FlatTraderBot
         /// Функция вычисляет СКО окна по avg всех свечей
         /// </summary>
         /// <returns></returns>
-        private double GetStandartDeviationMean()
+        private double GetStandartDeviationMean(IReadOnlyList<_CandleStruct> candleStructs)
         {
             double sumMean = 0;
-            for (int i = 0; i < candles.Count - 1; i++)
+            for (int i = 0; i < candleStructs.Count - 1; i++)
             {
-                sumMean += Math.Pow(mean - candles[i].avg, 2);
+                sumMean += Math.Pow(mean - candleStructs[i].avg, 2);
             }
-            double result = Math.Sqrt(sumMean / candles.Count);
+            double result = Math.Sqrt(sumMean / candleStructs.Count);
             return result;
         }
 
@@ -218,52 +219,63 @@ namespace FlatTraderBot
         }
 
         /// <summary>
-        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО
+        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по лоу
         /// </summary>
-        private (int, int) EstimateExtremumsNearSD()
+        /// <param name="candleStructs"></param>
+        /// <returns>Количество экстремумов возле СКО лоу</returns>
+        private int EstimateExtremumsNearSDL(List<_CandleStruct> candleStructs)
         {
-            int resLow  = 0;
-            int resHigh = 0;
+            int result = 0;
             double distanceToSD = mean * _Constants.SDOffset;
-
-            logger.Trace("Near [SDL]:");
-            for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
+            logger.Trace("Near [SDL]: ");
+            for (int i = 2; i < candleStructs.Count - 2; i++)
             {
                 if (Math.Abs(candles[i].low - SDL) <= distanceToSD &&
-                    candles[i].low <= candles[i-1].low && candles[i].low <= candles[i-2].low &&
-                    candles[i].low <= candles[i+1].low && candles[i].low <= candles[i+2].low)
+                    candleStructs[i].low <= candleStructs[i-1].low && candleStructs[i].low <= candleStructs[i-2].low &&
+                    candleStructs[i].low <= candleStructs[i+1].low && candleStructs[i].low <= candleStructs[i+2].low)
                 {
-                    logger.Trace(candles[i].time);
-                    resLow++;
-                    _CandleStruct temp = candles[i];
+                    logger.Trace(candleStructs[i].time);
+                    result++;
+                    _CandleStruct temp = candleStructs[i];
                     temp.low -= 0.01;
-                    candles[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
+                    candleStructs[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                 }
             }
-            logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL + distanceToSD);
 
-            logger.Trace("Near [SDH]:");
-            for (int i = 2; i < candles.Count - 2; i++)
-            {
-                if (Math.Abs(candles[i].high - SDH) <= distanceToSD &&
-                    candles[i].high >= candles[i-1].high && candles[i].high >= candles[i-2].high &&
-                    candles[i].high >= candles[i+1].high && candles[i].high >= candles[i+2].high)
-                {
-                    logger.Trace(candles[i].time);
-                    resHigh++;
-                    _CandleStruct temp = candles[i];
-                    temp.high += 0.01;
-                    candles[i] = temp;
-                }
-            }
-            
-            logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
-            
-            return (resLow, resHigh);
+            logger.Trace("[distanceToSD] = {0}", distanceToSD);
+            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL = distanceToSD);
+            return result;
         }
         
+        /// <summary>
+        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по хай
+        /// </summary>
+        /// <param name="candleStructs"></param>
+        /// <returns>Количество экстремумов возле СКО хай</returns>
+        private int EstimateExtremumsNearSDH(List<_CandleStruct> candleStructs)
+        {
+            int result = 0;
+            double distanceToSD = mean * _Constants.SDOffset;
+            logger.Trace("Near [SDH]: ");
+            for (int i = 2; i < candleStructs.Count - 2; i++)
+            {
+                if (Math.Abs(candleStructs[i].high - SDH) <= distanceToSD &&
+                    candleStructs[i].high >= candleStructs[i-1].high && candleStructs[i].high >= candleStructs[i-2].high &&
+                    candleStructs[i].high >= candleStructs[i+1].high && candleStructs[i].high >= candleStructs[i+2].high)
+                {
+                    logger.Trace(candleStructs[i].time);
+                    result++;
+                    _CandleStruct temp = candleStructs[i];
+                    temp.high += 0.01;
+                    candleStructs[i] = temp;
+                }
+            }
+
+            logger.Trace("[distanceToSD] = {0}", distanceToSD);
+            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH = distanceToSD);
+            return result;
+        }
+
         /// <summary>
         /// Логгирует все поля объекта
         /// </summary>
