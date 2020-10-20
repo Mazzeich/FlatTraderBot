@@ -2,4 +2,4 @@
 !src
 !src/*.cs
 !README.md
-UnitTests.cs
+/tests_src/
