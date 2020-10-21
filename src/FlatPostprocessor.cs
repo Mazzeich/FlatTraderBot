@@ -61,7 +61,7 @@ namespace FlatTraderBot
             }
 		}
 
-		private Logger logger = LogManager.GetCurrentClassLogger();
+		private readonly Logger logger = LogManager.GetCurrentClassLogger();
 		
 		private List<FlatIdentifier> flatList = new List<FlatIdentifier>();
 
