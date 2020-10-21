@@ -28,20 +28,18 @@ namespace FlatTraderBot
                 bool areFlatsInTheSameDay = currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
                 bool areFlatsTooClose = (currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index) <= _Constants.MinFlatGap;
                 bool areFlatsMeansRoughlyEqual = (Math.Abs(currentFlat.mean - prevFlat.mean) <= (_Constants.flatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5));
-                logger.Trace("В один день = {0} Слишком близко = {1} Мат. ожидания = {2}", areFlatsInTheSameDay, areFlatsTooClose, areFlatsMeansRoughlyEqual);
-
+                
+                logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
+                             $"and [{currentFlat.flatBounds.left.time}] [{currentFlat.flatBounds.right.time}] " +
+                             $"Day = {areFlatsInTheSameDay}\tDistance = {areFlatsTooClose}\tMeans = {areFlatsMeansRoughlyEqual}",
+	                areFlatsInTheSameDay, areFlatsTooClose, areFlatsMeansRoughlyEqual);
 
                 // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
                 // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА
                 // И ЕСЛИ разница в цене между мат. ожиданиями текущего и предыдущего <= ОФФСЕТ * среднее между мат. ожиданиями обоих боковиков
                 if (areFlatsInTheSameDay && areFlatsTooClose && areFlatsMeansRoughlyEqual)
                 {
-                    logger.Trace("{0}: Uniting [{1}] [{2}] and [{3}] [{4}]",
-                        prevFlat.candles[0].date,
-                        prevFlat.flatBounds.left.time,
-                        prevFlat.flatBounds.right.time,
-                        currentFlat.flatBounds.left.time,
-                        currentFlat.flatBounds.right.time);
+                    logger.Trace("Uniting");
                     
                     List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.flatBounds.right.index - prevFlat.flatBounds.left.index);
                     for (int j = prevFlat.flatBounds.left.index; j <= currentFlat.flatBounds.right.index; j++)
