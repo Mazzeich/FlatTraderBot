@@ -93,10 +93,10 @@ namespace FlatTraderBot
             return candleStruct;
         }
 
-        public List<_CandleStruct> GetHistoricalData()
+        public List<_CandleStruct> GetHistoricalData(string fileName)
         {
             logger.Trace("[GetHistoricalData invoked]");
-            pathHistoricalData = Path.Combine(currentDirectory, @"Data\data.csv");
+            pathHistoricalData = Path.Combine(currentDirectory, @"Data\" + fileName);
 
             using StreamReader streamReader = new StreamReader(pathHistoricalData);
             using CsvReader csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
