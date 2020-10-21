@@ -2,3 +2,4 @@
 !src
 !src/*.cs
 !README.md
+/tests_src/

@@ -8,7 +8,6 @@ namespace FlatTraderBot
 {
     class Printer
     {
-        // С другой стороны, логгер не должен инициализироваться в классе. Это затратно
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
         
         private readonly FlatIdentifier flatIdentifier;
@@ -104,16 +103,16 @@ namespace FlatTraderBot
         {
             foreach (FlatIdentifier flat in flatList)
             {
-                // TODO: Краисвый logger.Trace() всех полей объекта
+                // TODO: Красивый logger.Trace() всех полей объекта
             }
         }
 
         public void PrintReasonsApertureIsNotFlat()
         {
             logger.Trace("Окно {0} с {1} по {2}", 
-                flatIdentifier.flatBounds.left.date,
-                flatIdentifier.flatBounds.left.time,
-                flatIdentifier.flatBounds.right.time);
+                flatIdentifier.candles[0].date,
+                flatIdentifier.candles[0].time,
+                flatIdentifier.candles[^1].time);
             logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
             logger.Trace(flatIdentifier.reasonsOfApertureHasNoFlat);
         }

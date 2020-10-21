@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using NLog;
 
 namespace FlatTraderBot
@@ -8,19 +9,21 @@ namespace FlatTraderBot
     /// <summary>
     /// Класс, реализующий определение бокового движения в заданном интервале свечей
     /// </summary>
-    [SuppressMessage("ReSharper", "CommentTypo")]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class FlatIdentifier
     {
-        /// <summary>
-        /// Получаем данные для анализа окна
-        /// </summary>
-        /// <param name="candleStructs">Списк свечей в окне</param>
-        public FlatIdentifier(List<_CandleStruct> candleStructs)
+        public FlatIdentifier()
         {
             logger.Trace("\n[FlatIdentifier] initialized");
             isFlat = false;
-            candles = candleStructs;
+        }
+
+        /// <summary>
+        /// Функция устанавливает поле candles
+        /// </summary>
+        /// <param name="aperture">Рассматриваемое окно</param>
+        public void AssignAperture(List<_CandleStruct> aperture)
+        {
+            candles = new List<_CandleStruct>(aperture);
         }
 
         public void Identify()
@@ -33,7 +36,12 @@ namespace FlatTraderBot
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Trend.Neutral;
-                if ((exsNearSDL > _Constants.MinExtremumsNearSD) && (exsNearSDH > _Constants.MinExtremumsNearSD) && (flatWidth > (_Constants.MinWidthCoeff * candles[^1].close)))
+                
+                bool isEnoughExtremumsNearSDL = exsNearSDL > _Constants.MinExtremumsNearSD;
+                bool isEnoughExtremumsNearSDH = exsNearSDH > _Constants.MinExtremumsNearSD;
+                bool isEnoughFlatWidth        = flatWidth  > _Constants.MinWidthCoeff * candles[^1].close;
+                
+                if (isEnoughExtremumsNearSDL && isEnoughExtremumsNearSDH && isEnoughFlatWidth)
                 {
                     isFlat = true;
                     flatBounds = SetBounds(candles[0], candles[^1]);
@@ -42,19 +50,16 @@ namespace FlatTraderBot
                 {
                     reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
                 }
-            } else if (k < 0)
+            } 
+            else if (k < 0)
             {
                 trend = Trend.Down;
-                isFlat = false;
-                candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-                reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
+                CutAperture();
             }
             else
             {
                 trend = Trend.Up;
-                isFlat = false;
-                candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-                reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
+                CutAperture();
             }
 
             logger.Trace("isFlat = {0}\n[Identify] finished\n------------------------------------", isFlat);
@@ -65,62 +70,71 @@ namespace FlatTraderBot
         /// </summary>
         public void CalculateFlatProperties()
         {
-            logger.Trace("Calculating flat properties...");
-            GetGlobalExtremumsAndMean(candles);
-            SDMean = GetStandartDeviationMean();
-
+            gMin = GetGlobalMinimum(candles);
+            gMax = GetGlobalMaximum(candles);
+            mean = GetMean(candles);
             flatWidth = gMax - gMin;
-            logger.Trace("[flatWidth] = {0}", flatWidth);
-
-            // Вычисляем поле k
-            k = FindK(candles);
-
+            SDMean = GetStandartDeviationMean(candles);
             SDL = mean - SDMean;
             SDH = mean + SDMean;
+            k = FindK(candles);
+            exsNearSDL = EstimateExtremumsNearSDL(candles);
+            exsNearSDH = EstimateExtremumsNearSDH(candles);
             
-            (exsNearSDL, exsNearSDH) = EstimateExtremumsNearSD(candles);
+            LogFlatProperties();
         }
 
         /// <summary>
-        /// Функция поиска глобальных экстремумов в массиве структур свечей
+        /// Функция находит глобальный минимум окна
         /// </summary>
-        private void GetGlobalExtremumsAndMean(List<_CandleStruct> candleStructs)
+        /// <param name="candleStructs">Список свечей окна</param>
+        private double GetGlobalMinimum(IReadOnlyList<_CandleStruct> candleStructs)
         {
-            mean = 0;
-
-            // Находим глобальный минимум
-            gMin = double.PositiveInfinity;
+            double result = double.PositiveInfinity;
             for (int i = 0; i < candleStructs.Count; i++)
             {
-                if (gMin > candleStructs[i].low)
+                if (result > candleStructs[i].low)
                 {
-                    gMin = candleStructs[i].low;
+                    result = candleStructs[i].low;
                     idxGmin = i;
                 }
             }
 
-            // Находим глоабльный максимум
-            gMax = double.NegativeInfinity;
+            return result;
+        }
+
+        /// <summary>
+        /// Функция находит глобальный максимум окна
+        /// </summary>
+        /// <param name="candleStructs">Список свечей окна</param>
+        private double GetGlobalMaximum(IReadOnlyList<_CandleStruct> candleStructs)
+        {
+            double result = double.NegativeInfinity;
             for (int i = 0; i < candleStructs.Count; i++)
             {
-                if (gMax < candleStructs[i].high)
+                if (result < candleStructs[i].high)
                 {
-                    gMax = candleStructs[i].high;
+                    result = candleStructs[i].high;
                     idxGmax = i;
                 }
             }
 
-            // Вычисляем мат. ожидание
+            return result;
+        }
+
+        /// <summary>
+        /// Функция находит мат. ожидание окна
+        /// </summary>
+        /// <param name="candleStructs">Список свечей окна</param>
+        private double GetMean(IReadOnlyList<_CandleStruct> candleStructs)
+        {
+            double result = 0;
             for (int i = 0; i < candleStructs.Count; i++)
             {
-                mean += candleStructs[i].avg;
+                result += candleStructs[i].avg;
             }
-            mean /= candleStructs.Count;
-            
-            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", 
-                gMin, 
-                gMax, 
-                mean);
+            result /= candleStructs.Count;
+            return result;
         }
 
         /// <summary>
@@ -149,8 +163,6 @@ namespace FlatTraderBot
 
             double result = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
             double b = (sumY - result * sumX)/n;
-
-            logger.Trace("[k] = {0}\t [b] = {1}", result, b);
             
             return result;
         }
@@ -159,15 +171,14 @@ namespace FlatTraderBot
         /// Функция вычисляет СКО окна по avg всех свечей
         /// </summary>
         /// <returns></returns>
-        private double GetStandartDeviationMean()
+        private double GetStandartDeviationMean(IReadOnlyList<_CandleStruct> candleStructs)
         {
             double sumMean = 0;
-            for (int i = 0; i < candles.Count - 1; i++)
+            for (int i = 0; i < candleStructs.Count - 1; i++)
             {
-                sumMean += Math.Pow(mean - candles[i].avg, 2);
+                sumMean += Math.Pow(mean - candleStructs[i].avg, 2);
             }
-            double result = Math.Sqrt(sumMean / candles.Count);
-            logger.Trace("[Standart Deviation on mean] = {0}", result);
+            double result = Math.Sqrt(sumMean / candleStructs.Count);
             return result;
         }
 
@@ -195,7 +206,7 @@ namespace FlatTraderBot
                 else if ((candles[i].high) >= mean)
                 {
                     sumHigh += Math.Pow(candles[i].high - mean, 2);
-                    highsCount++;
+                    highsCount++; 
                 }
             }
             double SDLow = Math.Sqrt(sumLow / lowsCount);
@@ -206,66 +217,86 @@ namespace FlatTraderBot
         }
 
         /// <summary>
-        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО
+        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по лоу
         /// </summary>
-        private (int, int) EstimateExtremumsNearSD(List<_CandleStruct> candles)
+        /// <param name="candleStructs"></param>
+        /// <returns>Количество экстремумов возле СКО лоу</returns>
+        private int EstimateExtremumsNearSDL(List<_CandleStruct> candleStructs)
         {
-            logger.Trace("Counting extremums near standart deviations...");
-
-            int resLow  = 0;
-            int resHigh = 0;
+            int result = 0;
             double distanceToSD = mean * _Constants.SDOffset;
-
-            logger.Trace("[Попавшие в low свечи]: ");
-            for (int i = 2; i < candles.Count - 2; i++) // Кажется, здесь есть проблема индексаций Lua и C#
+            logger.Trace("Near [SDL]: ");
+            for (int i = 2; i < candleStructs.Count - 2; i++)
             {
                 if (Math.Abs(candles[i].low - SDL) <= distanceToSD &&
-                    candles[i].low <= candles[i-1].low && candles[i].low <= candles[i-2].low &&
-                    candles[i].low <= candles[i+1].low && candles[i].low <= candles[i+2].low)
+                    candleStructs[i].low <= candleStructs[i-1].low && candleStructs[i].low <= candleStructs[i-2].low &&
+                    candleStructs[i].low <= candleStructs[i+1].low && candleStructs[i].low <= candleStructs[i+2].low)
                 {
-                    logger.Trace(candles[i].time);
-                    resLow++;
-                    _CandleStruct temp = candles[i];
+                    logger.Trace(candleStructs[i].time);
+                    result++;
+                    _CandleStruct temp = candleStructs[i];
                     temp.low -= 0.01;
-                    candles[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
+                    candleStructs[i] = temp; // Костыль, чтобы следующая(соседняя) свеча более вероятно не подошла
                 }
             }
-            logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDL] - offset = {0}|[SDH] + offset = {1}", SDL - distanceToSD, SDL + distanceToSD);
 
-            logger.Trace("[Попавшие в high свечи]: ");
-            for (int i = 2; i < candles.Count - 2; i++)
+            logger.Trace("[distanceToSD] = {0}", distanceToSD);
+            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL = distanceToSD);
+            return result;
+        }
+        
+        /// <summary>
+        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по хай
+        /// </summary>
+        /// <param name="candleStructs"></param>
+        /// <returns>Количество экстремумов возле СКО хай</returns>
+        private int EstimateExtremumsNearSDH(List<_CandleStruct> candleStructs)
+        {
+            int result = 0;
+            double distanceToSD = mean * _Constants.SDOffset;
+            logger.Trace("Near [SDH]: ");
+            for (int i = 2; i < candleStructs.Count - 2; i++)
             {
-                if (Math.Abs(candles[i].high - SDH) <= distanceToSD &&
-                    candles[i].high >= candles[i-1].high && candles[i].high >= candles[i-2].high &&
-                    candles[i].high >= candles[i+1].high && candles[i].high >= candles[i+2].high)
+                if (Math.Abs(candleStructs[i].high - SDH) <= distanceToSD &&
+                    candleStructs[i].high >= candleStructs[i-1].high && candleStructs[i].high >= candleStructs[i-2].high &&
+                    candleStructs[i].high >= candleStructs[i+1].high && candleStructs[i].high >= candleStructs[i+2].high)
                 {
-                    logger.Trace(candles[i].time);
-                    resHigh++;
-                    _CandleStruct temp = candles[i];
+                    logger.Trace(candleStructs[i].time);
+                    result++;
+                    _CandleStruct temp = candleStructs[i];
                     temp.high += 0.01;
-                    candles[i] = temp;
+                    candleStructs[i] = temp;
                 }
             }
-            
-            logger.Trace("[rangeToReachSD] =  {0}", distanceToSD);
-            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
-            
-            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", resLow, resHigh);
-            return (resLow, resHigh);
+
+            logger.Trace("[distanceToSD] = {0}", distanceToSD);
+            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH = distanceToSD);
+            return result;
         }
 
+        /// <summary>
+        /// Логгирует все поля объекта
+        /// </summary>
+        private void LogFlatProperties()
+        {
+            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", gMin, gMax, mean);
+            logger.Trace("[Standart Deviation on mean] = {0}", SDMean);
+            logger.Trace("[flatWidth] = {0}", flatWidth);
+            logger.Trace("[k] = {0}", k);
+            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
+        }
+
+        /// <summary>
+        /// Функция устанавливает поле flatBounds
+        /// </summary>
+        /// <param name="left">Левая граница боковика (свеча)</param>
+        /// <param name="right">Правая граница боковика (свеча)</param>
+        /// <returns></returns>
         public _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
-            logger.Trace("Setting bounds...");
             _Bounds result = flatBounds;
             result.left = left;
             result.right = right;
-            logger.Trace("_Bounds set: [{0}][{1}] [{2}][{3}]", 
-                result.left.time,
-                result.left.index,
-                result.right.time,
-                result.right.index);
             return result;
         }
         
@@ -281,11 +312,11 @@ namespace FlatTraderBot
             {
                 result += "Недостаточная ширина коридора. ";
             }
-            if (exsNearSDL < 2)
+            if (exsNearSDL < _Constants.MinExtremumsNearSD)
             {
                 result += "Недостаточно вершин снизу возле СКО.  ";
             }
-            if (exsNearSDH < 2)
+            if (exsNearSDH < _Constants.MinExtremumsNearSD)
             {
                 result += "Недостаточно вершин сверху возле СКО. ";
             }
@@ -308,6 +339,16 @@ namespace FlatTraderBot
                 }
             }
             return result;
+        }
+        
+        /// <summary>
+        /// Функция подрезает окн после того, как боковик не определился
+        /// </summary>
+        private void CutAperture()
+        {
+            isFlat = false;
+            candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
+            reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
         }
 
         /// <summary>
