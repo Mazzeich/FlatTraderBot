@@ -40,9 +40,7 @@ namespace FlatTraderBot
 		private double meanOffsetDistance;
 
 		private FlatClassifier()
-		{
-			logger.Trace("[FlatClassifier] initialized");	
-		}
+		{ }
 
 		public FlatClassifier(List<FlatIdentifier> flats, List<_CandleStruct> candles) : this()
 		{

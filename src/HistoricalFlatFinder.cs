@@ -6,10 +6,7 @@ namespace FlatTraderBot
 {
     public class HistoricalFlatFinder
     {
-        private HistoricalFlatFinder()
-        {
-            
-        }
+        private HistoricalFlatFinder() {}
 
         public HistoricalFlatFinder(List<_CandleStruct> candles) : this()
         {
