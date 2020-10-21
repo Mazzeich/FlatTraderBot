@@ -11,6 +11,10 @@ namespace FlatTraderBot
         /// </summary>
         public int index;
         /// <summary>
+        /// Цена открытия текущей свечи
+        /// </summary>
+        public double open;
+        /// <summary>
         /// Хай текущей свечи
         /// </summary>
         public double high; 

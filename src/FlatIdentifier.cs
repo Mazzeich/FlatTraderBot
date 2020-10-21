@@ -80,6 +80,7 @@ namespace FlatTraderBot
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
+            maximumDeviationFromOpening = CalculateMaximumDeviationFromOpening(candles);
             
             LogFlatProperties();
         }
@@ -275,15 +276,34 @@ namespace FlatTraderBot
         }
 
         /// <summary>
+        /// Функция рассчитывает максимальное отклонение от точки входа в боковик
+        /// </summary>
+        /// <param name="candleStructs"></param>
+        /// <returns></returns>
+        private double CalculateMaximumDeviationFromOpening(List<_CandleStruct> candleStructs)
+        {
+            double opening = candleStructs[0].open;
+            double result = 0;
+            for (int i = 1; i < candleStructs.Count; i++)
+            {
+                double currentDeviation = Math.Abs(candleStructs[i].open - opening);
+                if (currentDeviation > result)
+                    result = currentDeviation;
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Логгирует все поля объекта
         /// </summary>
         private void LogFlatProperties()
         {
-            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", gMin, gMax, mean);
-            logger.Trace("[Standart Deviation on mean] = {0}", SDMean);
-            logger.Trace("[flatWidth] = {0}", flatWidth);
-            logger.Trace("[k] = {0}", k);
-            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
+            logger.Trace($"[gMin] = {gMin} [gMax] = {gMax} [mean] = {mean}");
+            logger.Trace($"[Standart Deviation on mean] = {SDMean}");
+            logger.Trace($"[flatWidth] = {flatWidth}");
+            logger.Trace($"[k] = {k}");
+            logger.Trace($"Extremums near SDL = {exsNearSDL}\tExtremums near SDH = {exsNearSDH}");
+            logger.Trace($"[maximumDeviationFromOpening] = {maximumDeviationFromOpening}");
         }
 
         /// <summary>
@@ -427,5 +447,9 @@ namespace FlatTraderBot
         /// Снизу или сверху сформировался боковик
         /// </summary>
         public FormedFrom formedFrom { get; set; }
+        /// <summary>
+        /// Максимальное отклонение от точки входа в боковик
+        /// </summary>
+        public double maximumDeviationFromOpening { get; private set; }
     }
 }
