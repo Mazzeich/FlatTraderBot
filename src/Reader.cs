@@ -81,6 +81,7 @@ namespace FlatTraderBot
                 temp.low   = double.Parse(readLows[i]   , CultureInfo.InvariantCulture);
                 temp.high  = double.Parse(readHeights[i], CultureInfo.InvariantCulture);
                 temp.close = double.Parse(readCloses[i] , CultureInfo.InvariantCulture);
+                temp.open  = double.Parse(readOpens[i], CultureInfo.InvariantCulture);
                 temp.avg   = double.Parse(readAvgs[i]   , CultureInfo.InvariantCulture);
                 temp.date  = "";
                 temp.time  = "";
@@ -113,6 +114,7 @@ namespace FlatTraderBot
                 temp.index = i;
                 temp.low   = csvReader.GetField<double>("<LOW>");
                 temp.high  = csvReader.GetField<double>("<HIGH>");
+                temp.open  = csvReader.GetField<double>("<OPEN>");
                 temp.close = csvReader.GetField<double>("<CLOSE>");
                 temp.avg   = (temp.high + temp.low) * 0.5;
                 temp.date  = csvReader.GetField<string>("<DATE>");
