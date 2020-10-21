@@ -28,8 +28,7 @@ namespace FlatTraderBot
 
         public void Identify()
         {
-            logger.Trace("[Identify] started");
-            logger.Trace("[{0}]: Окно с {1} по {2}", candles[0].date, candles[0].time, candles[^1].time);
+            logger.Trace($"[{candles[0].date}]: Окно с {candles[0].time} по {candles[^1].time}");
             
             CalculateFlatProperties();
             
@@ -62,7 +61,7 @@ namespace FlatTraderBot
                 CutAperture();
             }
 
-            logger.Trace("isFlat = {0}\n[Identify] finished\n------------------------------------", isFlat);
+            logger.Trace($"isFlat = {isFlat}\n------------------------------------");
         }
 
         /// <summary>
@@ -241,8 +240,8 @@ namespace FlatTraderBot
                 }
             }
 
-            logger.Trace("[distanceToSD] = {0}", distanceToSD);
-            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL = distanceToSD);
+            logger.Trace($"[distanceToSD] = {distanceToSD}");
+            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL + distanceToSD);
             return result;
         }
         
@@ -270,8 +269,8 @@ namespace FlatTraderBot
                 }
             }
 
-            logger.Trace("[distanceToSD] = {0}", distanceToSD);
-            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH = distanceToSD);
+            logger.Trace($"[distanceToSD] = {distanceToSD}");
+            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
             return result;
         }
 

@@ -29,7 +29,8 @@ namespace FlatTraderBot
                 bool areFlatsTooClose = (currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index) <= _Constants.MinFlatGap;
                 bool areFlatsMeansRoughlyEqual = (Math.Abs(currentFlat.mean - prevFlat.mean) <= (_Constants.flatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5));
                 
-                logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
+                logger.Trace($"{prevFlat.candles[0].date}: " +
+                             $"[{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
                              $"and [{currentFlat.flatBounds.left.time}] [{currentFlat.flatBounds.right.time}] " +
                              $"Day = {areFlatsInTheSameDay}\tDistance = {areFlatsTooClose}\tMeans = {areFlatsMeansRoughlyEqual}",
 	                areFlatsInTheSameDay, areFlatsTooClose, areFlatsMeansRoughlyEqual);
