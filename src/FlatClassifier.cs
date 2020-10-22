@@ -44,7 +44,7 @@ namespace FlatTraderBot
 
 		public FlatClassifier(List<FlatIdentifier> flats, List<_CandleStruct> candles) : this()
 		{
-			this.flatCollection = flats;
+			flatCollection = new List<FlatIdentifier>(flats);
 			globalCandles = candles;
 			flatsOverall = flatCollection.Count;
 		}
@@ -61,13 +61,13 @@ namespace FlatTraderBot
 				{
 					case (FormedFrom.Ascending):
 					{
-						logger.Trace("[{0}]: {1} from asceding", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
+						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.left.time} from asceding");
 						flatsFromAscension++;
 						break;
 					}
 					case (FormedFrom.Descending):
 					{
-						logger.Trace("[{0}]: {1} from descending", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
+						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.left.time} from descending");
 						flatsFromDescension++;
 						break;
 					}
@@ -76,16 +76,17 @@ namespace FlatTraderBot
 				}
 			}
 
-			logger.Trace("From ascending = {0} | From descending = {1}", flatsFromAscension, flatsFromDescension);
-			logger.Trace("[fromAscening/fromDescending] = {0}%/{1}%", 
-				flatsFromAscension * 100/ flatsOverall,
-				flatsFromDescension * 100/ flatsOverall);
+			int flatsFromAscensionPercantage = flatsFromAscension * 100 / flatsOverall;
+			int flatsFromDescensionPercentage = flatsFromDescension * 100 / flatsOverall;
+
+			logger.Trace($"From ascending = {flatsFromAscension} | From descending = {flatsFromDescension}");
+			logger.Trace($"[fromAscening/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
 
 			meanFlatInterval = CalculateMeanInterval(flatCollection);
-			logger.Trace("[meanFlatInterval] = {0}", meanFlatInterval);
+			logger.Trace($"[meanFlatInterval] = {meanFlatInterval}");
 
 			meanOffsetDistance = CalculateMeanOffsetDistance(flatCollection, globalCandles);
-			logger.Trace("[meanOffsetDistance] = {0}", meanOffsetDistance);
+			logger.Trace($"[meanOffsetDistance] = {meanOffsetDistance}");
 		}
 
 		/// <summary>
@@ -129,18 +130,18 @@ namespace FlatTraderBot
 					continue;
 
 				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
-				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low &&
-				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].low &&
-				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].low &&
-				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low)
+				    closestExtremum.low < globalCandles[currentIndex - 2].low &&
+				    closestExtremum.low < globalCandles[currentIndex - 1].low &&
+				    closestExtremum.low < globalCandles[currentIndex + 1].low &&
+				    closestExtremum.low < globalCandles[currentIndex - 2].low)
 				{
 					return closestExtremum;
 				}
 				else if (closestExtremum.high > currentFlat.gMax + _Constants.flatClassifyOffset * currentFlat.gMax &&
-				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].high &&
-				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].high &&
-				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].high &&
-				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].high)
+				         closestExtremum.high > globalCandles[currentIndex - 2].high &&
+				         closestExtremum.high > globalCandles[currentIndex - 1].high &&
+				         closestExtremum.high > globalCandles[currentIndex + 1].high &&
+				         closestExtremum.high > globalCandles[currentIndex - 2].high)
 				{
 					return closestExtremum;
 				}
