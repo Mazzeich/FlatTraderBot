@@ -107,7 +107,7 @@ namespace FlatTraderBot
                 logger.Trace("Начало и конец предполагаемого окна находятся в разных днях.");
                 int indexOfTheNextDay = 0;
                 // Находим начало следующего дня, где дата свечи не совпадает с датой свечи самого начала окна
-                for (int j = i + 1; j < i + _Constants.NAperture; j++)
+                for (int j = i; j < i + _Constants.NAperture; j++)
                 {
                     indexOfTheNextDay = globalCandles[j].index;
 
@@ -117,7 +117,7 @@ namespace FlatTraderBot
                     }
                 }
 
-                i = indexOfTheNextDay + 1;
+                i = indexOfTheNextDay;
 
                 for (int j = i; j < i + _Constants.NAperture; j++)
                 {

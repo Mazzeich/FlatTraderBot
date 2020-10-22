@@ -25,9 +25,9 @@ namespace FlatTraderBot
                 FlatIdentifier currentFlat = flatList[i];
                 FlatIdentifier prevFlat = flatList[i-1];
                 
-                bool areFlatsInTheSameDay = currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
-                bool areFlatsTooClose = (currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index) <= _Constants.MinFlatGap;
-                bool areFlatsMeansRoughlyEqual = (Math.Abs(currentFlat.mean - prevFlat.mean) <= (_Constants.flatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5));
+                bool areFlatsInTheSameDay 		= currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
+                bool areFlatsTooClose 			= currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap;
+                bool areFlatsMeansRoughlyEqual 	= Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.flatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5;
                 
                 logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
                              $"and [{currentFlat.flatBounds.left.time}] [{currentFlat.flatBounds.right.time}] " +

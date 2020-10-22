@@ -1,4 +1,3 @@
-// ReSharper disable CommentTypo
 namespace FlatTraderBot
 {
     /// <summary>

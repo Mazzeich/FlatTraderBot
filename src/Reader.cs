@@ -93,6 +93,11 @@ namespace FlatTraderBot
             return candleStruct;
         }
 
+        /// <summary>
+        /// Считывание свечей из csv-файла
+        /// </summary>
+        /// <param name="fileName">Имя файла с расширением</param>
+        /// <returns>Список свечей</returns>
         public List<_CandleStruct> GetHistoricalData(string fileName)
         {
             logger.Trace("[GetHistoricalData invoked]");
@@ -100,7 +105,7 @@ namespace FlatTraderBot
 
             using StreamReader streamReader = new StreamReader(pathHistoricalData);
             using CsvReader csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
-            logger.Trace("Reading data from \"{0}\"...", pathHistoricalData);
+            logger.Trace($"Reading data from \"{pathHistoricalData}\"...");
             // TODO: GetFullPath
 
             csvReader.Read();
@@ -124,7 +129,7 @@ namespace FlatTraderBot
                 i++;
             }
 
-            logger.Trace("Finished reading data from {0}", pathHistoricalData);
+            logger.Trace($"Finished reading data from {pathHistoricalData}");
             return candleStruct;
         }
     }
