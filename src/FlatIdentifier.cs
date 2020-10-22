@@ -442,10 +442,7 @@ namespace FlatTraderBot
         /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
         /// </summary>
         public string reasonsOfApertureHasNoFlat { get; private set; }
-        /// <summary>
-        /// Снизу или сверху сформировался боковик
-        /// </summary>
-        public FormedFrom formedFrom { get; set; }
+
         /// <summary>
         /// Максимальное отклонение от точки входа в боковик
         /// </summary>
