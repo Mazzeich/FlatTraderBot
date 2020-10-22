@@ -27,8 +27,8 @@ namespace FlatTraderBot
             FlatPostprocessor flatPostprocessor = new FlatPostprocessor(historicalFlatFinder);
             flatPostprocessor.UniteFlats();
 
-            // Printer printer = new Printer(historicalFlatFinder);
-            // printer.OutputHistoricalInfo();
+            Printer printer = new Printer(historicalFlatFinder);
+            printer.OutputHistoricalInfo();
 
             FlatClassifier flatClassifier = new FlatClassifier(historicalFlatFinder.flatList, candles);
             flatClassifier.ClassifyAllFlats();

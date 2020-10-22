@@ -101,12 +101,10 @@ namespace FlatTraderBot
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
 			if (closestExtremum.avg > flatIdentifier.mean)
 			{
-				flatIdentifier.formedFrom = FormedFrom.Ascending;
 				result = FormedFrom.Ascending;
 			}
 			else
 			{
-				flatIdentifier.formedFrom = FormedFrom.Descending;
 				result =  FormedFrom.Descending;
 			}
 
