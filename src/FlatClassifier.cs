@@ -97,17 +97,20 @@ namespace FlatTraderBot
 		/// <returns>Enum FormedFrom</returns>
 		private FormedFrom Classify(FlatIdentifier flatIdentifier, int flatNumber)
 		{
+			FormedFrom result;
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
 			if (closestExtremum.avg > flatIdentifier.mean)
 			{
 				flatIdentifier.formedFrom = FormedFrom.Ascending;
-				return FormedFrom.Ascending;
+				result = FormedFrom.Ascending;
 			}
 			else
 			{
 				flatIdentifier.formedFrom = FormedFrom.Descending;
-				return FormedFrom.Descending;
+				result =  FormedFrom.Descending;
 			}
+
+			return result;
 		}
 
 		/// <summary>
@@ -117,19 +120,19 @@ namespace FlatTraderBot
 		/// <returns>Свеча</returns>
 		private _CandleStruct FindClosestExtremum(int flatNumber)
 		{
-			int candlesPassed = 0;
+			int candlesPassed = 1;
 			FlatIdentifier currentFlat = flatCollection[flatNumber];
 
 			// Цикл выполняется, пока на найдётся подходящий экстремум либо не пройдёт константное число итераций
 			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
 			{
+				candlesPassed++;
 				int currentIndex = currentFlat.flatBounds.left.index - candlesPassed;
 				_CandleStruct closestExtremum = globalCandles[currentIndex];
-				
-				if (globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].time != "10:00")
+
+				if (globalCandles[currentIndex - 2].time == "10:00")
 				{
-					candlesPassed++;
-					continue;
+					return globalCandles[0];
 				}
 
 				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
@@ -148,7 +151,6 @@ namespace FlatTraderBot
 				{
 					return closestExtremum;
 				}
-				candlesPassed++;
 			}
 
 			logger.Trace("Extremum haven't found");
