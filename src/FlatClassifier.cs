@@ -122,7 +122,11 @@ namespace FlatTraderBot
 			// Цикл выполняется, пока на найдётся подходящий экстремум либо не пройдёт константное число итераций
 			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
 			{
-				_CandleStruct closestExtremum = globalCandles[currentFlat.flatBounds.left.index - candlesPassed];
+				int currentIndex = currentFlat.flatBounds.left.index - candlesPassed;
+				_CandleStruct closestExtremum = globalCandles[currentIndex];
+				
+				if (globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].time != "10:00")
+					continue;
 
 				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
 				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low &&
