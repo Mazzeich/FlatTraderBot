@@ -29,15 +29,14 @@ namespace FlatTraderBot
                 bool areFlatsTooClose = (currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index) <= _Constants.MinFlatGap;
                 bool areFlatsMeansRoughlyEqual = (Math.Abs(currentFlat.mean - prevFlat.mean) <= (_Constants.flatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5));
                 
-                logger.Trace($"{prevFlat.candles[0].date}: " +
-                             $"[{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
+                logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
                              $"and [{currentFlat.flatBounds.left.time}] [{currentFlat.flatBounds.right.time}] " +
                              $"Day = {areFlatsInTheSameDay}\tDistance = {areFlatsTooClose}\tMeans = {areFlatsMeansRoughlyEqual}",
 	                areFlatsInTheSameDay, areFlatsTooClose, areFlatsMeansRoughlyEqual);
 
                 // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
                 // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА
-                // И ЕСЛИ разница в цене между мат. ожиданиями текущего и предыдущего <= ОФФСЕТ * среднее между мат. ожиданиями обоих боковиков
+                // И ЕСЛИ разница в цене между мат. ожиданиями текущего и предыдущего <= (ОФФСЕТ * среднее между мат. ожиданиями обоих боковиков)
                 if (areFlatsInTheSameDay && areFlatsTooClose && areFlatsMeansRoughlyEqual)
                 {
                     logger.Trace("Uniting");
@@ -57,6 +56,10 @@ namespace FlatTraderBot
                     flatList.Insert(i-1, newFlat);
                     flatsFound--;
                     i++;
+                }
+                else
+                {
+	                continue;
                 }
             }
 		}
