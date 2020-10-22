@@ -46,16 +46,9 @@ namespace FlatTraderBot
                     // ExpansionRate раз...
                     for (int j = 0; j < _Constants.ExpansionRate; j++)
                     {
-                        try
-                        {
-                            // ... расширяем окно на 1 свечу
-                            ExtendAperture(globalIterator, ref aperture);
-                        }
-                        catch (Exception exception)
-                        {
-                            logger.Trace(exception);
-                            return;
-                        }
+
+                        // ... расширяем окно на 1 свечу
+                        ExtendAperture(globalIterator, ref aperture);
                     }
                     flatIdentifier.AssignAperture(aperture);
                     flatIdentifier.Identify(); // Identify() вызывает SetBounds(), если isFlat == true
@@ -74,15 +67,7 @@ namespace FlatTraderBot
 
                     globalIterator += aperture.Count; // Переместить итератор на следующую после найденного окна свечу
 
-                    try
-                    {
-                        MoveAperture(ref globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
-                    }
-                    catch (ArgumentOutOfRangeException exception)
-                    {
-                        logger.Warn("Argument out of range");
-                        return;
-                    }
+                    MoveAperture(ref globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
                 }
             }
         }
@@ -112,9 +97,7 @@ namespace FlatTraderBot
                     indexOfTheNextDay = globalCandles[j].index;
 
                     if (globalCandles[j].date != globalCandles[i].date)
-                    {
                         break;
-                    }
                 }
 
                 i = indexOfTheNextDay;
@@ -130,6 +113,7 @@ namespace FlatTraderBot
         /// Расширяет окно на 1 свечу
         /// </summary>
         /// <param name="i">Начальный индекс, к которому добавить (aperture.Count + 1)</param>
+        /// <param name="_aperture">Окно</param>
         private void ExtendAperture(int i, ref List<_CandleStruct> _aperture)
         {
             int indexOfAddingCandle = i + _aperture.Count + 1;
