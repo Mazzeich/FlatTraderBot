@@ -56,6 +56,7 @@ namespace FlatTraderBot
                     flatList.Insert(i-1, newFlat);
                     flatsFound--;
                     i++;
+                    unions++;
                 }
                 else
                 {
@@ -71,5 +72,10 @@ namespace FlatTraderBot
 		private int flatsFound;
 
 		private List<_CandleStruct> globalCandles = new List<_CandleStruct>();
+
+		/// <summary>
+		/// Количество операций объединения
+		/// </summary>
+		public int unions;
 	}
 }
