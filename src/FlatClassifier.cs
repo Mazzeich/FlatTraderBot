@@ -127,7 +127,10 @@ namespace FlatTraderBot
 				_CandleStruct closestExtremum = globalCandles[currentIndex];
 				
 				if (globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].time != "10:00")
+				{
+					candlesPassed++;
 					continue;
+				}
 
 				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
 				    closestExtremum.low < globalCandles[currentIndex - 2].low &&
