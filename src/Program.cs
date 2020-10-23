@@ -15,11 +15,11 @@ namespace FlatTraderBot
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private static void Main()
         {
-            logger.Trace("\nProgram has started...");
+            logger.Trace("Program has started...");
             
             List<_CandleStruct> candles = new List<_CandleStruct>();
             Reader reader = new Reader(candles);
-            candles = reader.GetHistoricalData();
+            candles = reader.GetHistoricalData("data.csv");
             
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
             historicalFlatFinder.FindAllFlats();

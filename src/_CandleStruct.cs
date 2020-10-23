@@ -1,4 +1,3 @@
-// ReSharper disable CommentTypo
 namespace FlatTraderBot
 {
     /// <summary>
@@ -10,6 +9,10 @@ namespace FlatTraderBot
         /// Индекс свечи относительно глобальных данных
         /// </summary>
         public int index;
+        /// <summary>
+        /// Цена открытия текущей свечи
+        /// </summary>
+        public double open;
         /// <summary>
         /// Хай текущей свечи
         /// </summary>

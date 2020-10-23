@@ -6,10 +6,7 @@ namespace FlatTraderBot
 {
     public class HistoricalFlatFinder
     {
-        private HistoricalFlatFinder()
-        {
-            
-        }
+        private HistoricalFlatFinder() {}
 
         public HistoricalFlatFinder(List<_CandleStruct> candles) : this()
         {
@@ -49,16 +46,9 @@ namespace FlatTraderBot
                     // ExpansionRate раз...
                     for (int j = 0; j < _Constants.ExpansionRate; j++)
                     {
-                        try
-                        {
-                            // ... расширяем окно на 1 свечу
-                            ExtendAperture(globalIterator, ref aperture);
-                        }
-                        catch (Exception exception)
-                        {
-                            logger.Trace(exception);
-                            return;
-                        }
+
+                        // ... расширяем окно на 1 свечу
+                        ExtendAperture(globalIterator, ref aperture);
                     }
                     flatIdentifier.AssignAperture(aperture);
                     flatIdentifier.Identify(); // Identify() вызывает SetBounds(), если isFlat == true
@@ -77,15 +67,7 @@ namespace FlatTraderBot
 
                     globalIterator += aperture.Count; // Переместить итератор на следующую после найденного окна свечу
 
-                    try
-                    {
-                        MoveAperture(ref globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
-                    }
-                    catch (ArgumentOutOfRangeException exception)
-                    {
-                        logger.Warn("Argument out of range");
-                        return;
-                    }
+                    MoveAperture(ref globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
                 }
             }
         }
@@ -110,17 +92,15 @@ namespace FlatTraderBot
                 logger.Trace("Начало и конец предполагаемого окна находятся в разных днях.");
                 int indexOfTheNextDay = 0;
                 // Находим начало следующего дня, где дата свечи не совпадает с датой свечи самого начала окна
-                for (int j = i + 1; j < i + _Constants.NAperture; j++)
+                for (int j = i; j < i + _Constants.NAperture; j++)
                 {
                     indexOfTheNextDay = globalCandles[j].index;
 
                     if (globalCandles[j].date != globalCandles[i].date)
-                    {
                         break;
-                    }
                 }
 
-                i = indexOfTheNextDay + 1;
+                i = indexOfTheNextDay;
 
                 for (int j = i; j < i + _Constants.NAperture; j++)
                 {
@@ -133,6 +113,7 @@ namespace FlatTraderBot
         /// Расширяет окно на 1 свечу
         /// </summary>
         /// <param name="i">Начальный индекс, к которому добавить (aperture.Count + 1)</param>
+        /// <param name="_aperture">Окно</param>
         private void ExtendAperture(int i, ref List<_CandleStruct> _aperture)
         {
             int indexOfAddingCandle = i + _aperture.Count + 1;

@@ -28,8 +28,7 @@ namespace FlatTraderBot
 
         public void Identify()
         {
-            logger.Trace("[Identify] started");
-            logger.Trace("[{0}]: Окно с {1} по {2}", candles[0].date, candles[0].time, candles[^1].time);
+            logger.Trace($"[{candles[0].date}]: Окно с {candles[0].time} по {candles[^1].time}");
             
             CalculateFlatProperties();
             
@@ -62,7 +61,7 @@ namespace FlatTraderBot
                 CutAperture();
             }
 
-            logger.Trace("isFlat = {0}\n[Identify] finished\n------------------------------------", isFlat);
+            logger.Trace($"isFlat = {isFlat}\n------------------------------------");
         }
 
         /// <summary>
@@ -80,6 +79,7 @@ namespace FlatTraderBot
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
+            maximumDeviationFromOpening = CalculateMaximumDeviationFromOpening(candles);
             
             LogFlatProperties();
         }
@@ -240,8 +240,8 @@ namespace FlatTraderBot
                 }
             }
 
-            logger.Trace("[distanceToSD] = {0}", distanceToSD);
-            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL = distanceToSD);
+            logger.Trace($"[distanceToSD] = {distanceToSD}");
+            logger.Trace("[SDL] offset = {0}|{1}", SDL - distanceToSD, SDL + distanceToSD);
             return result;
         }
         
@@ -269,8 +269,26 @@ namespace FlatTraderBot
                 }
             }
 
-            logger.Trace("[distanceToSD] = {0}", distanceToSD);
-            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH = distanceToSD);
+            logger.Trace($"[distanceToSD] = {distanceToSD}");
+            logger.Trace("[SDH] offset = {0}|{1}", SDH - distanceToSD, SDH + distanceToSD);
+            return result;
+        }
+
+        /// <summary>
+        /// Функция рассчитывает максимальное отклонение от точки входа в боковик
+        /// </summary>
+        /// <param name="candleStructs"></param>
+        /// <returns></returns>
+        private double CalculateMaximumDeviationFromOpening(List<_CandleStruct> candleStructs)
+        {
+            double opening = candleStructs[0].open;
+            double result = 0;
+            for (int i = 1; i < candleStructs.Count; i++)
+            {
+                double currentDeviation = Math.Abs(candleStructs[i].open - opening);
+                if (currentDeviation > result)
+                    result = currentDeviation;
+            }
             return result;
         }
 
@@ -279,11 +297,12 @@ namespace FlatTraderBot
         /// </summary>
         private void LogFlatProperties()
         {
-            logger.Trace("[gMin] = {0} [gMax] = {1} [mean] = {2}", gMin, gMax, mean);
-            logger.Trace("[Standart Deviation on mean] = {0}", SDMean);
-            logger.Trace("[flatWidth] = {0}", flatWidth);
-            logger.Trace("[k] = {0}", k);
-            logger.Trace("Extremums near SDL = {0}\tExtremums near SDH = {1}", exsNearSDL, exsNearSDH);
+            logger.Trace($"[gMin] = {gMin} [gMax] = {gMax} [mean] = {mean}");
+            logger.Trace($"[Standart Deviation on mean] = {SDMean}");
+            logger.Trace($"[flatWidth] = {flatWidth}");
+            logger.Trace($"[k] = {k}");
+            logger.Trace($"Extremums near SDL = {exsNearSDL}\tExtremums near SDH = {exsNearSDH}");
+            logger.Trace($"[maximumDeviationFromOpening] = {maximumDeviationFromOpening}");
         }
 
         /// <summary>
@@ -423,9 +442,10 @@ namespace FlatTraderBot
         /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
         /// </summary>
         public string reasonsOfApertureHasNoFlat { get; private set; }
+
         /// <summary>
-        /// Снизу или сверху сформировался боковик
+        /// Максимальное отклонение от точки входа в боковик
         /// </summary>
-        public FormedFrom formedFrom { get; set; }
+        public double maximumDeviationFromOpening { get; private set; }
     }
 }

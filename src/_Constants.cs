@@ -44,7 +44,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Необходимое отклонение от цены, чтобы можно было учесть экстремум перед боковиком
         /// </summary>
-        public const double flatClassifyOffset = 0.005;
+        public const double flatClassifyOffset = 0.0005;
         /// <summary>
         /// Возможное отклонение мат. ожиданий боковиков для их объединения
         /// </summary>

@@ -40,13 +40,11 @@ namespace FlatTraderBot
 		private double meanOffsetDistance;
 
 		private FlatClassifier()
-		{
-			logger.Trace("[FlatClassifier] initialized");	
-		}
+		{ }
 
 		public FlatClassifier(List<FlatIdentifier> flats, List<_CandleStruct> candles) : this()
 		{
-			this.flatCollection = flats;
+			flatCollection = new List<FlatIdentifier>(flats);
 			globalCandles = candles;
 			flatsOverall = flatCollection.Count;
 		}
@@ -63,13 +61,13 @@ namespace FlatTraderBot
 				{
 					case (FormedFrom.Ascending):
 					{
-						logger.Trace("[{0}]: {1} from asceding", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
+						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.left.time} from asceding");
 						flatsFromAscension++;
 						break;
 					}
 					case (FormedFrom.Descending):
 					{
-						logger.Trace("[{0}]: {1} from descending", flatCollection[i].flatBounds.left.date, flatCollection[i].flatBounds.left.time);
+						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.left.time} from descending");
 						flatsFromDescension++;
 						break;
 					}
@@ -78,16 +76,17 @@ namespace FlatTraderBot
 				}
 			}
 
-			logger.Trace("From ascending = {0} | From descending = {1}", flatsFromAscension, flatsFromDescension);
-			logger.Trace("[fromAscening/fromDescending] = {0}%/{1}%", 
-				flatsFromAscension * 100/ flatsOverall,
-				flatsFromDescension * 100/ flatsOverall);
+			int flatsFromAscensionPercantage = flatsFromAscension * 100 / flatsOverall;
+			int flatsFromDescensionPercentage = flatsFromDescension * 100 / flatsOverall;
+
+			logger.Trace($"From ascending = {flatsFromAscension} | From descending = {flatsFromDescension}");
+			logger.Trace($"[fromAscening/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
 
 			meanFlatInterval = CalculateMeanInterval(flatCollection);
-			logger.Trace("[meanFlatInterval] = {0}", meanFlatInterval);
+			logger.Trace($"[meanFlatInterval] = {meanFlatInterval}");
 
 			meanOffsetDistance = CalculateMeanOffsetDistance(flatCollection, globalCandles);
-			logger.Trace("[meanOffsetDistance] = {0}", meanOffsetDistance);
+			logger.Trace($"[meanOffsetDistance] = {meanOffsetDistance}");
 		}
 
 		/// <summary>
@@ -98,17 +97,18 @@ namespace FlatTraderBot
 		/// <returns>Enum FormedFrom</returns>
 		private FormedFrom Classify(FlatIdentifier flatIdentifier, int flatNumber)
 		{
+			FormedFrom result;
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
 			if (closestExtremum.avg > flatIdentifier.mean)
 			{
-				flatIdentifier.formedFrom = FormedFrom.Ascending;
-				return FormedFrom.Ascending;
+				result = FormedFrom.Ascending;
 			}
 			else
 			{
-				flatIdentifier.formedFrom = FormedFrom.Descending;
-				return FormedFrom.Descending;
+				result =  FormedFrom.Descending;
 			}
+
+			return result;
 		}
 
 		/// <summary>
@@ -118,31 +118,37 @@ namespace FlatTraderBot
 		/// <returns>Свеча</returns>
 		private _CandleStruct FindClosestExtremum(int flatNumber)
 		{
-			int candlesPassed = 0;
+			int candlesPassed = 1;
 			FlatIdentifier currentFlat = flatCollection[flatNumber];
 
 			// Цикл выполняется, пока на найдётся подходящий экстремум либо не пройдёт константное число итераций
 			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
 			{
-				_CandleStruct closestExtremum = globalCandles[currentFlat.flatBounds.left.index - candlesPassed];
+				candlesPassed++;
+				int currentIndex = currentFlat.flatBounds.left.index - candlesPassed;
+				_CandleStruct closestExtremum = globalCandles[currentIndex];
+
+				if (globalCandles[currentIndex - 2].time == "10:00")
+				{
+					return globalCandles[0];
+				}
 
 				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
-				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low &&
-				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].low &&
-				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].low &&
-				    closestExtremum.low < globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].low)
+				    closestExtremum.low < globalCandles[currentIndex - 2].low &&
+				    closestExtremum.low < globalCandles[currentIndex - 1].low &&
+				    closestExtremum.low < globalCandles[currentIndex + 1].low &&
+				    closestExtremum.low < globalCandles[currentIndex - 2].low)
 				{
 					return closestExtremum;
 				}
 				else if (closestExtremum.high > currentFlat.gMax + _Constants.flatClassifyOffset * currentFlat.gMax &&
-				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].high &&
-				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 1].high &&
-				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed + 1].high &&
-				         closestExtremum.high > globalCandles[currentFlat.flatBounds.left.index - candlesPassed - 2].high)
+				         closestExtremum.high > globalCandles[currentIndex - 2].high &&
+				         closestExtremum.high > globalCandles[currentIndex - 1].high &&
+				         closestExtremum.high > globalCandles[currentIndex + 1].high &&
+				         closestExtremum.high > globalCandles[currentIndex - 2].high)
 				{
 					return closestExtremum;
 				}
-				candlesPassed++;
 			}
 
 			logger.Trace("Extremum haven't found");
