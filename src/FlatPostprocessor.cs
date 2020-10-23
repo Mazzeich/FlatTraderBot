@@ -28,11 +28,11 @@ namespace FlatTraderBot
                 bool areFlatsInTheSameDay 		= currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
                 bool areFlatsTooClose 			= currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap;
                 bool areFlatsMeansRoughlyEqual 	= Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.flatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5;
-                
-                logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
-                             $"and [{currentFlat.flatBounds.left.time}] [{currentFlat.flatBounds.right.time}] " +
-                             $"Day = {areFlatsInTheSameDay}\tDistance = {areFlatsTooClose}\tMeans = {areFlatsMeansRoughlyEqual}",
-	                areFlatsInTheSameDay, areFlatsTooClose, areFlatsMeansRoughlyEqual);
+
+                logger.Trace(
+	                $"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
+	                $"and [{currentFlat.flatBounds.left.time}] [{currentFlat.flatBounds.right.time}] " +
+	                $"Day = {areFlatsInTheSameDay}\tDistance = {areFlatsTooClose}\tMeans = {areFlatsMeansRoughlyEqual}");
 
                 // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
                 // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА
