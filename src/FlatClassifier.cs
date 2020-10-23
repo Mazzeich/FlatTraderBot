@@ -31,6 +31,14 @@ namespace FlatTraderBot
 		/// </summary>
 		private int flatsFromAscension;
 		/// <summary>
+		/// Сколько боковиков закрываются в падения
+		/// </summary>
+		private int flatsClosingToDescension;
+		/// <summary>
+		/// Сколько боковиков закрываются в взлёты
+		/// </summary>
+		private int flatsClosingToAscension;
+		/// <summary>
 		/// Средний интервал между боковиками
 		/// </summary>
 		private double meanFlatDuration;
@@ -56,7 +64,8 @@ namespace FlatTraderBot
 		{
 			for (int i = 0; i < flatsOverall; i++)
 			{
-				Enum flatFormedFrom = Classify(flatCollection[i], i);
+				FormedFrom flatFormedFrom = ClassifyFormedFrom(flatCollection[i], i);
+				
 				switch (flatFormedFrom)
 				{
 					case (FormedFrom.Ascending):
@@ -76,11 +85,37 @@ namespace FlatTraderBot
 				}
 			}
 
-			int flatsFromAscensionPercantage = flatsFromAscension * 100 / flatsOverall;
-			int flatsFromDescensionPercentage = flatsFromDescension * 100 / flatsOverall;
+			for (int i = 0; i < flatsOverall - 1; i++)
+			{
+				ClosingTo flatClosingTo = ClassifyClosingTo(flatCollection[i] , i);
+				switch (flatClosingTo)
+				{
+					case (ClosingTo.Ascension):
+					{
+						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.right.time} closing to ascension");
+						flatsClosingToAscension++;
+						break;
+					}
+					case (ClosingTo.Descension):
+					{
+						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.right.time} closing to descension");
+						flatsClosingToDescension++;
+						break;
+					}
+					default:
+						break;
+				}
+			}
+
+			int flatsFromAscensionPercantage 	= flatsFromAscension * 100 / flatsOverall;
+			int flatsFromDescensionPercentage 	= flatsFromDescension * 100 / flatsOverall;
+			int flatsToAscensionPercentage 		= flatsClosingToAscension * 100 / flatsOverall;
+			int flatsToDescensionPercentage 	= flatsClosingToDescension * 100 / flatsOverall;
 
 			logger.Trace($"From ascending = {flatsFromAscension} | From descending = {flatsFromDescension}");
-			logger.Trace($"[fromAscening/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
+			logger.Trace($"[fromAscending/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
+			logger.Trace($"To ascending = {flatsClosingToAscension} | To descending = {flatsClosingToDescension}");
+			logger.Trace($"[toAscending/toDescending] = {flatsToAscensionPercentage}%/{flatsToDescensionPercentage}%");
 
 			meanFlatDuration = CalculateMeanFlatDuration(flatCollection);
 			logger.Trace($"[meanFlatDuration] = {meanFlatDuration}");
@@ -90,16 +125,15 @@ namespace FlatTraderBot
 		}
 
 		/// <summary>
-		/// Функция, задающая поле formedFrom объекта класса FlatIdentifier
+		/// Определяет, что предшествовало боковому движению
 		/// </summary>
-		/// <param name="flatIdentifier">Боковик</param>
+		/// <param name="flat">Боковик</param>
 		/// <param name="flatNumber">Номер боковика</param>
-		/// <returns>Enum FormedFrom</returns>
-		private FormedFrom Classify(FlatIdentifier flatIdentifier, int flatNumber)
+		/// <returns>Восходящий или нисходящий тренд</returns>
+		private FormedFrom ClassifyFormedFrom(FlatIdentifier flat, int flatNumber)
 		{
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
-			FormedFrom result = closestExtremum.avg > flatIdentifier.mean ? FormedFrom.Ascending : FormedFrom.Descending;
-			
+			FormedFrom result = closestExtremum.avg > flat.mean ? FormedFrom.Ascending : FormedFrom.Descending;
 			return result;
 		}
 
@@ -125,7 +159,7 @@ namespace FlatTraderBot
 					return globalCandles[0];
 				}
 
-				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
+				if (closestExtremum.low < currentFlat.gMin - _Constants.FlatClassifyOffset * currentFlat.gMin &&
 				    closestExtremum.low < globalCandles[currentIndex - 2].low &&
 				    closestExtremum.low < globalCandles[currentIndex - 1].low &&
 				    closestExtremum.low < globalCandles[currentIndex + 1].low &&
@@ -133,7 +167,7 @@ namespace FlatTraderBot
 				{
 					return closestExtremum;
 				}
-				else if (closestExtremum.high > currentFlat.gMax + _Constants.flatClassifyOffset * currentFlat.gMax &&
+				else if (closestExtremum.high > currentFlat.gMax + _Constants.FlatClassifyOffset * currentFlat.gMax &&
 				         closestExtremum.high > globalCandles[currentIndex - 2].high &&
 				         closestExtremum.high > globalCandles[currentIndex - 1].high &&
 				         closestExtremum.high > globalCandles[currentIndex + 1].high &&
@@ -169,38 +203,78 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Функция вычисляет среднее расстояние между боковиками и их предстоящими отклонениями
 		/// </summary>
-		/// <param name="flatIdentifiers"></param>
+		/// <param name="flats"></param>
 		/// <param name="candleStructs"></param>
 		/// <returns></returns>
-		private double CalculateMeanOffsetDistance(List<FlatIdentifier> flatIdentifiers, List<_CandleStruct> candleStructs)
+		private double CalculateMeanOffsetDistance(List<FlatIdentifier> flats, List<_CandleStruct> candleStructs)
 		{
 			double meanDistance = 0;
 			double distance = 0;
 			int offsetsFound = 0;
 
-			for (int i = 0; i < flatIdentifiers.Count - 1; i++)
+			for (int i = 0; i < flats.Count - 1; i++)
 			{
-				for (int j = flatIdentifiers[i].flatBounds.right.index + 1; j < flatIdentifiers[i + 1].flatBounds.left.index; j++)
+				for (int j = flats[i].flatBounds.right.index + 1; j < flats[i + 1].flatBounds.left.index; j++)
 				{
-					double currentOffset = Math.Abs(candleStructs[j].avg - flatIdentifiers[i].mean);
-					if (currentOffset >= flatIdentifiers[i].flatWidth)
+					double currentOffset = Math.Abs(candleStructs[j].avg - flats[i].mean);
+					if (currentOffset >= flats[i].flatWidth)
 					{
-						meanDistance += candleStructs[j].index - flatIdentifiers[i].flatBounds.right.index;
+						meanDistance += candleStructs[j].index - flats[i].flatBounds.right.index;
 						offsetsFound++;
-						logger.Trace("For flat {0} [{1} {2}] offset is at [{3}]: {4}", 
-							flatIdentifiers[i].flatBounds.left.date,
-							flatIdentifiers[i].flatBounds.left.time,
-							flatIdentifiers[i].flatBounds.right.time,
-							candleStructs[j].date, 
-							candleStructs[j].time);
+						logger.Trace($"For flat {flats[i].flatBounds.left.date} [{flats[i].flatBounds.left.time} {flats[i].flatBounds.right.time}] " +
+						             $"offset is at [{candleStructs[j].date}]: {candleStructs[j].time}");
 						break;
 					}
 				}
 			}
-			logger.Trace("[offsetsFound] = {0}", offsetsFound);
+			logger.Trace($"[offsetsFound] = {offsetsFound}");
 
 			meanDistance /= offsetsFound;
 			return meanDistance;
+		}
+		
+		/// <summary>
+		/// Определяет сторону закрытия боковика
+		/// </summary>
+		/// <param name="flat">Объект боковика</param>
+		/// <param name="flatNumber">Номер объекта</param>
+		/// <returns>Вниз или вверх</returns>
+		private ClosingTo ClassifyClosingTo(FlatIdentifier flat, int flatNumber)
+		{
+			_CandleStruct closingCandle = FindClosingCandle(flatNumber);
+			ClosingTo result = closingCandle.avg > flat.mean ? ClosingTo.Ascension : ClosingTo.Descension;
+			return result;
+		}
+
+		/// <summary>
+		/// Находит свечу, определяющую сторону закрытия боковика
+		/// </summary>
+		/// <param name="flatNumber">Номер боковика</param>
+		/// <returns>Свеча снизу или сверху после движения</returns>
+		private _CandleStruct FindClosingCandle(int flatNumber)
+		{
+			int currentIndex = flatCollection[flatNumber].flatBounds.right.index + 1;
+			_CandleStruct result = globalCandles[currentIndex];
+			double flatUpperBound = flatCollection[flatNumber].gMax;
+			double flatLowerBound = flatCollection[flatNumber].gMin;
+			double priceOffset = flatCollection[flatNumber].mean * _Constants.CloseCoeff;
+
+			while (result.time != flatCollection[flatNumber + 1].flatBounds.left.time)
+			{
+				result = globalCandles[currentIndex];
+				
+				if (result.high > flatCollection[flatNumber].gMax + priceOffset ||
+				    result.low  < flatCollection[flatNumber].gMin - priceOffset)
+				{
+					result =  globalCandles[currentIndex];
+					logger.Trace($"Closing to candle: {result.time}");
+					return result;
+				}
+
+				currentIndex++;
+			}
+
+			return result;
 		}
 	}
 }

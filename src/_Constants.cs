@@ -38,16 +38,20 @@ namespace FlatTraderBot
         /// </summary>
         public const double SDOffset = 0.0006;
         /// <summary>
+        /// Отклонение свечи от боковика для фиксирования закрытия 
+        /// </summary>
+        public const double CloseCoeff = 0.0006;
+        /// <summary>
         /// Количество фазовых свечей, которые не нужно учитывать при вычислении уголового коэффициента
         /// </summary>
         public const double PhaseCandlesCoeff = 0.05;
         /// <summary>
         /// Необходимое отклонение от цены, чтобы можно было учесть экстремум перед боковиком
         /// </summary>
-        public const double flatClassifyOffset = 0.0005;
+        public const double FlatClassifyOffset = 0.0005;
         /// <summary>
         /// Возможное отклонение мат. ожиданий боковиков для их объединения
         /// </summary>
-        public const double flatsMeanOffset = 0.0006;
+        public const double FlatsMeanOffset = 0.0006;
     }
 }
