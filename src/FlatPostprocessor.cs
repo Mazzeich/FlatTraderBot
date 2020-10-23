@@ -36,38 +36,48 @@ namespace FlatTraderBot
                 // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
                 // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА
                 // И ЕСЛИ разница в цене между мат. ожиданиями текущего и предыдущего <= (ОФФСЕТ * среднее между мат. ожиданиями обоих боковиков)
-                if (areFlatsInTheSameDay && areFlatsTooClose && areFlatsMeansRoughlyEqual)
+                if (!areFlatsInTheSameDay || !areFlatsTooClose || !areFlatsMeansRoughlyEqual)
                 {
-                    logger.Trace("Uniting");
-                    
-                    List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.flatBounds.right.index - prevFlat.flatBounds.left.index);
-                    for (int j = prevFlat.flatBounds.left.index; j <= currentFlat.flatBounds.right.index; j++)
-                    {
-                        newAperture.Add(globalCandles[j]);
-                    }
-                    FlatIdentifier newFlat = new FlatIdentifier();
-                    newFlat.AssignAperture(newAperture);
-                    newFlat.CalculateFlatProperties();
-                    newFlat.flatBounds = newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
-                    newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
-                    
-                    flatList.RemoveRange(i-1, 2);
-                    flatList.Insert(i-1, newFlat);
-                    flatsFound--;
-                    i++;
-                    unions++;
+	                continue;
                 }
+
+                logger.Trace("Uniting");
+                    
+                List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.flatBounds.right.index - prevFlat.flatBounds.left.index);
+                for (int j = prevFlat.flatBounds.left.index; j <= currentFlat.flatBounds.right.index; j++)
+                {
+	                newAperture.Add(globalCandles[j]);
+                }
+                FlatIdentifier newFlat = new FlatIdentifier();
+                newFlat.AssignAperture(newAperture);
+                newFlat.CalculateFlatProperties();
+                newFlat.flatBounds = newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
+                newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
+                    
+                flatList.RemoveRange(i-1, 2);
+                flatList.Insert(i-1, newFlat);
+                flatsFound--;
+                i++;
+                unions++;
             }
 		}
 
+		/// <summary>
+		/// Инициализация логгера
+		/// </summary>
 		private readonly Logger logger = LogManager.GetCurrentClassLogger();
-		
+		/// <summary>
+		/// Список найденных боковиков
+		/// </summary>
 		private readonly List<FlatIdentifier> flatList;
-
+		/// <summary>
+		/// Боковиков найдено
+		/// </summary>
 		private int flatsFound;
-
-		private List<_CandleStruct> globalCandles = new List<_CandleStruct>();
-
+		/// <summary>
+		/// Глобальный список свечей
+		/// </summary>
+		private readonly List<_CandleStruct> globalCandles;
 		/// <summary>
 		/// Количество операций объединения
 		/// </summary>

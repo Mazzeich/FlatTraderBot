@@ -21,7 +21,7 @@ namespace FlatTraderBot
         /// Функция устанавливает поле candles
         /// </summary>
         /// <param name="aperture">Рассматриваемое окно</param>
-        public void AssignAperture(List<_CandleStruct> aperture)
+        public void AssignAperture(IEnumerable<_CandleStruct> aperture)
         {
             candles = new List<_CandleStruct>(aperture);
         }
@@ -141,7 +141,7 @@ namespace FlatTraderBot
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private double FindK(List<_CandleStruct> candleStructs)
+        private double FindK(IReadOnlyList<_CandleStruct> candleStructs)
         {
             // https://prog-cpp.ru/mnk/
             k = 0;
@@ -221,7 +221,7 @@ namespace FlatTraderBot
         /// </summary>
         /// <param name="candleStructs"></param>
         /// <returns>Количество экстремумов возле СКО лоу</returns>
-        private int EstimateExtremumsNearSDL(List<_CandleStruct> candleStructs)
+        private int EstimateExtremumsNearSDL(IList<_CandleStruct> candleStructs)
         {
             int result = 0;
             double distanceToSD = mean * _Constants.SDOffset;
@@ -250,7 +250,7 @@ namespace FlatTraderBot
         /// </summary>
         /// <param name="candleStructs"></param>
         /// <returns>Количество экстремумов возле СКО хай</returns>
-        private int EstimateExtremumsNearSDH(List<_CandleStruct> candleStructs)
+        private int EstimateExtremumsNearSDH(IList<_CandleStruct> candleStructs)
         {
             int result = 0;
             double distanceToSD = mean * _Constants.SDOffset;
@@ -279,7 +279,7 @@ namespace FlatTraderBot
         /// </summary>
         /// <param name="candleStructs"></param>
         /// <returns></returns>
-        private double CalculateMaximumDeviationFromOpening(List<_CandleStruct> candleStructs)
+        private double CalculateMaximumDeviationFromOpening(IReadOnlyList<_CandleStruct> candleStructs)
         {
             double opening = candleStructs[0].open;
             double result = 0;
@@ -356,6 +356,8 @@ namespace FlatTraderBot
                 {
                     break;
                 }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
             return result;
         }
