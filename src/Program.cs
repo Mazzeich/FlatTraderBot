@@ -1,25 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NLog;
-
-// ReSharper disable CommentTypo
 
 namespace FlatTraderBot
 {
     internal static class Program
     {
-        /// <summary>
-        /// Инициализация логгера
-        /// В документации указано, что это делают в каждом классе программы
-        /// </summary>
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private static void Main()
         {
+            Logger logger = LogManager.GetCurrentClassLogger();
             logger.Trace("Program has started...");
             
             List<_CandleStruct> candles = new List<_CandleStruct>();
-            Reader reader = new Reader(candles);
-            // candles = reader.GetHistoricalData("data.csv");
             candles = new Reader(candles).GetHistoricalData("data.csv");
             
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);

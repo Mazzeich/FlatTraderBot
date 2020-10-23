@@ -22,17 +22,16 @@ namespace FlatTraderBot
 		{
 			for (int i = 1; i < flatsFound; i++)
             {
-                FlatIdentifier currentFlat = flatList[i];
-                FlatIdentifier prevFlat = flatList[i-1];
+                FlatIdentifier currentFlat 	= flatList[i];
+                FlatIdentifier prevFlat 	= flatList[i-1];
                 
                 bool areFlatsInTheSameDay 		= currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
                 bool areFlatsTooClose 			= currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap;
-                bool areFlatsMeansRoughlyEqual 	= Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.flatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5;
+                bool areFlatsMeansRoughlyEqual 	= Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.FlatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5;
 
-                logger.Trace(
-	                $"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time}] [{prevFlat.flatBounds.right.time}] " +
-	                $"and [{currentFlat.flatBounds.left.time}] [{currentFlat.flatBounds.right.time}] " +
-	                $"Day = {areFlatsInTheSameDay}\tDistance = {areFlatsTooClose}\tMeans = {areFlatsMeansRoughlyEqual}");
+                logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time} {prevFlat.flatBounds.right.time}] " +
+                             $"and [{currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}] " +
+                             $"Day = {areFlatsInTheSameDay}\tDistance = {areFlatsTooClose}\tMeans = {areFlatsMeansRoughlyEqual}");
 
                 // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
                 // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА
@@ -58,16 +57,12 @@ namespace FlatTraderBot
                     i++;
                     unions++;
                 }
-                else
-                {
-	                continue;
-                }
             }
 		}
 
 		private readonly Logger logger = LogManager.GetCurrentClassLogger();
 		
-		private List<FlatIdentifier> flatList = new List<FlatIdentifier>();
+		private readonly List<FlatIdentifier> flatList;
 
 		private int flatsFound;
 

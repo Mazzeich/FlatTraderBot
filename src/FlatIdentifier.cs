@@ -441,11 +441,10 @@ namespace FlatTraderBot
         /// <summary>
         /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
         /// </summary>
-        public string reasonsOfApertureHasNoFlat { get; private set; }
-
+        public string reasonsOfApertureHasNoFlat { get; private set; }   
         /// <summary>
         /// Максимальное отклонение от точки входа в боковик
         /// </summary>
-        public double maximumDeviationFromOpening { get; private set; }
+        private double maximumDeviationFromOpening { get; set; }
     }
 }
