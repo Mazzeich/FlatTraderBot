@@ -33,7 +33,7 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Средний интервал между боковиками
 		/// </summary>
-		private double meanFlatInterval;
+		private double meanFlatDuration;
 		/// <summary>
 		/// Средний интервал между концом боковика и предстоящим отклоенением
 		/// </summary>
@@ -82,8 +82,8 @@ namespace FlatTraderBot
 			logger.Trace($"From ascending = {flatsFromAscension} | From descending = {flatsFromDescension}");
 			logger.Trace($"[fromAscening/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
 
-			meanFlatInterval = CalculateMeanInterval(flatCollection);
-			logger.Trace($"[meanFlatInterval] = {meanFlatInterval}");
+			meanFlatDuration = CalculateMeanFlatDuration(flatCollection);
+			logger.Trace($"[meanFlatDuration] = {meanFlatDuration}");
 
 			meanOffsetDistance = CalculateMeanOffsetDistance(flatCollection, globalCandles);
 			logger.Trace($"[meanOffsetDistance] = {meanOffsetDistance}");
@@ -97,17 +97,9 @@ namespace FlatTraderBot
 		/// <returns>Enum FormedFrom</returns>
 		private FormedFrom Classify(FlatIdentifier flatIdentifier, int flatNumber)
 		{
-			FormedFrom result;
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
-			if (closestExtremum.avg > flatIdentifier.mean)
-			{
-				result = FormedFrom.Ascending;
-			}
-			else
-			{
-				result =  FormedFrom.Descending;
-			}
-
+			FormedFrom result = closestExtremum.avg > flatIdentifier.mean ? FormedFrom.Ascending : FormedFrom.Descending;
+			
 			return result;
 		}
 
@@ -161,17 +153,17 @@ namespace FlatTraderBot
 		/// </summary>
 		/// <param name="flatIdentifiers">Коллекция боковиков</param>
 		/// <returns>Средний интервал</returns>
-		private double CalculateMeanInterval(List<FlatIdentifier> flatIdentifiers)
+		private double CalculateMeanFlatDuration(List<FlatIdentifier> flatIdentifiers)
 		{
-			double meanDistance = 0;
-			for (int i = 1; i < flatIdentifiers.Count; i++)
+			double result = 0;
+			for (int i = 0; i < flatIdentifiers.Count; i++)
 			{
-				double gap = flatIdentifiers[i].flatBounds.left.index - flatIdentifiers[i - 1].flatBounds.right.index;
-				meanDistance += gap;
+				double currentDuration = flatIdentifiers[i].flatBounds.right.index - flatIdentifiers[i].flatBounds.left.index;
+				result += currentDuration;
 			}
 
-			meanDistance /= flatIdentifiers.Count - 1;
-			return meanDistance;
+			result /= flatIdentifiers.Count - 1;
+			return result;
 		}
 
 		/// <summary>
