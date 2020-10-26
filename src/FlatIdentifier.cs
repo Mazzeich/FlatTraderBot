@@ -448,5 +448,17 @@ namespace FlatTraderBot
         /// Максимальное отклонение от точки входа в боковик
         /// </summary>
         private double maximumDeviationFromOpening { get; set; }
+        /// <summary>
+        /// В какую сторону закрылся боковик
+        /// </summary>
+        public Direction closingTo { get; set; }
+        /// <summary>
+        /// На какой свече произошёл выход 
+        /// </summary>
+        public _CandleStruct closingCandle { get; set; }
+        /// <summary>
+        /// Точка максимального пробоя боковика
+        /// </summary>
+        public _Breakthrough breakthrough { get; set; }
     }
 }

@@ -158,7 +158,7 @@ namespace FlatTraderBot
 				result += currentDuration;
 			}
 
-			result /= flatIdentifiers.Count - 1;
+			result /= flatIdentifiers.Count;
 			return result;
 		}
 
@@ -236,5 +236,131 @@ namespace FlatTraderBot
 			}
 			return result;
 		}
+
+		/// <summary>
+		/// Функция инициализирует поиск дальних пробоев для каждого боковика
+		/// </summary>
+		public void FindBreakthroughs()
+		{
+			for (int i = 0; i < flatsOverall - 1; i++)
+			{
+				if (flatList[i].closingTo == Direction.Down)
+				{
+					FindLowerBreakthroughs(i);
+				}
+				else
+				{
+					FindUpperBreakthroughs(i);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Функция находит дальний пробой для закрывающегося сверху боковика
+		/// </summary>
+		/// <param name="flatNumber">Номер боковика в списке</param>
+		private void FindUpperBreakthroughs(int flatNumber)
+		{
+			FlatIdentifier currentFlat = flatList[flatNumber];
+			FlatIdentifier nextFlat = flatList[flatNumber + 1];
+			_Breakthrough breakthrough;
+			breakthrough.candle = currentFlat.closingCandle;
+			breakthrough.distanceToClose = 0;
+			breakthrough.deltaPriceBreakthroughToClose = 0;
+			int candlesPassed = 0;
+			_CandleStruct iterator = globalCandles[currentFlat.closingCandle.index];
+
+			while (iterator.time != nextFlat.flatBounds.left.time)
+			{
+				iterator = globalCandles[currentFlat.closingCandle.index + candlesPassed];
+				double deltaClose = iterator.high - currentFlat.closingCandle.close;
+
+				if (deltaClose > breakthrough.deltaPriceBreakthroughToClose)
+				{
+					breakthrough.candle = iterator;
+					breakthrough.distanceToClose = iterator.index - currentFlat.closingCandle.index;
+					breakthrough.deltaPriceBreakthroughToClose = deltaClose;
+				}
+				candlesPassed++;
+			}
+
+			logger.Trace($"[{currentFlat.flatBounds.left.date}] {currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}  " +
+			             $"Дальний верхний пробой в [{breakthrough.candle.time}|{breakthrough.distanceToClose}|{breakthrough.deltaPriceBreakthroughToClose}]");
+		}
+		
+		/// <summary>
+		/// Функция находит дальний пробой для закрывающегося снизу боковика
+		/// </summary>
+		/// <param name="flatNumber">Номер боковика в списке</param>
+		private void FindLowerBreakthroughs(int flatNumber)
+		{
+			FlatIdentifier currentFlat = flatList[flatNumber];
+			FlatIdentifier nextFlat = flatList[flatNumber + 1];
+			_Breakthrough breakthrough;
+			breakthrough.candle = currentFlat.closingCandle;
+			breakthrough.distanceToClose = 0;
+			breakthrough.deltaPriceBreakthroughToClose = 0;
+			int candlesPassed = 0;
+			_CandleStruct iterator = globalCandles[currentFlat.closingCandle.index];
+
+			while (iterator.time != nextFlat.flatBounds.left.time)
+			{
+				iterator = globalCandles[currentFlat.closingCandle.index + candlesPassed];
+				double deltaClose = iterator.low - currentFlat.closingCandle.close;
+
+				if (deltaClose < breakthrough.deltaPriceBreakthroughToClose)
+				{
+					breakthrough.candle = iterator;
+					breakthrough.distanceToClose = iterator.index - currentFlat.closingCandle.index;
+					breakthrough.deltaPriceBreakthroughToClose = deltaClose;
+					flatList[flatNumber].breakthrough = breakthrough;
+				}
+				candlesPassed++;
+			}
+			
+			logger.Trace($"[{currentFlat.flatBounds.left.date}] {currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}  " +
+				             $"Дальний нижний пробой в [{breakthrough.candle.time}|{breakthrough.distanceToClose}|{breakthrough.deltaPriceBreakthroughToClose}]");
+		}
+		
+		/// <summary>
+		/// Логгер
+		/// </summary>
+		private readonly Logger logger = LogManager.GetCurrentClassLogger();
+		/// <summary>
+		/// Список всех найденных боковиков
+		/// </summary>
+		public  List<FlatIdentifier> flatList { get; set; }
+		/// <summary>
+		/// Глобальный список свечей
+		/// </summary>
+		private readonly List<_CandleStruct> globalCandles;
+		/// <summary>
+		/// Всего боковиков
+		/// </summary>
+		private readonly int flatsOverall;
+		/// <summary>
+		/// Сколько боковиков сформировано после падения
+		/// </summary>
+		private int flatsFromDescension;
+		/// <summary>
+		/// Сколько боковиков сформировано после взлёта
+		/// </summary>
+		private int flatsFromAscension;
+		/// <summary>
+		/// Сколько боковиков закрываются в падения
+		/// </summary>
+		private int flatsClosingToDescension;
+		/// <summary>
+		/// Сколько боковиков закрываются в взлёты
+		/// </summary>
+		private int flatsClosingToAscension;
+		/// <summary>
+		/// Средний интервал между боковиками
+		/// </summary>
+		private double meanFlatDuration;
+		/// <summary>
+		/// Средний интервал между концом боковика и предстоящим отклоенением
+		/// </summary>
+		private double meanOffsetDistance;
 	}
 }

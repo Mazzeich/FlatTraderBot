@@ -15,15 +15,20 @@ namespace FlatTraderBot
             
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
             historicalFlatFinder.FindAllFlats();
-            
-            FlatPostprocessor flatPostprocessor = new FlatPostprocessor(historicalFlatFinder);
-            flatPostprocessor.UniteFlats();
-
-            Printer printer = new Printer(historicalFlatFinder);
-            printer.OutputHistoricalInfo();
 
             FlatClassifier flatClassifier = new FlatClassifier(historicalFlatFinder.flatList, candles);
             flatClassifier.ClassifyAllFlats();
+            flatClassifier.FindBreakthroughs();
+            
+            FlatPostprocessor flatPostprocessor = new FlatPostprocessor(historicalFlatFinder);
+            flatPostprocessor.UniteFlats();
+            
+            flatClassifier = new FlatClassifier(flatPostprocessor.flatList, candles);
+            flatClassifier.ClassifyAllFlats();
+            flatClassifier.FindBreakthroughs();
+
+            flatPostprocessor = new FlatPostprocessor(flatPostprocessor.flatList);
+            flatPostprocessor.UniteBreakthroughs();
 
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
