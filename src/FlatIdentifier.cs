@@ -34,7 +34,7 @@ namespace FlatTraderBot
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
-                trend = Trend.Neutral;
+                trend = Direction.Neutral;
                 
                 bool isEnoughExtremumsNearSDL = exsNearSDL > _Constants.MinExtremumsNearSD;
                 bool isEnoughExtremumsNearSDH = exsNearSDH > _Constants.MinExtremumsNearSD;
@@ -52,12 +52,12 @@ namespace FlatTraderBot
             } 
             else if (k < 0)
             {
-                trend = Trend.Down;
+                trend = Direction.Down;
                 CutAperture();
             }
             else
             {
-                trend = Trend.Up;
+                trend = Direction.Up;
                 CutAperture();
             }
 
@@ -342,17 +342,17 @@ namespace FlatTraderBot
             
             switch (trend)
             {
-                case Trend.Down:
+                case Direction.Down:
                 {
                     result += "Нисходящий тренд. ";
                     break;
                 }
-                case Trend.Up:
+                case Direction.Up:
                 {
                     result += "Восходящий тренд. ";
                     break;
                 }
-                case Trend.Neutral:
+                case Direction.Neutral:
                 {
                     break;
                 }
@@ -439,7 +439,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
         /// </summary>
-        public Trend trend;
+        public Direction trend;
         /// <summary>
         /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
         /// </summary>

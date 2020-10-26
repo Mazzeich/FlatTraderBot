@@ -43,21 +43,21 @@ namespace FlatTraderBot
             
             switch (flatIdentifier.trend)
             {
-                case Trend.Down:
+                case Direction.Down:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия имеет сильный убывающий тренд");
                     break;
                 }
-                case Trend.Up:
+                case Direction.Up:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия имеет сильный возрастающий тренд\n");
                     break;
                 }
-                case Trend.Neutral:
+                case Direction.Neutral:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);

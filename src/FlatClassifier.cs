@@ -64,22 +64,22 @@ namespace FlatTraderBot
 		{
 			for (int i = 0; i < flatsOverall; i++)
 			{
-				FormedFrom flatFormedFrom = ClassifyFormedFrom(flatCollection[i], i);
-				
+				Direction flatFormedFrom = ClassifyFormedFrom(flatList[i], i);
+
 				switch (flatFormedFrom)
 				{
-					case (FormedFrom.Ascending):
-					{
-						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.left.time} from asceding");
+					case Direction.Up:
+						logger.Trace(
+							$"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from asceding");
 						flatsFromAscension++;
 						break;
-					}
-					case (FormedFrom.Descending):
-					{
-						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.left.time} from descending");
+					case Direction.Down:
+						logger.Trace(
+							$"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from descending");
 						flatsFromDescension++;
 						break;
-					}
+					case Direction.Neutral:
+						break;
 					default:
 						break;
 				}
@@ -87,16 +87,16 @@ namespace FlatTraderBot
 
 			for (int i = 0; i < flatsOverall - 1; i++)
 			{
-				ClosingTo flatClosingTo = ClassifyClosingTo(flatCollection[i] , i);
+				Direction flatClosingTo = ClassifyClosingTo(flatList[i] , i);
 				switch (flatClosingTo)
 				{
-					case (ClosingTo.Ascension):
+					case (Direction.Up):
 					{
-						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.right.time} closing to ascension");
+						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} closing to ascension");
 						flatsClosingToAscension++;
 						break;
 					}
-					case (ClosingTo.Descension):
+					case (Direction.Down):
 					{
 						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.right.time} closing to descension");
 						flatsClosingToDescension++;
@@ -130,10 +130,10 @@ namespace FlatTraderBot
 		/// <param name="flat">Боковик</param>
 		/// <param name="flatNumber">Номер боковика</param>
 		/// <returns>Восходящий или нисходящий тренд</returns>
-		private FormedFrom ClassifyFormedFrom(FlatIdentifier flat, int flatNumber)
+		private Direction ClassifyFormedFrom(FlatIdentifier flat, int flatNumber)
 		{
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
-			FormedFrom result = closestExtremum.avg > flat.mean ? FormedFrom.Ascending : FormedFrom.Descending;
+			Direction result = closestExtremum.avg > flat.mean ? Direction.Up : Direction.Down;
 			return result;
 		}
 
@@ -239,10 +239,12 @@ namespace FlatTraderBot
 		/// <param name="flat">Объект боковика</param>
 		/// <param name="flatNumber">Номер объекта</param>
 		/// <returns>Вниз или вверх</returns>
-		private ClosingTo ClassifyClosingTo(FlatIdentifier flat, int flatNumber)
+		private Direction ClassifyClosingTo(FlatIdentifier flat, int flatNumber)
 		{
 			_CandleStruct closingCandle = FindClosingCandle(flatNumber);
-			ClosingTo result = closingCandle.avg > flat.mean ? ClosingTo.Ascension : ClosingTo.Descension;
+			flat.closingCandle = closingCandle;
+			Direction result = closingCandle.avg > flat.mean ? Direction.Up : Direction.Down;
+			flat.closingTo = result;
 			return result;
 		}
 
