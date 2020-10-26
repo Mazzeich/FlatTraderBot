@@ -27,46 +27,41 @@ namespace FlatTraderBot
 
             for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture - 1;)
             {
-                FlatIdentifier flatIdentifier = new FlatIdentifier();
-                flatIdentifier.AssignAperture(aperture);
-                flatIdentifier.Identify(); // Определяем начальное окно
+                FlatIdentifier flat = new FlatIdentifier();
+                flat.AssignAperture(aperture);
+                flat.Identify(); // Определяем начальное окно
                 
                 // Если не определили боковик сходу
-                if (!flatIdentifier.isFlat)
+                if (!flat.isFlat)
                 {
-                    Printer printer = new Printer(flatIdentifier);
+                    Printer printer = new Printer(flat);
                     printer.PrintReasonsApertureIsNotFlat();
                     globalIterator++;
                     MoveAperture(ref globalIterator);
                     continue;
                 }
 
-                while (flatIdentifier.isFlat)
+                while (flat.isFlat)
                 {
                     // ExpansionRate раз...
                     for (int j = 0; j < _Constants.ExpansionRate; j++)
                     {
-
                         // ... расширяем окно на 1 свечу
                         ExtendAperture(globalIterator, ref aperture);
                     }
-                    flatIdentifier.AssignAperture(aperture);
-                    flatIdentifier.Identify(); // Identify() вызывает SetBounds(), если isFlat == true
+                    flat.AssignAperture(aperture);
+                    flat.Identify(); // Identify() вызывает SetBounds(), если isFlat == true
 
-                    if (flatIdentifier.isFlat) 
+                    if (flat.isFlat) 
                         continue; 
                     
-                    Printer printer = new Printer(flatIdentifier);
+                    Printer printer = new Printer(flat);
                     printer.PrintReasonsApertureIsNotFlat();
-                    flatList.Add(flatIdentifier);
+                    flatList.Add(flat);
                     flatsFound++;
-                    logger.Trace("Боковик определён в [{0}] с [{1}] по [{2}]", 
-                        flatIdentifier.flatBounds.left.date, 
-                        flatIdentifier.flatBounds.left.time,
-                        flatIdentifier.flatBounds.right.time);
+                    logger.Trace($"Боковик определён в [{flat.flatBounds.left.date}] с [{flat.flatBounds.left.time}] по [{flat.flatBounds.right.time}]");
 
                     globalIterator += aperture.Count; // Переместить итератор на следующую после найденного окна свечу
-
                     MoveAperture(ref globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
                 }
             }

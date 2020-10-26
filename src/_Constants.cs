@@ -20,7 +20,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Минимальное расстояние между боковиками, чтобы не склеивать их в один
         /// </summary>
-        public const int MinFlatGap = 15;
+        public const int MinFlatGap = 60;
         /// <summary>
         /// Максимально возможное количество свечей между экстремумом и боковиком
         /// </summary>
@@ -40,7 +40,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Отклонение свечи от боковика для фиксирования закрытия 
         /// </summary>
-        public const double CloseCoeff = 0.0006;
+        public const double CloseCoeff = 0.0005;
         /// <summary>
         /// Количество фазовых свечей, которые не нужно учитывать при вычислении уголового коэффициента
         /// </summary>

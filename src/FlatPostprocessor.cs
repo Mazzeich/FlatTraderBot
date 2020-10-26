@@ -15,6 +15,11 @@ namespace FlatTraderBot
 			globalCandles = historicalFlatFinder.globalCandles;
 		}
 
+		public FlatPostprocessor(List<FlatIdentifier> flatList)
+		{
+			this.flatList = flatList;
+		}
+
 		/// <summary>
 		/// Функция склеивает находящиеся близко друг к другу боковики
 		/// </summary>
@@ -41,7 +46,7 @@ namespace FlatTraderBot
 	                continue;
                 }
 
-                logger.Trace("Uniting");
+	            logger.Trace("Uniting");
                     
                 List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.flatBounds.right.index - prevFlat.flatBounds.left.index);
                 for (int j = prevFlat.flatBounds.left.index; j <= currentFlat.flatBounds.right.index; j++)
@@ -58,7 +63,7 @@ namespace FlatTraderBot
                 flatList.Insert(i-1, newFlat);
                 flatsFound--;
                 i++;
-                unions++;
+                flatUnions++;
             }
 		}
 
