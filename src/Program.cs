@@ -10,24 +10,21 @@ namespace FlatTraderBot
             Logger logger = LogManager.GetCurrentClassLogger();
             logger.Trace("Program has started...");
             
-            List<_CandleStruct> candles = new List<_CandleStruct>();
+            List<_CandleStruct>  candles  = new List<_CandleStruct>();
+            List<FlatIdentifier> flatList = new List<FlatIdentifier>();
+            
             candles = new Reader(candles).GetHistoricalData("data.csv");
             
-            HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles);
+            HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles, ref flatList);
             historicalFlatFinder.FindAllFlats();
-
-            FlatClassifier flatClassifier = new FlatClassifier(historicalFlatFinder.flatList, candles);
-            flatClassifier.ClassifyAllFlats();
-            flatClassifier.FindBreakthroughs();
             
-            FlatPostprocessor flatPostprocessor = new FlatPostprocessor(historicalFlatFinder);
+            FlatPostprocessor flatPostprocessor = new FlatPostprocessor(candles, ref flatList);
             flatPostprocessor.UniteFlats();
-            
-            flatClassifier = new FlatClassifier(flatPostprocessor.flatList, candles);
+
+            FlatClassifier flatClassifier = new FlatClassifier(candles, ref flatList);
             flatClassifier.ClassifyAllFlats();
             flatClassifier.FindBreakthroughs();
 
-            flatPostprocessor = new FlatPostprocessor(flatPostprocessor.flatList);
             flatPostprocessor.UniteBreakthroughs();
 
             logger.Trace("Main() completed successfully.");

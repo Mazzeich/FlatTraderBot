@@ -8,16 +8,11 @@ namespace FlatTraderBot
 	{
 		private FlatPostprocessor() {}
 		
-		public FlatPostprocessor(HistoricalFlatFinder historicalFlatFinder) : this()
+		public FlatPostprocessor(List<_CandleStruct> globalCandles, ref List<FlatIdentifier> flatList) : this()
 		{
-			flatList = historicalFlatFinder.flatList;
-			flatsFound = historicalFlatFinder.flatsFound;
-			globalCandles = historicalFlatFinder.globalCandles;
-		}
-
-		public FlatPostprocessor(List<FlatIdentifier> flatList)
-		{
+			this.globalCandles = globalCandles;
 			this.flatList = flatList;
+			flatsFound = flatList.Count;
 		}
 
 		/// <summary>
@@ -77,21 +72,22 @@ namespace FlatTraderBot
 				FlatIdentifier previousFlat = flatList[i - 1];
 				if (previousFlat.closingTo == currentFlat.closingTo)
 				{
+					logger.Trace($"[{previousFlat.flatBounds.left.date}] [{currentFlat.flatBounds.right.date}]");
 					switch (currentFlat.closingTo)
 					{
 						case (Direction.Down):
 						{
 							UniteLowerBreakthroughs(i);
-							logger.Trace($"Флеты {currentFlat.flatBounds.right.time} и {previousFlat.flatBounds.right.time}  " +
-							             $"Дальний нижний пробои в [{currentFlat.breakthrough.candle.time}|{previousFlat.breakthrough.candle.time}]");
+							logger.Trace($"Флеты {previousFlat.flatBounds.right.time} и {currentFlat.flatBounds.right.time}  " +
+							             $"Дальние нижние пробои в [{previousFlat.breakthrough.candle.time}|{currentFlat.breakthrough.candle.time}]");
 							
 							break;
 						}
 						case (Direction.Up):
 						{
 							UniteHigherBreakthroughs(i);
-							logger.Trace($"Флеты {currentFlat.flatBounds.right.time} и {previousFlat.flatBounds.right.time}  " +
-							             $"Дальние верхние пробои в [{currentFlat.breakthrough.candle.time}|{previousFlat.breakthrough.candle.time}]");
+							logger.Trace($"Флеты {previousFlat.flatBounds.right.time} и {currentFlat.flatBounds.right.time}  " +
+							             $"Дальние верхние пробои в [{previousFlat.breakthrough.candle.time}|{currentFlat.breakthrough.candle.time}]");
 							break;
 						}
 						case Direction.Neutral:
@@ -139,7 +135,7 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Список найденных боковиков
 		/// </summary>
-		public List<FlatIdentifier> flatList { get; private set; }
+		private List<FlatIdentifier> flatList { get; set; }
 		/// <summary>
 		/// Боковиков найдено
 		/// </summary>
@@ -151,6 +147,6 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Количество операций объединения
 		/// </summary>
-		public int flatUnions;
+		private int flatUnions;
 	}
 }

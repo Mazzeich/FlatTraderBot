@@ -13,7 +13,6 @@ namespace FlatTraderBot
     {
         public FlatIdentifier()
         {
-            logger.Trace("\n[FlatIdentifier] initialized");
             isFlat = false;
         }
 
@@ -28,7 +27,7 @@ namespace FlatTraderBot
 
         public void Identify()
         {
-            logger.Trace($"[{candles[0].date}]: Окно с {candles[0].time} по {candles[^1].time}");
+            logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
             
             CalculateFlatProperties();
             
@@ -329,15 +328,15 @@ namespace FlatTraderBot
 
             if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
             {
-                result += "Недостаточная ширина коридора. ";
+                result += "Ширина коридора. ";
             }
             if (exsNearSDL < _Constants.MinExtremumsNearSD)
             {
-                result += "Недостаточно вершин снизу возле СКО.  ";
+                result += "Вершины СКО лоу.  ";
             }
             if (exsNearSDH < _Constants.MinExtremumsNearSD)
             {
-                result += "Недостаточно вершин сверху возле СКО. ";
+                result += "Вершины СКО хай. ";
             }
             
             switch (trend)

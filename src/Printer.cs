@@ -13,7 +13,6 @@ namespace FlatTraderBot
 
         private Printer()
         {
-            logger.Trace("[Printer] initialized");
         }
         public Printer(FlatIdentifier flatIdentifier) : this()
         {
@@ -105,9 +104,7 @@ namespace FlatTraderBot
 
         public void PrintReasonsApertureIsNotFlat()
         {
-            logger.Trace($"Окно {flatIdentifier.candles[0].date} с [{flatIdentifier.candles[0].time} {flatIdentifier.candles[^1].time}]");
-            logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
-            logger.Trace(flatIdentifier.reasonsOfApertureHasNoFlat);
+            logger.Trace($"[{flatIdentifier.candles[0].date}]: [{flatIdentifier.candles[0].time} {flatIdentifier.candles[^1].time}]: {flatIdentifier.reasonsOfApertureHasNoFlat}");
         }
     }
 }

@@ -8,9 +8,10 @@ namespace FlatTraderBot
     {
         private HistoricalFlatFinder() {}
 
-        public HistoricalFlatFinder(List<_CandleStruct> candles) : this()
+        public HistoricalFlatFinder(List<_CandleStruct> candles, ref List<FlatIdentifier> flatList) : this()
         {
             globalCandles = candles;
+            this.flatList = flatList;
 
             for (int i = 1; i < _Constants.NAperture; i++) // Формируем стартовое окно
             {
@@ -46,8 +47,19 @@ namespace FlatTraderBot
                     // ExpansionRate раз...
                     for (int j = 0; j < _Constants.ExpansionRate; j++)
                     {
-                        // ... расширяем окно на 1 свечу
-                        ExtendAperture(globalIterator, ref aperture);
+                        // ЕСЛИ не конец данных
+                        if (globalIterator + aperture.Count + 1 != globalCandles[^1].index)
+                        {
+                            // ... расширяем окно на 1 свечу
+                            ExtendAperture(globalIterator, ref aperture);
+                        }
+                        else
+                        {
+                            flatList.Add(flat);
+                            flatsFound++;
+                            logger.Trace($"Боковик определён в [{flat.flatBounds.left.date}] с [{flat.flatBounds.left.time}] по [{flat.flatBounds.right.time}]");
+                            return;
+                        }
                     }
                     flat.AssignAperture(aperture);
                     flat.Identify(); // Identify() вызывает SetBounds(), если isFlat == true
@@ -62,13 +74,14 @@ namespace FlatTraderBot
                     logger.Trace($"Боковик определён в [{flat.flatBounds.left.date}] с [{flat.flatBounds.left.time}] по [{flat.flatBounds.right.time}]");
 
                     globalIterator += aperture.Count; // Переместить итератор на следующую после найденного окна свечу
-                    MoveAperture(ref globalIterator); // Записать в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
+                    MoveAperture(ref globalIterator); 
                 }
             }
         }
 
         /// <summary>
-        /// Перемещает окно в следующую позицию (переинициализирует в следующем интервале)
+        /// Перемещает окно в следующую позицию (переинициализирует в следующем интервале) <br/>
+        /// Записывает в окно новый лист с i-го по (i + _Constants.NAperture)-й в aperture
         /// </summary>
         /// <param name="i">Начальный индекс, с которого будет начинаться новое окно до (i + _Constants.NAperture)</param>
         private void MoveAperture(ref int i)

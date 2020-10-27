@@ -12,7 +12,7 @@ namespace FlatTraderBot
 			logger.Trace("-----------------------------------------------------------------");
 		}
 
-		public FlatClassifier(IEnumerable<FlatIdentifier> flats, List<_CandleStruct> candles) : this()
+		public FlatClassifier(List<_CandleStruct> candles, ref List <FlatIdentifier> flats) : this()
 		{
 			flatList = new List<FlatIdentifier>(flats);
 			globalCandles = candles;
@@ -71,10 +71,10 @@ namespace FlatTraderBot
 				}
 			}
 
-			int flatsFromAscensionPercantage 	= flatsFromAscension 		* 100 / flatsOverall;
-			int flatsFromDescensionPercentage 	= flatsFromDescension 		* 100 / flatsOverall;
-			int flatsToAscensionPercentage 		= flatsClosingToAscension 	* 100 / flatsOverall;
-			int flatsToDescensionPercentage 	= flatsClosingToDescension 	* 100 / flatsOverall;
+			int flatsFromAscensionPercantage  = flatsFromAscension 		 * 100 / flatsOverall;
+			int flatsFromDescensionPercentage = flatsFromDescension 	 * 100 / flatsOverall;
+			int flatsToAscensionPercentage 	  = flatsClosingToAscension  * 100 / flatsOverall;
+			int flatsToDescensionPercentage   = flatsClosingToDescension * 100 / flatsOverall;
 
 			logger.Trace($"From ascending = {flatsFromAscension} | From descending = {flatsFromDescension}");
 			logger.Trace($"[fromAscending/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
@@ -121,27 +121,34 @@ namespace FlatTraderBot
 				if (globalCandles[currentIndex - 2].time == "10:00")
 					return globalCandles[0];
 
-				if (closestExtremum.low < currentFlat.gMin - _Constants.FlatClassifyOffset * currentFlat.gMin &&
-				    closestExtremum.low < globalCandles[currentIndex - 2].low &&
-				    closestExtremum.low < globalCandles[currentIndex - 1].low &&
-				    closestExtremum.low < globalCandles[currentIndex + 1].low &&
-				    closestExtremum.low < globalCandles[currentIndex - 2].low)
+				if (closestExtremum.low < currentFlat.gMin - _Constants.FlatClassifyOffset * currentFlat.gMin && IsCandleLowerThanNearests(closestExtremum))
 				{
 					return closestExtremum;
 				}
-				else if (closestExtremum.high > currentFlat.gMax + _Constants.FlatClassifyOffset * currentFlat.gMax &&
-				         closestExtremum.high > globalCandles[currentIndex - 2].high &&
-				         closestExtremum.high > globalCandles[currentIndex - 1].high &&
-				         closestExtremum.high > globalCandles[currentIndex + 1].high &&
-				         closestExtremum.high > globalCandles[currentIndex - 2].high)
+				else if (closestExtremum.high > currentFlat.gMax + _Constants.FlatClassifyOffset * currentFlat.gMax && IsCandleHigherThanNearests(closestExtremum))
 				{
 					return closestExtremum;
 				}
 			}
 
-			logger.Trace("Extremum haven't found");
-
+			logger.Trace("Extremum not found");
 			return globalCandles[0];
+		}
+
+		private bool IsCandleLowerThanNearests(_CandleStruct candle)
+		{
+			int index = candle.index;
+			double low = candle.low;
+			return low < globalCandles[index - 2].low && low < globalCandles[index - 1].low &&
+			       low < globalCandles[index + 1].low && low < globalCandles[index + 2].low;
+		}
+		
+		private bool IsCandleHigherThanNearests(_CandleStruct candle)
+		{
+			int index = candle.index;
+			double high = candle.high;
+			return high > globalCandles[index - 2].high && high > globalCandles[index - 1].high &&
+			       high > globalCandles[index + 1].high && high > globalCandles[index + 2].high;
 		}
 
 		/// <summary>
@@ -244,33 +251,27 @@ namespace FlatTraderBot
 		{
 			for (int i = 0; i < flatsOverall - 1; i++)
 			{
+				FlatIdentifier currentFlat = flatList[i];
+				FlatIdentifier nextFlat = flatList[i + 1];
+				
 				if (flatList[i].closingTo == Direction.Down)
 				{
-					FindLowerBreakthroughs(i);
+					FindLowerBreakthroughs(currentFlat, nextFlat);
 				}
 				else
 				{
-					FindUpperBreakthroughs(i);
+					FindUpperBreakthroughs(currentFlat, nextFlat);
 				}
 			}
 		}
-
-		/// <summary>
-		/// Функция находит дальний пробой для закрывающегося сверху боковика
-		/// </summary>
-		/// <param name="flatNumber">Номер боковика в списке</param>
-		private void FindUpperBreakthroughs(int flatNumber)
+		
+		private void FindUpperBreakthroughs(FlatIdentifier currentFlat, FlatIdentifier nextFlat)
 		{
-			FlatIdentifier currentFlat = flatList[flatNumber];
-			FlatIdentifier nextFlat = flatList[flatNumber + 1];
-			_Breakthrough breakthrough;
-			breakthrough.candle = currentFlat.closingCandle;
-			breakthrough.distanceToClose = 0;
-			breakthrough.deltaPriceBreakthroughToClose = 0;
+			_Breakthrough breakthrough = AssignBreakthrough(currentFlat);
 			int candlesPassed = 0;
 			_CandleStruct iterator = globalCandles[currentFlat.closingCandle.index];
 
-			while (iterator.time != nextFlat.flatBounds.left.time)
+			while (iterator.time != nextFlat.flatBounds.left.time) // TODO: Пробой текущего флета может находиться внутри следующего
 			{
 				iterator = globalCandles[currentFlat.closingCandle.index + candlesPassed];
 				double deltaClose = iterator.high - currentFlat.closingCandle.close;
@@ -280,6 +281,7 @@ namespace FlatTraderBot
 					breakthrough.candle = iterator;
 					breakthrough.distanceToClose = iterator.index - currentFlat.closingCandle.index;
 					breakthrough.deltaPriceBreakthroughToClose = deltaClose;
+					currentFlat.breakthrough = breakthrough;
 				}
 				candlesPassed++;
 			}
@@ -288,18 +290,9 @@ namespace FlatTraderBot
 			             $"Дальний верхний пробой в [{breakthrough.candle.time}|{breakthrough.distanceToClose}|{breakthrough.deltaPriceBreakthroughToClose}]");
 		}
 		
-		/// <summary>
-		/// Функция находит дальний пробой для закрывающегося снизу боковика
-		/// </summary>
-		/// <param name="flatNumber">Номер боковика в списке</param>
-		private void FindLowerBreakthroughs(int flatNumber)
+		private void FindLowerBreakthroughs(FlatIdentifier currentFlat, FlatIdentifier nextFlat)
 		{
-			FlatIdentifier currentFlat = flatList[flatNumber];
-			FlatIdentifier nextFlat = flatList[flatNumber + 1];
-			_Breakthrough breakthrough;
-			breakthrough.candle = currentFlat.closingCandle;
-			breakthrough.distanceToClose = 0;
-			breakthrough.deltaPriceBreakthroughToClose = 0;
+			_Breakthrough breakthrough = AssignBreakthrough(currentFlat);
 			int candlesPassed = 0;
 			_CandleStruct iterator = globalCandles[currentFlat.closingCandle.index];
 
@@ -313,13 +306,22 @@ namespace FlatTraderBot
 					breakthrough.candle = iterator;
 					breakthrough.distanceToClose = iterator.index - currentFlat.closingCandle.index;
 					breakthrough.deltaPriceBreakthroughToClose = deltaClose;
-					flatList[flatNumber].breakthrough = breakthrough;
+					currentFlat.breakthrough = breakthrough;
 				}
 				candlesPassed++;
 			}
 			
 			logger.Trace($"[{currentFlat.flatBounds.left.date}] {currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}  " +
 				             $"Дальний нижний пробой в [{breakthrough.candle.time}|{breakthrough.distanceToClose}|{breakthrough.deltaPriceBreakthroughToClose}]");
+		}
+
+		private _Breakthrough AssignBreakthrough(FlatIdentifier flat)
+		{
+			_Breakthrough b;
+			b.candle = flat.closingCandle;
+			b.distanceToClose = 0;
+			b.deltaPriceBreakthroughToClose = 0;
+			return b;
 		}
 		
 		/// <summary>
@@ -329,7 +331,7 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Список всех найденных боковиков
 		/// </summary>
-		public  List<FlatIdentifier> flatList { get; set; }
+		private List<FlatIdentifier> flatList { get; set; }
 		/// <summary>
 		/// Глобальный список свечей
 		/// </summary>
