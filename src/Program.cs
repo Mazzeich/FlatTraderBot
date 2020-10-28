@@ -23,9 +23,9 @@ namespace FlatTraderBot
 
             FlatClassifier flatClassifier = new FlatClassifier(candles, ref flatList);
             flatClassifier.ClassifyAllFlats();
-            flatClassifier.FindBreakthroughs();
-
-            flatPostprocessor.UniteBreakthroughs();
+            BreakthroughsFinder breakthroughsFinder = new BreakthroughsFinder(candles, ref flatList);
+            breakthroughsFinder.FindBreakthroughs();
+            breakthroughsFinder.UniteBreakthroughs();
 
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
