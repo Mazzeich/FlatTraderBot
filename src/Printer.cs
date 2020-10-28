@@ -1,12 +1,10 @@
+using System;
 using System.Collections.Generic;
 using NLog;
 
-// ReSharper disable CommentTypo
-// ReSharper disable StringLiteralTypo
-
 namespace FlatTraderBot
 {
-    class Printer
+    internal class Printer
     {
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
         
@@ -15,7 +13,6 @@ namespace FlatTraderBot
 
         private Printer()
         {
-            logger.Trace("[Printer] initialized");
         }
         public Printer(FlatIdentifier flatIdentifier) : this()
         {
@@ -27,6 +24,7 @@ namespace FlatTraderBot
             historicalFlatFinder = historicalFf;
         }
 
+        [Obsolete("Use FlatIdentifier.LogFlatProperties() instead")]
         public void OutputApertureInfo()
         {
             logger.Trace("Окно {0} с {1} по {2}", 
@@ -44,21 +42,21 @@ namespace FlatTraderBot
             
             switch (flatIdentifier.trend)
             {
-                case Trend.Down:
+                case Direction.Down:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия имеет сильный убывающий тренд");
                     break;
                 }
-                case Trend.Up:
+                case Direction.Up:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия имеет сильный возрастающий тренд\n");
                     break;
                 }
-                case Trend.Neutral:
+                case Direction.Neutral:
                 {
                     logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
@@ -85,12 +83,9 @@ namespace FlatTraderBot
             {
                 logger.Trace("Боковиков найдено: {0}", historicalFlatFinder.flatsFound);
                 logger.Trace("Боковики определены в: ");
-                for (int i = 0; i < historicalFlatFinder.flatList.Count; i++)
+                foreach (FlatIdentifier flat in historicalFlatFinder.flatList)
                 {
-                    logger.Trace("[{0}] с [{1}] по [{2}]",
-                        historicalFlatFinder.flatList[i].flatBounds.left.date,
-                        historicalFlatFinder.flatList[i].flatBounds.left.time,
-                        historicalFlatFinder.flatList[i].flatBounds.right.time);
+                    logger.Trace($"[{flat.flatBounds.left.date}] с [{flat.flatBounds.left.time}] по [{flat.flatBounds.right.time}]");
                 }                            
             }
             else
@@ -99,7 +94,7 @@ namespace FlatTraderBot
             }
         }
 
-        public void PrintFlatListInfo(List<FlatIdentifier> flatList)
+        public void PrintFlatListInfo(IEnumerable<FlatIdentifier> flatList)
         {
             foreach (FlatIdentifier flat in flatList)
             {
@@ -109,12 +104,7 @@ namespace FlatTraderBot
 
         public void PrintReasonsApertureIsNotFlat()
         {
-            logger.Trace("Окно {0} с {1} по {2}", 
-                flatIdentifier.candles[0].date,
-                flatIdentifier.candles[0].time,
-                flatIdentifier.candles[^1].time);
-            logger.Trace("В окне не определено боковое движение.\nВозможные причины:");
-            logger.Trace(flatIdentifier.reasonsOfApertureHasNoFlat);
+            logger.Trace($"[{flatIdentifier.candles[0].date}]: [{flatIdentifier.candles[0].time} {flatIdentifier.candles[^1].time}]: {flatIdentifier.reasonsOfApertureHasNoFlat}");
         }
     }
 }

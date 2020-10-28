@@ -1,11 +1,329 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using NLog;
 
 namespace FlatTraderBot
 {
 	public class FlatClassifier
 	{
+		private FlatClassifier()
+		{
+			logger.Trace("-----------------------------------------------------------------");
+		}
+
+		public FlatClassifier(List<_CandleStruct> candles, ref List <FlatIdentifier> flats) : this()
+		{
+			flatList = new List<FlatIdentifier>(flats);
+			globalCandles = candles;
+			flatsOverall = flatList.Count;
+		}
+
+		/// <summary>
+		/// Функция, запускающая анализ флетов
+		/// </summary>
+		public void ClassifyAllFlats()
+		{
+			for (int i = 0; i < flatsOverall; i++)
+			{
+				Direction flatFormedFrom = ClassifyFormedFrom(flatList[i], i);
+
+				switch (flatFormedFrom)
+				{
+					case Direction.Up:
+						logger.Trace(
+							$"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from asceding");
+						flatsFromAscension++;
+						break;
+					case Direction.Down:
+						logger.Trace(
+							$"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from descending");
+						flatsFromDescension++;
+						break;
+					case Direction.Neutral:
+						break;
+					default:
+						break;
+				}
+			}
+
+			for (int i = 0; i < flatsOverall - 1; i++)
+			{
+				Direction flatClosingTo = ClassifyClosingTo(flatList[i] , i);
+				switch (flatClosingTo)
+				{
+					case (Direction.Up):
+					{
+						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} closing to ascension");
+						flatsClosingToAscension++;
+						break;
+					}
+					case (Direction.Down):
+					{
+						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} closing to descension");
+						flatsClosingToDescension++;
+						break;
+					}
+					case Direction.Neutral:
+						break;
+					default:
+						break;
+				}
+			}
+
+			int flatsFromAscensionPercantage  = flatsFromAscension 		 * 100 / flatsOverall;
+			int flatsFromDescensionPercentage = flatsFromDescension 	 * 100 / flatsOverall;
+			int flatsToAscensionPercentage 	  = flatsClosingToAscension  * 100 / flatsOverall;
+			int flatsToDescensionPercentage   = flatsClosingToDescension * 100 / flatsOverall;
+
+			logger.Trace($"From ascending = {flatsFromAscension} | From descending = {flatsFromDescension}");
+			logger.Trace($"[fromAscending/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
+			logger.Trace($"To ascending = {flatsClosingToAscension} | To descending = {flatsClosingToDescension}");
+			logger.Trace($"[toAscending/toDescending] = {flatsToAscensionPercentage}%/{flatsToDescensionPercentage}%");
+
+			meanFlatDuration = CalculateMeanFlatDuration(flatList);
+			logger.Trace($"[meanFlatDuration] = {meanFlatDuration}");
+
+			meanOffsetDistance = CalculateMeanOffsetDistance(flatList, globalCandles);
+			logger.Trace($"[meanOffsetDistance] = {meanOffsetDistance}");
+		}
+
+		/// <summary>
+		/// Определяет, что предшествовало боковому движению
+		/// </summary>
+		/// <param name="flat">Боковик</param>
+		/// <param name="flatNumber">Номер боковика</param>
+		/// <returns>Восходящий или нисходящий тренд</returns>
+		private Direction ClassifyFormedFrom(FlatIdentifier flat, int flatNumber)
+		{
+			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
+			Direction result = closestExtremum.avg > flat.mean ? Direction.Up : Direction.Down;
+			return result;
+		}
+
+		/// <summary>
+		/// Функция находит ближайший экстремум, начиная поиск с левого края окна
+		/// </summary>
+		/// <param name="flatNumber">Номер объекта в списке боковиков</param>
+		/// <returns>Свеча</returns>
+		private _CandleStruct FindClosestExtremum(int flatNumber)
+		{
+			int candlesPassed = 1;
+			FlatIdentifier currentFlat = flatList[flatNumber];
+
+			// Цикл выполняется, пока на найдётся подходящий экстремум либо не пройдёт константное число итераций
+			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
+			{
+				candlesPassed++;
+				int currentIndex = currentFlat.flatBounds.left.index - candlesPassed;
+				_CandleStruct closestExtremum = globalCandles[currentIndex];
+
+				if (globalCandles[currentIndex - 2].time == "10:00")
+					return globalCandles[0];
+
+				if (closestExtremum.low < currentFlat.gMin - _Constants.FlatClassifyOffset * currentFlat.gMin && IsCandleLowerThanNearests(closestExtremum))
+				{
+					return closestExtremum;
+				}
+				else if (closestExtremum.high > currentFlat.gMax + _Constants.FlatClassifyOffset * currentFlat.gMax && IsCandleHigherThanNearests(closestExtremum))
+				{
+					return closestExtremum;
+				}
+			}
+
+			logger.Trace("Extremum not found");
+			return globalCandles[0];
+		}
+
+		private bool IsCandleLowerThanNearests(_CandleStruct candle)
+		{
+			int index = candle.index;
+			double low = candle.low;
+			return low < globalCandles[index - 2].low && low < globalCandles[index - 1].low &&
+			       low < globalCandles[index + 1].low && low < globalCandles[index + 2].low;
+		}
+		
+		private bool IsCandleHigherThanNearests(_CandleStruct candle)
+		{
+			int index = candle.index;
+			double high = candle.high;
+			return high > globalCandles[index - 2].high && high > globalCandles[index - 1].high &&
+			       high > globalCandles[index + 1].high && high > globalCandles[index + 2].high;
+		}
+
+		/// <summary>
+		/// Функция вычисляет среднее расстояние между боковиками
+		/// </summary>
+		/// <param name="flatIdentifiers">Коллекция боковиков</param>
+		/// <returns>Средний интервал</returns>
+		private double CalculateMeanFlatDuration(IReadOnlyCollection<FlatIdentifier> flatIdentifiers)
+		{
+			double result = 0;
+			foreach (FlatIdentifier flat in flatIdentifiers)
+			{
+				double currentDuration = flat.flatBounds.right.index - flat.flatBounds.left.index;
+				result += currentDuration;
+			}
+
+			result /= flatIdentifiers.Count;
+			return result;
+		}
+
+		/// <summary>
+		/// Функция вычисляет среднее расстояние между боковиками и их предстоящими отклонениями
+		/// </summary>
+		/// <param name="flats"></param>
+		/// <param name="candleStructs"></param>
+		/// <returns></returns>
+		private double CalculateMeanOffsetDistance(IReadOnlyList<FlatIdentifier> flats, IReadOnlyList<_CandleStruct> candleStructs)
+		{
+			double meanDistance = 0;
+			int offsetsFound = 0;
+
+			for (int i = 0; i < flats.Count - 1; i++)
+			{
+				for (int j = flats[i].flatBounds.right.index + 1; j < flats[i + 1].flatBounds.left.index; j++)
+				{
+					double currentOffset = Math.Abs(candleStructs[j].avg - flats[i].mean);
+					if (currentOffset >= flats[i].flatWidth)
+					{
+						meanDistance += candleStructs[j].index - flats[i].flatBounds.right.index;
+						offsetsFound++;
+						logger.Trace($"For flat {flats[i].flatBounds.left.date} [{flats[i].flatBounds.left.time} {flats[i].flatBounds.right.time}] " +
+						             $"offset is at [{candleStructs[j].date}]: {candleStructs[j].time}");
+						break;
+					}
+				}
+			}
+			logger.Trace($"[offsetsFound] = {offsetsFound}");
+
+			meanDistance /= offsetsFound;
+			return meanDistance;
+		}
+		
+		/// <summary>
+		/// Определяет сторону закрытия боковика
+		/// </summary>
+		/// <param name="flat">Объект боковика</param>
+		/// <param name="flatNumber">Номер объекта</param>
+		/// <returns>Вниз или вверх</returns>
+		private Direction ClassifyClosingTo(FlatIdentifier flat, int flatNumber)
+		{
+			_CandleStruct closingCandle = FindClosingCandle(flatNumber);
+			flat.closingCandle = closingCandle;
+			Direction result = closingCandle.avg > flat.mean ? Direction.Up : Direction.Down;
+			flat.closingTo = result;
+			return result;
+		}
+
+		/// <summary>
+		/// Находит свечу, определяющую сторону закрытия боковика
+		/// </summary>
+		/// <param name="flatNumber">Номер боковика</param>
+		/// <returns>Свеча снизу или сверху после движения</returns>
+		private _CandleStruct FindClosingCandle(int flatNumber)
+		{
+			FlatIdentifier currentFlat = flatList[flatNumber];
+			int currentIndex = currentFlat.flatBounds.right.index + 1;
+			_CandleStruct result = globalCandles[currentIndex];
+			double priceOffset = currentFlat.mean * _Constants.CloseCoeff;
+			double flatUpperBound = currentFlat.gMax + priceOffset;
+			double flatLowerBound = currentFlat.gMin - priceOffset;
+
+			while (result.time != flatList[flatNumber + 1].flatBounds.left.time)
+			{
+				result = globalCandles[currentIndex];
+				if (result.close > flatUpperBound || result.close < flatLowerBound)
+				{
+					result = globalCandles[currentIndex];
+					logger.Trace($"Closing to candle of [{currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}]: {result.time}");
+					return result;
+				}
+				currentIndex++;
+			}
+			return result;
+		}
+
+		/// <summary>
+		/// Функция инициализирует поиск дальних пробоев для каждого боковика
+		/// </summary>
+		public void FindBreakthroughs()
+		{
+			for (int i = 0; i < flatsOverall - 1; i++)
+			{
+				FlatIdentifier currentFlat = flatList[i];
+				FlatIdentifier nextFlat = flatList[i + 1];
+				
+				if (flatList[i].closingTo == Direction.Down)
+				{
+					FindLowerBreakthroughs(currentFlat, nextFlat);
+				}
+				else
+				{
+					FindUpperBreakthroughs(currentFlat, nextFlat);
+				}
+			}
+		}
+		
+		private void FindUpperBreakthroughs(FlatIdentifier currentFlat, FlatIdentifier nextFlat)
+		{
+			_Breakthrough breakthrough = AssignBreakthrough(currentFlat);
+			int candlesPassed = 0;
+			_CandleStruct iterator = globalCandles[currentFlat.closingCandle.index];
+
+			while (iterator.time != nextFlat.flatBounds.left.time) // TODO: Пробой текущего флета может находиться внутри следующего
+			{
+				iterator = globalCandles[currentFlat.closingCandle.index + candlesPassed];
+				double deltaClose = iterator.high - currentFlat.closingCandle.close;
+
+				if (deltaClose > breakthrough.deltaPriceBreakthroughToClose)
+				{
+					breakthrough.candle = iterator;
+					breakthrough.distanceToClose = iterator.index - currentFlat.closingCandle.index;
+					breakthrough.deltaPriceBreakthroughToClose = deltaClose;
+					currentFlat.breakthrough = breakthrough;
+				}
+				candlesPassed++;
+			}
+
+			logger.Trace($"[{currentFlat.flatBounds.left.date}] {currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}  " +
+			             $"Дальний верхний пробой в [{breakthrough.candle.time}|{breakthrough.distanceToClose}|{breakthrough.deltaPriceBreakthroughToClose}]");
+		}
+		
+		private void FindLowerBreakthroughs(FlatIdentifier currentFlat, FlatIdentifier nextFlat)
+		{
+			_Breakthrough breakthrough = AssignBreakthrough(currentFlat);
+			int candlesPassed = 0;
+			_CandleStruct iterator = globalCandles[currentFlat.closingCandle.index];
+
+			while (iterator.time != nextFlat.flatBounds.left.time)
+			{
+				iterator = globalCandles[currentFlat.closingCandle.index + candlesPassed];
+				double deltaClose = iterator.low - currentFlat.closingCandle.close;
+
+				if (deltaClose < breakthrough.deltaPriceBreakthroughToClose)
+				{
+					breakthrough.candle = iterator;
+					breakthrough.distanceToClose = iterator.index - currentFlat.closingCandle.index;
+					breakthrough.deltaPriceBreakthroughToClose = deltaClose;
+					currentFlat.breakthrough = breakthrough;
+				}
+				candlesPassed++;
+			}
+			
+			logger.Trace($"[{currentFlat.flatBounds.left.date}] {currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}  " +
+				             $"Дальний нижний пробой в [{breakthrough.candle.time}|{breakthrough.distanceToClose}|{breakthrough.deltaPriceBreakthroughToClose}]");
+		}
+
+		private _Breakthrough AssignBreakthrough(FlatIdentifier flat)
+		{
+			_Breakthrough b;
+			b.candle = flat.closingCandle;
+			b.distanceToClose = 0;
+			b.deltaPriceBreakthroughToClose = 0;
+			return b;
+		}
+		
 		/// <summary>
 		/// Логгер
 		/// </summary>
@@ -13,7 +331,7 @@ namespace FlatTraderBot
 		/// <summary>
 		/// Список всех найденных боковиков
 		/// </summary>
-		private readonly List<FlatIdentifier> flatCollection;
+		private List<FlatIdentifier> flatList { get; set; }
 		/// <summary>
 		/// Глобальный список свечей
 		/// </summary>
@@ -31,184 +349,20 @@ namespace FlatTraderBot
 		/// </summary>
 		private int flatsFromAscension;
 		/// <summary>
+		/// Сколько боковиков закрываются в падения
+		/// </summary>
+		private int flatsClosingToDescension;
+		/// <summary>
+		/// Сколько боковиков закрываются в взлёты
+		/// </summary>
+		private int flatsClosingToAscension;
+		/// <summary>
 		/// Средний интервал между боковиками
 		/// </summary>
-		private double meanFlatInterval;
+		private double meanFlatDuration;
 		/// <summary>
 		/// Средний интервал между концом боковика и предстоящим отклоенением
 		/// </summary>
 		private double meanOffsetDistance;
-
-		private FlatClassifier()
-		{ }
-
-		public FlatClassifier(List<FlatIdentifier> flats, List<_CandleStruct> candles) : this()
-		{
-			flatCollection = new List<FlatIdentifier>(flats);
-			globalCandles = candles;
-			flatsOverall = flatCollection.Count;
-		}
-
-		/// <summary>
-		/// Функция, запускающая анализ флетов
-		/// </summary>
-		public void ClassifyAllFlats()
-		{
-			for (int i = 0; i < flatsOverall; i++)
-			{
-				Enum flatFormedFrom = Classify(flatCollection[i], i);
-				switch (flatFormedFrom)
-				{
-					case (FormedFrom.Ascending):
-					{
-						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.left.time} from asceding");
-						flatsFromAscension++;
-						break;
-					}
-					case (FormedFrom.Descending):
-					{
-						logger.Trace($"[{flatCollection[i].flatBounds.left.date}]: {flatCollection[i].flatBounds.left.time} from descending");
-						flatsFromDescension++;
-						break;
-					}
-					default:
-						break;
-				}
-			}
-
-			int flatsFromAscensionPercantage = flatsFromAscension * 100 / flatsOverall;
-			int flatsFromDescensionPercentage = flatsFromDescension * 100 / flatsOverall;
-
-			logger.Trace($"From ascending = {flatsFromAscension} | From descending = {flatsFromDescension}");
-			logger.Trace($"[fromAscening/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
-
-			meanFlatInterval = CalculateMeanInterval(flatCollection);
-			logger.Trace($"[meanFlatInterval] = {meanFlatInterval}");
-
-			meanOffsetDistance = CalculateMeanOffsetDistance(flatCollection, globalCandles);
-			logger.Trace($"[meanOffsetDistance] = {meanOffsetDistance}");
-		}
-
-		/// <summary>
-		/// Функция, задающая поле formedFrom объекта класса FlatIdentifier
-		/// </summary>
-		/// <param name="flatIdentifier">Боковик</param>
-		/// <param name="flatNumber">Номер боковика</param>
-		/// <returns>Enum FormedFrom</returns>
-		private FormedFrom Classify(FlatIdentifier flatIdentifier, int flatNumber)
-		{
-			FormedFrom result;
-			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
-			if (closestExtremum.avg > flatIdentifier.mean)
-			{
-				result = FormedFrom.Ascending;
-			}
-			else
-			{
-				result =  FormedFrom.Descending;
-			}
-
-			return result;
-		}
-
-		/// <summary>
-		/// Функция находит ближайший экстремум, начиная поиск с левого края окна
-		/// </summary>
-		/// <param name="flatNumber">Номер объекта в списке боковиков</param>
-		/// <returns>Свеча</returns>
-		private _CandleStruct FindClosestExtremum(int flatNumber)
-		{
-			int candlesPassed = 1;
-			FlatIdentifier currentFlat = flatCollection[flatNumber];
-
-			// Цикл выполняется, пока на найдётся подходящий экстремум либо не пройдёт константное число итераций
-			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
-			{
-				candlesPassed++;
-				int currentIndex = currentFlat.flatBounds.left.index - candlesPassed;
-				_CandleStruct closestExtremum = globalCandles[currentIndex];
-
-				if (globalCandles[currentIndex - 2].time == "10:00")
-				{
-					return globalCandles[0];
-				}
-
-				if (closestExtremum.low < currentFlat.gMin - _Constants.flatClassifyOffset * currentFlat.gMin &&
-				    closestExtremum.low < globalCandles[currentIndex - 2].low &&
-				    closestExtremum.low < globalCandles[currentIndex - 1].low &&
-				    closestExtremum.low < globalCandles[currentIndex + 1].low &&
-				    closestExtremum.low < globalCandles[currentIndex - 2].low)
-				{
-					return closestExtremum;
-				}
-				else if (closestExtremum.high > currentFlat.gMax + _Constants.flatClassifyOffset * currentFlat.gMax &&
-				         closestExtremum.high > globalCandles[currentIndex - 2].high &&
-				         closestExtremum.high > globalCandles[currentIndex - 1].high &&
-				         closestExtremum.high > globalCandles[currentIndex + 1].high &&
-				         closestExtremum.high > globalCandles[currentIndex - 2].high)
-				{
-					return closestExtremum;
-				}
-			}
-
-			logger.Trace("Extremum haven't found");
-
-			return globalCandles[0];
-		}
-
-		/// <summary>
-		/// Функция вычисляет среднее расстояние между боковиками
-		/// </summary>
-		/// <param name="flatIdentifiers">Коллекция боковиков</param>
-		/// <returns>Средний интервал</returns>
-		private double CalculateMeanInterval(List<FlatIdentifier> flatIdentifiers)
-		{
-			double meanDistance = 0;
-			for (int i = 1; i < flatIdentifiers.Count; i++)
-			{
-				double gap = flatIdentifiers[i].flatBounds.left.index - flatIdentifiers[i - 1].flatBounds.right.index;
-				meanDistance += gap;
-			}
-
-			meanDistance /= flatIdentifiers.Count - 1;
-			return meanDistance;
-		}
-
-		/// <summary>
-		/// Функция вычисляет среднее расстояние между боковиками и их предстоящими отклонениями
-		/// </summary>
-		/// <param name="flatIdentifiers"></param>
-		/// <param name="candleStructs"></param>
-		/// <returns></returns>
-		private double CalculateMeanOffsetDistance(List<FlatIdentifier> flatIdentifiers, List<_CandleStruct> candleStructs)
-		{
-			double meanDistance = 0;
-			double distance = 0;
-			int offsetsFound = 0;
-
-			for (int i = 0; i < flatIdentifiers.Count - 1; i++)
-			{
-				for (int j = flatIdentifiers[i].flatBounds.right.index + 1; j < flatIdentifiers[i + 1].flatBounds.left.index; j++)
-				{
-					double currentOffset = Math.Abs(candleStructs[j].avg - flatIdentifiers[i].mean);
-					if (currentOffset >= flatIdentifiers[i].flatWidth)
-					{
-						meanDistance += candleStructs[j].index - flatIdentifiers[i].flatBounds.right.index;
-						offsetsFound++;
-						logger.Trace("For flat {0} [{1} {2}] offset is at [{3}]: {4}", 
-							flatIdentifiers[i].flatBounds.left.date,
-							flatIdentifiers[i].flatBounds.left.time,
-							flatIdentifiers[i].flatBounds.right.time,
-							candleStructs[j].date, 
-							candleStructs[j].time);
-						break;
-					}
-				}
-			}
-			logger.Trace("[offsetsFound] = {0}", offsetsFound);
-
-			meanDistance /= offsetsFound;
-			return meanDistance;
-		}
 	}
 }

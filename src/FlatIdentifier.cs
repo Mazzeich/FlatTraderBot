@@ -13,7 +13,6 @@ namespace FlatTraderBot
     {
         public FlatIdentifier()
         {
-            logger.Trace("\n[FlatIdentifier] initialized");
             isFlat = false;
         }
 
@@ -21,20 +20,20 @@ namespace FlatTraderBot
         /// Функция устанавливает поле candles
         /// </summary>
         /// <param name="aperture">Рассматриваемое окно</param>
-        public void AssignAperture(List<_CandleStruct> aperture)
+        public void AssignAperture(IEnumerable<_CandleStruct> aperture)
         {
             candles = new List<_CandleStruct>(aperture);
         }
 
         public void Identify()
         {
-            logger.Trace($"[{candles[0].date}]: Окно с {candles[0].time} по {candles[^1].time}");
+            logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
             
             CalculateFlatProperties();
             
             if (Math.Abs(k) < _Constants.KOffset)
             {
-                trend = Trend.Neutral;
+                trend = Direction.Neutral;
                 
                 bool isEnoughExtremumsNearSDL = exsNearSDL > _Constants.MinExtremumsNearSD;
                 bool isEnoughExtremumsNearSDH = exsNearSDH > _Constants.MinExtremumsNearSD;
@@ -52,12 +51,12 @@ namespace FlatTraderBot
             } 
             else if (k < 0)
             {
-                trend = Trend.Down;
+                trend = Direction.Down;
                 CutAperture();
             }
             else
             {
-                trend = Trend.Up;
+                trend = Direction.Up;
                 CutAperture();
             }
 
@@ -141,7 +140,7 @@ namespace FlatTraderBot
         /// Функция поиска угла наклона аппроксимирующей прямой
         /// </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
-        private double FindK(List<_CandleStruct> candleStructs)
+        private double FindK(IReadOnlyList<_CandleStruct> candleStructs)
         {
             // https://prog-cpp.ru/mnk/
             k = 0;
@@ -221,7 +220,7 @@ namespace FlatTraderBot
         /// </summary>
         /// <param name="candleStructs"></param>
         /// <returns>Количество экстремумов возле СКО лоу</returns>
-        private int EstimateExtremumsNearSDL(List<_CandleStruct> candleStructs)
+        private int EstimateExtremumsNearSDL(IList<_CandleStruct> candleStructs)
         {
             int result = 0;
             double distanceToSD = mean * _Constants.SDOffset;
@@ -250,7 +249,7 @@ namespace FlatTraderBot
         /// </summary>
         /// <param name="candleStructs"></param>
         /// <returns>Количество экстремумов возле СКО хай</returns>
-        private int EstimateExtremumsNearSDH(List<_CandleStruct> candleStructs)
+        private int EstimateExtremumsNearSDH(IList<_CandleStruct> candleStructs)
         {
             int result = 0;
             double distanceToSD = mean * _Constants.SDOffset;
@@ -279,7 +278,7 @@ namespace FlatTraderBot
         /// </summary>
         /// <param name="candleStructs"></param>
         /// <returns></returns>
-        private double CalculateMaximumDeviationFromOpening(List<_CandleStruct> candleStructs)
+        private double CalculateMaximumDeviationFromOpening(IReadOnlyList<_CandleStruct> candleStructs)
         {
             double opening = candleStructs[0].open;
             double result = 0;
@@ -329,33 +328,35 @@ namespace FlatTraderBot
 
             if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
             {
-                result += "Недостаточная ширина коридора. ";
+                result += "Ширина коридора. ";
             }
             if (exsNearSDL < _Constants.MinExtremumsNearSD)
             {
-                result += "Недостаточно вершин снизу возле СКО.  ";
+                result += "Вершины СКО лоу.  ";
             }
             if (exsNearSDH < _Constants.MinExtremumsNearSD)
             {
-                result += "Недостаточно вершин сверху возле СКО. ";
+                result += "Вершины СКО хай. ";
             }
             
             switch (trend)
             {
-                case Trend.Down:
+                case Direction.Down:
                 {
                     result += "Нисходящий тренд. ";
                     break;
                 }
-                case Trend.Up:
+                case Direction.Up:
                 {
                     result += "Восходящий тренд. ";
                     break;
                 }
-                case Trend.Neutral:
+                case Direction.Neutral:
                 {
                     break;
                 }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
             return result;
         }
@@ -437,15 +438,26 @@ namespace FlatTraderBot
         /// <summary>
         /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
         /// </summary>
-        public Trend trend;
+        public Direction trend;
         /// <summary>
         /// Возможные причины того, что в текущем объекте не обнаружился нужный боковик
         /// </summary>
-        public string reasonsOfApertureHasNoFlat { get; private set; }
-
+        public string reasonsOfApertureHasNoFlat { get; private set; }   
         /// <summary>
         /// Максимальное отклонение от точки входа в боковик
         /// </summary>
-        public double maximumDeviationFromOpening { get; private set; }
+        private double maximumDeviationFromOpening { get; set; }
+        /// <summary>
+        /// В какую сторону закрылся боковик
+        /// </summary>
+        public Direction closingTo { get; set; }
+        /// <summary>
+        /// На какой свече произошёл выход 
+        /// </summary>
+        public _CandleStruct closingCandle { get; set; }
+        /// <summary>
+        /// Точка максимального пробоя боковика
+        /// </summary>
+        public _Breakthrough breakthrough { get; set; }
     }
 }
