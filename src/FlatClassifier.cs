@@ -173,38 +173,6 @@ namespace FlatTraderBot
 		}
 
 		/// <summary>
-		/// Функция вычисляет среднее расстояние между боковиками и их предстоящими отклонениями
-		/// </summary>
-		/// <param name="flats"></param>
-		/// <param name="candleStructs"></param>
-		/// <returns></returns>
-		private double CalculateMeanOffsetDistance(IReadOnlyList<FlatIdentifier> flats, IReadOnlyList<_CandleStruct> candleStructs)
-		{
-			double meanDistance = 0;
-			int offsetsFound = 0;
-
-			for (int i = 0; i < flats.Count - 1; i++)
-			{
-				for (int j = flats[i].flatBounds.right.index + 1; j < flats[i + 1].flatBounds.left.index; j++)
-				{
-					double currentOffset = Math.Abs(candleStructs[j].avg - flats[i].mean);
-					if (currentOffset >= flats[i].flatWidth)
-					{
-						meanDistance += candleStructs[j].index - flats[i].flatBounds.right.index;
-						offsetsFound++;
-						logger.Trace($"For flat {flats[i].flatBounds.left.date} [{flats[i].flatBounds.left.time} {flats[i].flatBounds.right.time}] " +
-						             $"offset is at [{candleStructs[j].date}]: {candleStructs[j].time}");
-						break;
-					}
-				}
-			}
-			logger.Trace($"[offsetsFound] = {offsetsFound}");
-
-			meanDistance /= offsetsFound;
-			return meanDistance;
-		}
-		
-		/// <summary>
 		/// Определяет сторону закрытия боковика
 		/// </summary>
 		/// <param name="flat">Объект боковика</param>
