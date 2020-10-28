@@ -26,7 +26,7 @@ namespace FlatTraderBot
         {
             // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
 
-            for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture - 1;)
+            for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture * 2;)
             {
                 FlatIdentifier flat = new FlatIdentifier();
                 flat.AssignAperture(aperture);
