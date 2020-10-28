@@ -182,40 +182,6 @@ namespace FlatTraderBot
         }
 
         /// <summary>
-        /// Функция находит среднеквадратическое отклонение свечей тех, что ниже среднего, 
-        /// и тех, что выше внутри коридора
-        /// </summary>
-        /// <returns>double SDLow, double SDHigh</returns>
-        [Obsolete("Method was used to calculate standart deviations way extreme than it should have been")]
-        private (double, double) GetStandartDeviations()
-        {
-            double sumLow = 0;
-            double sumHigh = 0;
-
-            int lowsCount = 0;
-            int highsCount = 0;
-
-            for (int i = 0; i < candles.Count - 1; i++)
-            {
-                if ((candles[i].low) <= mean) 
-                {
-                    sumLow += Math.Pow(mean - candles[i].low, 2);
-                    lowsCount++;
-                }
-                else if ((candles[i].high) >= mean)
-                {
-                    sumHigh += Math.Pow(candles[i].high - mean, 2);
-                    highsCount++; 
-                }
-            }
-            double SDLow = Math.Sqrt(sumLow / lowsCount);
-            double SDHigh = Math.Sqrt(sumHigh / highsCount);
-            logger.Trace("Standart deviations calculated. [mean] - [SDL] = {0} | [mean] + [SDH] = {1}", mean - SDLow, mean + SDHigh);
-
-            return (mean - SDLow, mean + SDHigh);
-        }
-
-        /// <summary>
         /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по лоу
         /// </summary>
         /// <param name="candleStructs"></param>
@@ -436,7 +402,7 @@ namespace FlatTraderBot
         /// </summary>
         public bool isFlat { get; private set; }
         /// <summary>
-        /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
+        /// Какой тренд имеет текущее окно (Down/Neutral/Up)
         /// </summary>
         public Direction trend;
         /// <summary>
