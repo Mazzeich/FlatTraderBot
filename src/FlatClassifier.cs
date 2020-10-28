@@ -20,24 +20,24 @@ namespace FlatTraderBot
 		}
 
 		/// <summary>
-		/// Функция, запускающая анализ флетов
+		/// Функция, запускающая классификацию флетов на сформированных с нисхождения либо с восхождения и закрывающихся аналогично
 		/// </summary>
 		public void ClassifyAllFlats()
 		{
+			logger.Trace("Classifying flats...");
 			for (int i = 0; i < flatsOverall; i++)
 			{
 				Direction flatFormedFrom = ClassifyFormedFrom(flatList[i], i);
+				Direction flatClosingTo  = ClassifyClosingTo(flatList[i] , i);
 
 				switch (flatFormedFrom)
 				{
 					case Direction.Up:
-						logger.Trace(
-							$"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from asceding");
+						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from asceding");
 						flatsFromAscension++;
 						break;
 					case Direction.Down:
-						logger.Trace(
-							$"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from descending");
+						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from descending");
 						flatsFromDescension++;
 						break;
 					case Direction.Neutral:
@@ -45,11 +45,7 @@ namespace FlatTraderBot
 					default:
 						break;
 				}
-			}
-
-			for (int i = 0; i < flatsOverall - 1; i++)
-			{
-				Direction flatClosingTo = ClassifyClosingTo(flatList[i] , i);
+				
 				switch (flatClosingTo)
 				{
 					case (Direction.Up):
@@ -83,9 +79,6 @@ namespace FlatTraderBot
 
 			meanFlatDuration = CalculateMeanFlatDuration(flatList);
 			logger.Trace($"[meanFlatDuration] = {meanFlatDuration}");
-
-			meanOffsetDistance = CalculateMeanOffsetDistance(flatList, globalCandles);
-			logger.Trace($"[meanOffsetDistance] = {meanOffsetDistance}");
 		}
 
 		/// <summary>
@@ -135,6 +128,11 @@ namespace FlatTraderBot
 			return globalCandles[0];
 		}
 
+		/// <summary>
+		/// Функция возвращает true, если low свечи меньше low 4-х ближайших соседей
+		/// </summary>
+		/// <param name="candle">Свеча</param>
+		/// <returns>Является ли свеча локальным минимумом</returns>
 		private bool IsCandleLowerThanNearests(_CandleStruct candle)
 		{
 			int index = candle.index;
@@ -143,6 +141,11 @@ namespace FlatTraderBot
 			       low < globalCandles[index + 1].low && low < globalCandles[index + 2].low;
 		}
 		
+		/// <summary>
+		/// Функция возвращает true, если high свечи больше  high 4-х ближайших соседей
+		/// </summary>
+		/// <param name="candle">Свеча</param>
+		/// <returns>Является ли свеча локальным максимумом</returns>
 		private bool IsCandleHigherThanNearests(_CandleStruct candle)
 		{
 			int index = candle.index;
@@ -230,6 +233,9 @@ namespace FlatTraderBot
 			double flatUpperBound = currentFlat.gMax + priceOffset;
 			double flatLowerBound = currentFlat.gMin - priceOffset;
 
+			if (flatNumber == flatsOverall - 1)
+				return globalCandles[^1];
+			
 			while (result.time != flatList[flatNumber + 1].flatBounds.left.time)
 			{
 				result = globalCandles[currentIndex];
@@ -280,9 +286,5 @@ namespace FlatTraderBot
 		/// Средний интервал между боковиками
 		/// </summary>
 		private double meanFlatDuration;
-		/// <summary>
-		/// Средний интервал между концом боковика и предстоящим отклоенением
-		/// </summary>
-		private double meanOffsetDistance;
 	}
 }
