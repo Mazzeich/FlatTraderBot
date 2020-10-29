@@ -22,13 +22,13 @@ namespace FlatTraderBot
 		{
 			for (int i = 1; i < flatsFound; i++)
             {
-                FlatIdentifier currentFlat 	= flatList[i];
-                FlatIdentifier prevFlat 	= flatList[i-1];
+                FlatIdentifier currentFlat = flatList[i];
+                FlatIdentifier prevFlat    = flatList[i-1];
                 
-                bool areFlatsInTheSameDay 		= currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
-                bool areFlatsTooClose 			= currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap;
-                bool areFlatsMeansRoughlyEqual 	= Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.FlatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5;
-                bool isPrevFlatHasClosing		= prevFlat.flatBounds.left.time != currentFlat.closingCandle.time;
+                bool areFlatsInTheSameDay 	   = currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
+                bool areFlatsTooClose 		   = currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap;
+                bool areFlatsMeansRoughlyEqual = Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.FlatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5;
+                bool isPrevFlatHasClosing	   = prevFlat.flatBounds.left.time != currentFlat.closingCandle.time;
 
                 logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time} {prevFlat.flatBounds.right.time}] " +
                              $"and [{currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}] " +

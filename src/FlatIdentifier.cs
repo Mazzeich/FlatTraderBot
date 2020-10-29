@@ -416,7 +416,7 @@ namespace FlatTraderBot
         /// <summary>
         /// В какую сторону закрылся боковик
         /// </summary>
-        public Direction closingTo { get; set; }
+        public Direction closingDirection { get; set; }
         /// <summary>
         /// На какой свече произошёл выход 
         /// </summary>

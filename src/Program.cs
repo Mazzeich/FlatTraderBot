@@ -20,6 +20,7 @@ namespace FlatTraderBot
             
             FlatPostprocessor flatPostprocessor = new FlatPostprocessor(candles, ref flatList);
             flatPostprocessor.UniteFlats();
+            logger.Trace($"Флетов после объединения: {flatList.Count}");
 
             FlatClassifier flatClassifier = new FlatClassifier(candles, ref flatList);
             flatClassifier.ClassifyAllFlats();

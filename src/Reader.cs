@@ -11,30 +11,6 @@ namespace FlatTraderBot
 {
     public class Reader
     {
-        /// <summary>
-        /// Инициализация логгера и присваивание ему имени текущего класса "Lua.Reader"
-        /// </summary>
-        private  static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        List<_CandleStruct> candleStruct;
-
-        private static string currentDirectory;
-        
-        private string pathHigh;
-        private string pathLow;
-        private string pathAvg;
-        private string pathOpen;
-        private string pathClose;
-        private string pathVolume;
-        private string pathHistoricalData;
-
-
-        private string[] readHeights;
-        private string[] readLows;
-        private string[] readAvgs;
-        private string[] readCloses;
-        private string[] readOpens;
-        private string[] readVolumes;
-        
         public Reader()
         {
             logger.Trace("\n[Class Reader initialized]");
@@ -90,5 +66,16 @@ namespace FlatTraderBot
             logger.Trace($"Finished reading data from {pathHistoricalData}");
             return candleStruct;
         }
+        
+        /// <summary>
+        /// Инициализация логгера и присваивание ему имени текущего класса "Lua.Reader"
+        /// </summary>
+        private  static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        private readonly List<_CandleStruct> candleStruct;
+
+        private static string currentDirectory;
+        
+        private string pathHistoricalData;
     }
 }

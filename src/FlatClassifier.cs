@@ -26,10 +26,10 @@ namespace FlatTraderBot
 			logger.Trace("Classifying flats...");
 			for (int i = 0; i < flatsOverall; i++)
 			{
-				Direction flatFormedFrom = ClassifyFormedFrom(flatList[i], i);
-				Direction flatClosingTo  = ClassifyClosingTo(flatList[i] , i);
+				Direction flatFormedFromDirection = ClassifyFormedFrom(flatList[i], i);
+				Direction flatClosingDirection  = ClassifyClosingTo(flatList[i] , i);
 
-				switch (flatFormedFrom)
+				switch (flatFormedFromDirection)
 				{
 					case Direction.Up:
 						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from asceding");
@@ -45,7 +45,7 @@ namespace FlatTraderBot
 						break;
 				}
 				
-				switch (flatClosingTo)
+				switch (flatClosingDirection)
 				{
 					case (Direction.Up):
 					{
@@ -94,7 +94,7 @@ namespace FlatTraderBot
 		}
 
 		/// <summary>
-		/// Функция находит ближайший экстремум, начиная поиск с левого края окна
+		/// Функция находит ближайший экстремум слева, начиная поиск с левого края окна
 		/// </summary>
 		/// <param name="flatNumber">Номер объекта в списке боковиков</param>
 		/// <returns>Свеча</returns>
@@ -182,7 +182,7 @@ namespace FlatTraderBot
 			_CandleStruct closingCandle = FindClosingCandle(flatNumber);
 			flat.closingCandle = closingCandle;
 			Direction result = closingCandle.avg > flat.mean ? Direction.Up : Direction.Down;
-			flat.closingTo = result;
+			flat.closingDirection = result;
 			return result;
 		}
 

@@ -32,7 +32,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Коэффициент для определения поведения тренда
         /// </summary>
-        public const double KOffset = 0.0015;
+        public const double KOffset = 0.001;
         /// <summary>
         /// Возможное отклонение экстремума от линии СКО
         /// </summary>
