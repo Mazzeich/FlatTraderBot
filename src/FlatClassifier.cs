@@ -203,7 +203,7 @@ namespace FlatTraderBot
 			if (flatNumber == flatsOverall - 1)
 				return globalCandles[^1];
 			
-			while (result.time != flatList[flatNumber + 1].flatBounds.left.time)
+			while (result.time != flatList[flatNumber + 1].flatBounds.right.time)
 			{
 				result = globalCandles[currentIndex];
 				if (result.close > flatUpperBound || result.close < flatLowerBound)
