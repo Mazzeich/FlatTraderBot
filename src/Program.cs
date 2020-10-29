@@ -23,10 +23,14 @@ namespace FlatTraderBot
 
             FlatClassifier flatClassifier = new FlatClassifier(candles, ref flatList);
             flatClassifier.ClassifyAllFlats();
-            BreakthroughsFinder breakthroughsFinder = new BreakthroughsFinder(candles, ref flatList);
-            breakthroughsFinder.FindBreakthroughs();
-            breakthroughsFinder.UniteBreakthroughs();
-
+            TakeProfitFinder takeProfitFinder = new TakeProfitFinder(candles, ref flatList);
+            takeProfitFinder.FindTakeProfits();
+            takeProfitFinder.RefreshTakeProfit();
+            takeProfitFinder.GetTakeProfitStatistics();
+            
+            BargainSimulation simulator = new BargainSimulation(candles, ref flatList);
+            simulator.StartBargainSimulation();
+            
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
         }
