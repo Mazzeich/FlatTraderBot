@@ -424,6 +424,6 @@ namespace FlatTraderBot
         /// <summary>
         /// Точка максимального пробоя боковика
         /// </summary>
-        public _Breakthrough breakthrough { get; set; }
+        public _TakeProfitCandle takeProfitCandle { get; set; }
     }
 }
