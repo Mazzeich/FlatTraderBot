@@ -35,9 +35,9 @@ namespace FlatTraderBot
             {
                 trend = Direction.Neutral;
                 
-                bool isEnoughExtremumsNearSDL = exsNearSDL > _Constants.MinExtremumsNearSD;
-                bool isEnoughExtremumsNearSDH = exsNearSDH > _Constants.MinExtremumsNearSD;
-                bool isEnoughFlatWidth        = flatWidth  > _Constants.MinWidthCoeff * candles[^1].close;
+                bool isEnoughExtremumsNearSDL = exsNearSDL >= _Constants.MinExtremumsNearSD;
+                bool isEnoughExtremumsNearSDH = exsNearSDH >= _Constants.MinExtremumsNearSD;
+                bool isEnoughFlatWidth        = flatWidth  >= _Constants.MinWidthCoeff * candles[^1].close;
                 
                 if (isEnoughExtremumsNearSDL && isEnoughExtremumsNearSDH && isEnoughFlatWidth)
                 {
@@ -46,6 +46,7 @@ namespace FlatTraderBot
                 }
                 else
                 {
+                    isFlat = false;
                     reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
                 }
             } 
@@ -420,7 +421,7 @@ namespace FlatTraderBot
         /// <summary>
         /// На какой свече произошёл выход 
         /// </summary>
-        public _CandleStruct closingCandle { get; set; }
+        public _CandleStruct leavingCandle { get; set; }
         /// <summary>
         /// Точка максимального пробоя боковика
         /// </summary>

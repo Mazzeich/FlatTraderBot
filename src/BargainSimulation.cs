@@ -22,13 +22,12 @@ namespace FlatTraderBot
 			logger.Trace($"\n[balanceAccount] = {balanceAccount} рублей");
 			for (int i = 0; i < flatsOverall - 1;)
 			{
-				Direction openDirection = flatList[i].closingDirection;
-				switch (openDirection)
+				Direction leavingDirection = flatList[i].leavingDirection;
+				switch (leavingDirection)
 				{
 					case Direction.Down:
 					{
-						ShortDeal(ref i, openDirection);
-						logger.Trace($"После шорта [balanceAccount] = {balanceAccount} рублей");
+						ShortDeal(ref i, leavingDirection);
 						break;
 					}
 					case Direction.Up:
@@ -43,7 +42,16 @@ namespace FlatTraderBot
 						throw new ArgumentOutOfRangeException();
 				}
 			}
-			logger.Trace($"[balanceAccount] = {balanceAccount} рублей");
+
+			int commitedDeals = profitDeals + lossDeals;
+			double profitPercentage = profitDeals * 100 / commitedDeals;
+			double lossPercentage 	= lossDeals * 100 / commitedDeals;
+			logger.Trace($"[DEALS]: {profitDeals}/{lossDeals} <=> {profitPercentage}%/{lossPercentage}%");
+			logger.Trace($"Most profitable deal [{mostProfitDeal.OpenDealCandle.date} {mostProfitDeal.OpenDealCandle.time} " +
+			             $"- {mostProfitDeal.CloseDealCandle.date} {mostProfitDeal.CloseDealCandle.time}] = {mostProfitDeal.delta} рублей");
+			logger.Trace($"Least profitable deal [{leastProfitDeal.OpenDealCandle.date} {leastProfitDeal.OpenDealCandle.time} " +
+			             $"- {leastProfitDeal.CloseDealCandle.date} {leastProfitDeal.CloseDealCandle.time}] = {leastProfitDeal.delta} рублей");
+			logger.Trace($"[balance] = {balanceAccount} рублей");
 		}
 
 		private void ShortDeal(ref int currentFlatIndex, Direction openDirection)
@@ -54,7 +62,7 @@ namespace FlatTraderBot
 			while (newDirection == openDirection && currentFlatIndex + 1 < flatsOverall - 1)
 			{
 				currentFlatIndex++;
-				newDirection = flatList[currentFlatIndex + 1].closingDirection;
+				newDirection = flatList[currentFlatIndex + 1].leavingDirection;
 			}
 			BuyOnPrice(flatList[currentFlatIndex + 1].closingCandle.close);
 			LogOperation(flatList[currentFlatIndex], "Закрытие шорта");

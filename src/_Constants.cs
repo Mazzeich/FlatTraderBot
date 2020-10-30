@@ -16,7 +16,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Минимальное количество вершин сверху или снизу возле СКО
         /// </summary>
-        public const int MinExtremumsNearSD = 3;
+        public const int MinExtremumsNearSD = 4;
         /// <summary>
         /// Минимальное расстояние между боковиками, чтобы не склеивать их в один
         /// </summary>
@@ -24,7 +24,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Максимально возможное количество свечей между экстремумом и боковиком
         /// </summary>
-        public const int MaxFlatExtremumDistance = 100;
+        public const int MaxFlatLeftExtremumDistance = 100;
         /// <summary>
         /// Минимальная ширина коридора (коэфф. от цены инструмента)
         /// </summary>
@@ -32,7 +32,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Коэффициент для определения поведения тренда
         /// </summary>
-        public const double KOffset = 0.001;
+        public const double KOffset = 0.0015;
         /// <summary>
         /// Возможное отклонение экстремума от линии СКО
         /// </summary>
@@ -40,7 +40,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Отклонение свечи от боковика для фиксирования закрытия 
         /// </summary>
-        public const double CloseCoeff = 0.0005;
+        public const double CloseCoeff = 0.0002;
         /// <summary>
         /// Количество фазовых свечей, которые не нужно учитывать при вычислении уголового коэффициента
         /// </summary>

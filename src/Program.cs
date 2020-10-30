@@ -30,7 +30,7 @@ namespace FlatTraderBot
             takeProfitFinder.GetTakeProfitStatistics();
             
             BargainSimulation simulator = new BargainSimulation(candles, ref flatList);
-            simulator.StartBargainSimulation();
+            simulator.Start();
             
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();

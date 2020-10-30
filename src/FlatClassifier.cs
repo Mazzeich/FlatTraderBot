@@ -80,9 +80,7 @@ namespace FlatTraderBot
 			logger.Trace($"[meanFlatDuration] = {meanFlatDuration}");
 		}
 
-		/// <summary>
-		/// Определяет, что предшествовало боковому движению
-		/// </summary>
+		/// <summary> Определяет, что предшествовало боковому движению </summary>
 		/// <param name="flat">Боковик</param>
 		/// <param name="flatNumber">Номер боковика</param>
 		/// <returns>Восходящий или нисходящий тренд</returns>
@@ -93,9 +91,7 @@ namespace FlatTraderBot
 			return result;
 		}
 
-		/// <summary>
-		/// Функция находит ближайший экстремум слева, начиная поиск с левого края окна
-		/// </summary>
+		/// <summary> Функция находит ближайший экстремум слева, начиная поиск с левого края окна </summary>
 		/// <param name="flatNumber">Номер объекта в списке боковиков</param>
 		/// <returns>Свеча</returns>
 		private _CandleStruct FindClosestExtremum(int flatNumber)
@@ -104,7 +100,7 @@ namespace FlatTraderBot
 			FlatIdentifier currentFlat = flatList[flatNumber];
 
 			// Цикл выполняется, пока на найдётся подходящий экстремум либо не пройдёт константное число итераций
-			while (candlesPassed < _Constants.MaxFlatExtremumDistance)
+			while (candlesPassed < _Constants.MaxFlatLeftExtremumDistance)
 			{
 				candlesPassed++;
 				int currentIndex = currentFlat.flatBounds.left.index - candlesPassed;
@@ -127,9 +123,7 @@ namespace FlatTraderBot
 			return globalCandles[0];
 		}
 
-		/// <summary>
-		/// Функция возвращает true, если low свечи меньше low 4-х ближайших соседей
-		/// </summary>
+		/// <summary> Функция возвращает true, если low свечи меньше low 4-х ближайших соседей </summary>
 		/// <param name="candle">Свеча</param>
 		/// <returns>Является ли свеча локальным минимумом</returns>
 		private bool IsCandleLowerThanNearests(_CandleStruct candle)
@@ -140,9 +134,7 @@ namespace FlatTraderBot
 			       low < globalCandles[index + 1].low && low < globalCandles[index + 2].low;
 		}
 		
-		/// <summary>
-		/// Функция возвращает true, если high свечи больше  high 4-х ближайших соседей
-		/// </summary>
+		/// <summary> Функция возвращает true, если high свечи больше  high 4-х ближайших соседей </summary>
 		/// <param name="candle">Свеча</param>
 		/// <returns>Является ли свеча локальным максимумом</returns>
 		private bool IsCandleHigherThanNearests(_CandleStruct candle)
@@ -153,9 +145,7 @@ namespace FlatTraderBot
 			       high > globalCandles[index + 1].high && high > globalCandles[index + 2].high;
 		}
 
-		/// <summary>
-		/// Функция вычисляет среднее расстояние между боковиками
-		/// </summary>
+		/// <summary> Функция вычисляет среднее расстояние между боковиками </summary>
 		/// <param name="flatIdentifiers">Коллекция боковиков</param>
 		/// <returns>Средний интервал</returns>
 		private double CalculateMeanFlatDuration(IReadOnlyCollection<FlatIdentifier> flatIdentifiers)
@@ -171,9 +161,7 @@ namespace FlatTraderBot
 			return result;
 		}
 
-		/// <summary>
-		/// Определяет сторону закрытия боковика
-		/// </summary>
+		/// <summary> Определяет направление выхода боковика </summary>
 		/// <param name="flat">Объект боковика</param>
 		/// <param name="flatNumber">Номер объекта</param>
 		/// <returns>Вниз или вверх</returns>
@@ -216,7 +204,7 @@ namespace FlatTraderBot
 			while (result.time != flatList[flatNumber + 1].flatBounds.right.time)
 			{
 				result = globalCandles[currentIndex];
-				if (result.close > flatUpperBound || result.close < flatLowerBound)
+				if (result.high > flatUpperBound || result.low < flatLowerBound)
 				{
 					result = globalCandles[currentIndex];
 					return result;
@@ -226,29 +214,17 @@ namespace FlatTraderBot
 			return result;
 		}
 
-		/// <summary>
-		/// Логгер
-		/// </summary>
+		/// <summary> Логгер </summary>
 		private readonly Logger logger = LogManager.GetCurrentClassLogger();
-		/// <summary>
-		/// Список всех найденных боковиков
-		/// </summary>
+		/// <summary> Список всех найденных боковиков </summary>
 		private List<FlatIdentifier> flatList { get; set; }
-		/// <summary>
-		/// Глобальный список свечей
-		/// </summary>
+		/// <summary> Глобальный список свечей </summary>
 		private readonly List<_CandleStruct> globalCandles;
-		/// <summary>
-		/// Всего боковиков
-		/// </summary>
+		/// <summary> Всего боковиков </summary>
 		private readonly int flatsOverall;
-		/// <summary>
-		/// Сколько боковиков сформировано после падения
-		/// </summary>
+		/// <summary> Сколько боковиков сформировано после падения </summary>
 		private int flatsFromDescension;
-		/// <summary>
-		/// Сколько боковиков сформировано после взлёта
-		/// </summary>
+		/// <summary> Сколько боковиков сформировано после взлёта </summary>
 		private int flatsFromAscension;
 		/// <summary> Сколько боковиков закрываются в падения </summary>
 		private int flatsLeavingToDescension;
