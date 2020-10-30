@@ -29,7 +29,7 @@ namespace FlatTraderBot
 				FlatIdentifier currentFlat = flatList[i];
 				FlatIdentifier nextFlat = flatList[i+1];
 
-				switch (currentFlat.closingDirection)
+				switch (currentFlat.leavingDirection)
 				{
 					case Direction.Up:
 						FindUpperTakeProfit(currentFlat, nextFlat);
@@ -54,26 +54,26 @@ namespace FlatTraderBot
 		private void FindUpperTakeProfit(FlatIdentifier currentFlat, FlatIdentifier nextFlat)
 		{
 			_TakeProfitCandle takeProfitCandle = InitializeTakeProfit(currentFlat);
-			_CandleStruct iterator = globalCandles[currentFlat.closingCandle.index];
+			_CandleStruct iterator = globalCandles[currentFlat.leavingCandle.index];
 
 			while (iterator.time != nextFlat.flatBounds.right.time)
 			{
 				iterator = globalCandles[iterator.index + 1];
-				double deltaClose = iterator.high - currentFlat.closingCandle.close;
+				double deltaClose = iterator.high - currentFlat.leavingCandle.close;
 
-				if (!(deltaClose > takeProfitCandle.deltaPriceTakeProfitToClose))
+				if (!(deltaClose > takeProfitCandle.deltaPriceTakeProfitToLeave))
 				{
 					continue;
 				}
 
 				takeProfitCandle.candle = iterator;
-				takeProfitCandle.distanceToClose = iterator.index - currentFlat.closingCandle.index;
-				takeProfitCandle.deltaPriceTakeProfitToClose = deltaClose;
+				takeProfitCandle.distanceToLeave = iterator.index - currentFlat.leavingCandle.index;
+				takeProfitCandle.deltaPriceTakeProfitToLeave = deltaClose;
 				currentFlat.takeProfitCandle = takeProfitCandle;
 			}
 
 			logger.Trace($"[{currentFlat.flatBounds.left.date}] {currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}  " +
-			             $"Верхний тейк-профт в [{takeProfitCandle.candle.time} | {takeProfitCandle.distanceToClose} свечей | {takeProfitCandle.deltaPriceTakeProfitToClose}]");
+			             $"Верхний тейк-профт в [{takeProfitCandle.candle.time} | {takeProfitCandle.distanceToLeave} свечей | {takeProfitCandle.deltaPriceTakeProfitToLeave}]");
 		}
 		
 		/// <summary>
@@ -85,25 +85,25 @@ namespace FlatTraderBot
 		{
 			_TakeProfitCandle takeProfitCandle = InitializeTakeProfit(currentFlat);
 			int candlesPassed = 0;
-			_CandleStruct iterator = globalCandles[currentFlat.closingCandle.index];
+			_CandleStruct iterator = globalCandles[currentFlat.leavingCandle.index];
 
 			while (iterator.time != nextFlat.flatBounds.left.time)
 			{
-				iterator = globalCandles[currentFlat.closingCandle.index + candlesPassed];
-				double deltaClose = iterator.low - currentFlat.closingCandle.close;
+				iterator = globalCandles[currentFlat.leavingCandle.index + candlesPassed];
+				double deltaClose = iterator.low - currentFlat.leavingCandle.close;
 
-				if (deltaClose < takeProfitCandle.deltaPriceTakeProfitToClose)
+				if (deltaClose < takeProfitCandle.deltaPriceTakeProfitToLeave)
 				{
 					takeProfitCandle.candle = iterator;
-					takeProfitCandle.distanceToClose = iterator.index - currentFlat.closingCandle.index;
-					takeProfitCandle.deltaPriceTakeProfitToClose = deltaClose;
+					takeProfitCandle.distanceToLeave = iterator.index - currentFlat.leavingCandle.index;
+					takeProfitCandle.deltaPriceTakeProfitToLeave = deltaClose;
 					currentFlat.takeProfitCandle = takeProfitCandle;
 				}
 				candlesPassed++;
 			}
 			
 			logger.Trace($"[{currentFlat.flatBounds.left.date}] {currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}  " +
-			             $"Нижний тейк-профит в [{takeProfitCandle.candle.time} | {takeProfitCandle.distanceToClose} свечей | {takeProfitCandle.deltaPriceTakeProfitToClose}]");
+			             $"Нижний тейк-профит в [{takeProfitCandle.candle.time} | {takeProfitCandle.distanceToLeave} свечей | {takeProfitCandle.deltaPriceTakeProfitToLeave}]");
 		}
 		
 		/// <summary>
@@ -114,9 +114,9 @@ namespace FlatTraderBot
 		private _TakeProfitCandle InitializeTakeProfit(FlatIdentifier flat)
 		{
 			_TakeProfitCandle b;
-			b.candle = flat.closingCandle;
-			b.distanceToClose = 0;
-			b.deltaPriceTakeProfitToClose = 0;
+			b.candle = flat.leavingCandle;
+			b.distanceToLeave = 0;
+			b.deltaPriceTakeProfitToLeave = 0;
 			return b;
 		}
 		
@@ -132,10 +132,10 @@ namespace FlatTraderBot
 			{
 				FlatIdentifier currentFlat = flatList[i];
 				FlatIdentifier previousFlat = flatList[i - 1];
-				if (previousFlat.closingDirection == currentFlat.closingDirection)
+				if (previousFlat.leavingDirection == currentFlat.leavingDirection)
 				{
 					logger.Trace($"[{previousFlat.flatBounds.left.date}] [{currentFlat.flatBounds.right.date}]");
-					switch (currentFlat.closingDirection)
+					switch (currentFlat.leavingDirection)
 					{
 						case (Direction.Down):
 						{
@@ -169,8 +169,8 @@ namespace FlatTraderBot
 			{
 				_TakeProfitCandle previousFlatTakeProfitCandle = previousFlat.takeProfitCandle;
 				previousFlatTakeProfitCandle.candle.close = currentFlat.takeProfitCandle.candle.close;
-				previousFlatTakeProfitCandle.distanceToClose += currentFlat.candles.Count + currentFlat.takeProfitCandle.distanceToClose;
-				previousFlatTakeProfitCandle.deltaPriceTakeProfitToClose = previousFlat.closingCandle.close - currentFlat.takeProfitCandle.candle.close;
+				previousFlatTakeProfitCandle.distanceToLeave += currentFlat.candles.Count + currentFlat.takeProfitCandle.distanceToLeave;
+				previousFlatTakeProfitCandle.deltaPriceTakeProfitToLeave = previousFlat.leavingCandle.close - currentFlat.takeProfitCandle.candle.close;
 				previousFlat.takeProfitCandle = previousFlatTakeProfitCandle;
 			}
 		}
@@ -182,8 +182,8 @@ namespace FlatTraderBot
 			{
 				_TakeProfitCandle previousFlatTakeProfitCandle = previousFlat.takeProfitCandle;
 				previousFlatTakeProfitCandle.candle.close = currentFlat.takeProfitCandle.candle.close;
-				previousFlatTakeProfitCandle.distanceToClose += currentFlat.candles.Count + currentFlat.takeProfitCandle.distanceToClose;
-				previousFlatTakeProfitCandle.deltaPriceTakeProfitToClose = previousFlat.closingCandle.close + currentFlat.takeProfitCandle.candle.close;
+				previousFlatTakeProfitCandle.distanceToLeave += currentFlat.candles.Count + currentFlat.takeProfitCandle.distanceToLeave;
+				previousFlatTakeProfitCandle.deltaPriceTakeProfitToLeave = previousFlat.leavingCandle.close + currentFlat.takeProfitCandle.candle.close;
 				previousFlat.takeProfitCandle = previousFlatTakeProfitCandle;
 			}
 		}
@@ -197,8 +197,8 @@ namespace FlatTraderBot
 			double meanTakeProfitDeltaPriceToClose = 0;
 			for (int i = 0; i < flatsOverall - 1; i++)
 			{
-				meanTakeProfitDistanceToClose 	+= flatList[i].takeProfitCandle.distanceToClose;
-				meanTakeProfitDeltaPriceToClose += flatList[i].takeProfitCandle.deltaPriceTakeProfitToClose;
+				meanTakeProfitDistanceToClose 	+= flatList[i].takeProfitCandle.distanceToLeave;
+				meanTakeProfitDeltaPriceToClose += flatList[i].takeProfitCandle.deltaPriceTakeProfitToLeave;
 			}
 
 			meanTakeProfitDistanceToClose 	/= flatsOverall;

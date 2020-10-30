@@ -27,7 +27,7 @@ namespace FlatTraderBot
 			for (int i = 0; i < flatsOverall; i++)
 			{
 				Direction flatFormedFromDirection = ClassifyFormedFrom(flatList[i], i);
-				Direction flatClosingDirection  = ClassifyClosingTo(flatList[i] , i);
+				Direction flatLeavingDirection  = ClassifyLeavingDirection(flatList[i] , i);
 
 				switch (flatFormedFromDirection)
 				{
@@ -45,18 +45,18 @@ namespace FlatTraderBot
 						break;
 				}
 				
-				switch (flatClosingDirection)
+				switch (flatLeavingDirection)
 				{
 					case (Direction.Up):
 					{
-						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} closing to ascension");
-						flatsClosingToAscension++;
+						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} leaving ↑");
+						flatsLeavingToAscension++;
 						break;
 					}
 					case (Direction.Down):
 					{
-						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} closing to descension");
-						flatsClosingToDescension++;
+						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} leaving ↓");
+						flatsLeavingToDescension++;
 						break;
 					}
 					case Direction.Neutral:
@@ -68,12 +68,12 @@ namespace FlatTraderBot
 
 			int flatsFromAscensionPercantage  = flatsFromAscension 		 * 100 / flatsOverall;
 			int flatsFromDescensionPercentage = flatsFromDescension 	 * 100 / flatsOverall;
-			int flatsToAscensionPercentage 	  = flatsClosingToAscension  * 100 / flatsOverall;
-			int flatsToDescensionPercentage   = flatsClosingToDescension * 100 / flatsOverall;
+			int flatsToAscensionPercentage 	  = flatsLeavingToAscension  * 100 / flatsOverall;
+			int flatsToDescensionPercentage   = flatsLeavingToDescension * 100 / flatsOverall;
 
 			logger.Trace($"From ascending = {flatsFromAscension} | From descending = {flatsFromDescension}");
 			logger.Trace($"[fromAscending/fromDescending] = {flatsFromAscensionPercantage}%/{flatsFromDescensionPercentage}%");
-			logger.Trace($"To ascending = {flatsClosingToAscension} | To descending = {flatsClosingToDescension}");
+			logger.Trace($"To ascending = {flatsLeavingToAscension} | To descending = {flatsLeavingToDescension}");
 			logger.Trace($"[toAscending/toDescending] = {flatsToAscensionPercentage}%/{flatsToDescensionPercentage}%");
 
 			meanFlatDuration = CalculateMeanFlatDuration(flatList);
@@ -177,21 +177,31 @@ namespace FlatTraderBot
 		/// <param name="flat">Объект боковика</param>
 		/// <param name="flatNumber">Номер объекта</param>
 		/// <returns>Вниз или вверх</returns>
-		private Direction ClassifyClosingTo(FlatIdentifier flat, int flatNumber)
+		private Direction ClassifyLeavingDirection(FlatIdentifier flat, int flatNumber)
 		{
-			_CandleStruct closingCandle = FindClosingCandle(flatNumber);
-			flat.closingCandle = closingCandle;
-			Direction result = closingCandle.avg > flat.mean ? Direction.Up : Direction.Down;
-			flat.closingDirection = result;
-			return result;
+			_CandleStruct leavingCandle = FindLeavingCandle(flatNumber);
+			flat.leavingCandle = leavingCandle;
+			logger.Trace($"Leaving to candle of [{flat.flatBounds.left.time} {flat.flatBounds.right.time}]: {leavingCandle.time}");
+			if (leavingCandle.high > flat.mean)
+			{
+				const Direction result = Direction.Up;
+				flat.leavingDirection = result;
+				return result;
+			}
+			else if (leavingCandle.low < flat.mean)
+			{
+				const Direction result = Direction.Down;
+				flat.leavingDirection = result;
+				return result;
+			}
+
+			return Direction.Neutral;
 		}
 
-		/// <summary>
-		/// Находит свечу, определяющую сторону закрытия боковика
-		/// </summary>
+		/// <summary> Находит свечу, определяющую сторону выхода боковика </summary>
 		/// <param name="flatNumber">Номер боковика</param>
 		/// <returns>Свеча снизу или сверху после движения</returns>
-		private _CandleStruct FindClosingCandle(int flatNumber)
+		private _CandleStruct FindLeavingCandle(int flatNumber)
 		{
 			FlatIdentifier currentFlat = flatList[flatNumber];
 			int currentIndex = currentFlat.flatBounds.right.index + 1;
@@ -209,7 +219,6 @@ namespace FlatTraderBot
 				if (result.close > flatUpperBound || result.close < flatLowerBound)
 				{
 					result = globalCandles[currentIndex];
-					logger.Trace($"Closing to candle of [{currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}]: {result.time}");
 					return result;
 				}
 				currentIndex++;
@@ -241,17 +250,11 @@ namespace FlatTraderBot
 		/// Сколько боковиков сформировано после взлёта
 		/// </summary>
 		private int flatsFromAscension;
-		/// <summary>
-		/// Сколько боковиков закрываются в падения
-		/// </summary>
-		private int flatsClosingToDescension;
-		/// <summary>
-		/// Сколько боковиков закрываются в взлёты
-		/// </summary>
-		private int flatsClosingToAscension;
-		/// <summary>
-		/// Средний интервал между боковиками
-		/// </summary>
+		/// <summary> Сколько боковиков закрываются в падения </summary>
+		private int flatsLeavingToDescension;
+		/// <summary> Сколько боковиков закрываются в взлёты </summary>
+		private int flatsLeavingToAscension;
+		/// <summary> Средний интервал между боковиками </summary>
 		private double meanFlatDuration;
 	}
 }

@@ -65,11 +65,11 @@ namespace FlatTraderBot
 		{
 			BuyOnPrice(flatList[currentFlatIndex].closingCandle.close);
 			LogOperation(flatList[currentFlatIndex], "Покупка на лонг");
-			Direction newDirection = flatList[currentFlatIndex + 1].closingDirection;
+			Direction newDirection = flatList[currentFlatIndex + 1].leavingDirection;
 			while (newDirection == openDirection && currentFlatIndex + 1 < flatsOverall - 1)
 			{
 				currentFlatIndex++;
-				newDirection = flatList[currentFlatIndex + 1].closingDirection;
+				newDirection = flatList[currentFlatIndex + 1].leavingDirection;
 			}
 			SellOnPrice(flatList[currentFlatIndex+1].closingCandle.close);
 			LogOperation(flatList[currentFlatIndex], "Закрытие лонга");
@@ -109,8 +109,8 @@ namespace FlatTraderBot
 		/// <param name="operation"></param>
 		private void LogOperation(FlatIdentifier flat, string operation)
 		{
-			logger.Trace($"[{flat.flatBounds.left.date}]  [{flat.flatBounds.left.time} {flat.flatBounds.right.time}]: " +
-			             $"{operation} по {flat.closingCandle.close} в {flat.closingCandle.time}");
+			logger.Trace($"[{flat.flatBounds.left.date}] [{flat.flatBounds.left.time} {flat.flatBounds.right.time}]: " +
+			             $"{operation} по {flat.leavingCandle.close} в {flat.leavingCandle.time} [balance] = {balanceAccount}");
 		}
 
 		private readonly Logger logger = LogManager.GetCurrentClassLogger();

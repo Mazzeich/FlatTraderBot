@@ -28,7 +28,7 @@ namespace FlatTraderBot
                 bool areFlatsInTheSameDay 	   = currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
                 bool areFlatsTooClose 		   = currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap;
                 bool areFlatsMeansRoughlyEqual = Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.FlatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5;
-                bool isPrevFlatHasClosing	   = prevFlat.flatBounds.left.time != currentFlat.closingCandle.time;
+                bool isPrevFlatHasClosing	   = prevFlat.flatBounds.left.time != currentFlat.leavingCandle.time;
 
                 logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time} {prevFlat.flatBounds.right.time}] " +
                              $"and [{currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}] " +
