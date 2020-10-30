@@ -15,9 +15,13 @@ namespace FlatTraderBot
 			this.flatList = flatList;
 			flatsOverall = flatList.Count;
 			balanceAccount = 100000;
+			profitDeals = 0;
+			lossDeals = 0;
+			mostProfitDeal.delta = double.NegativeInfinity;
+			leastProfitDeal.delta = double.PositiveInfinity;
 		}
 
-		public void StartBargainSimulation()
+		public void Start()
 		{
 			logger.Trace($"\n[balanceAccount] = {balanceAccount} рублей");
 			for (int i = 0; i < flatsOverall - 1;)
@@ -32,8 +36,19 @@ namespace FlatTraderBot
 					}
 					case Direction.Up:
 					{
-						LongDeal(ref i, openDirection);
-						logger.Trace($"После лонга [balanceAccount] = {balanceAccount} рублей");
+						double balanceBeforeDeal = balanceAccount;
+						LongDeal(ref i, leavingDirection);
+						double deltaDeal = balanceAccount - balanceBeforeDeal;
+						if (deltaDeal >= 0)
+						{
+							profitDeals++;
+							logger.Trace($"Сделка прибыльна. После шорта [balanceAccount] = {balanceAccount} рублей");
+						}
+						else
+						{
+							lossDeals++;
+							logger.Trace($"Сделка убыточна. После шорта [balanceAccount] = {balanceAccount} рублей");
+						}
 						break;
 					}
 					case Direction.Neutral:
@@ -56,22 +71,38 @@ namespace FlatTraderBot
 
 		private void ShortDeal(ref int currentFlatIndex, Direction openDirection)
 		{
-			SellOnPrice(flatList[currentFlatIndex].closingCandle.close);
+			_DealStruct deal;
+			deal.OpenDealCandle = flatList[currentFlatIndex].leavingCandle;
+			double balanceBeforeDeal = balanceAccount;
+			SellOnPrice(deal.OpenDealCandle.close);
 			LogOperation(flatList[currentFlatIndex], "Продажа на шорт");
-			Direction newDirection = flatList[currentFlatIndex + 1].closingDirection;
+			Direction newDirection = flatList[currentFlatIndex + 1].leavingDirection;
 			while (newDirection == openDirection && currentFlatIndex + 1 < flatsOverall - 1)
 			{
 				currentFlatIndex++;
 				newDirection = flatList[currentFlatIndex + 1].leavingDirection;
 			}
-			BuyOnPrice(flatList[currentFlatIndex + 1].closingCandle.close);
-			LogOperation(flatList[currentFlatIndex], "Закрытие шорта");
+			deal.CloseDealCandle = flatList[currentFlatIndex + 1].leavingCandle;
+			BuyOnPrice(deal.CloseDealCandle.close);
+			deal.delta = balanceAccount - balanceBeforeDeal;
+			if (deal.delta > mostProfitDeal.delta)
+			{
+				mostProfitDeal = deal;
+			}
+			if (deal.delta < leastProfitDeal.delta)
+			{
+				leastProfitDeal = deal;
+			}
+			LogOperation(flatList[currentFlatIndex + 1], "Закрытие шорта");
 			currentFlatIndex++;
 		}
 
 		private void LongDeal(ref int currentFlatIndex, Direction openDirection)
 		{
-			BuyOnPrice(flatList[currentFlatIndex].closingCandle.close);
+			_DealStruct deal;
+			deal.OpenDealCandle = flatList[currentFlatIndex].leavingCandle;
+			double balanceBeforeDeal = balanceAccount;
+			BuyOnPrice(deal.OpenDealCandle.close);
 			LogOperation(flatList[currentFlatIndex], "Покупка на лонг");
 			Direction newDirection = flatList[currentFlatIndex + 1].leavingDirection;
 			while (newDirection == openDirection && currentFlatIndex + 1 < flatsOverall - 1)
@@ -79,8 +110,18 @@ namespace FlatTraderBot
 				currentFlatIndex++;
 				newDirection = flatList[currentFlatIndex + 1].leavingDirection;
 			}
-			SellOnPrice(flatList[currentFlatIndex+1].closingCandle.close);
-			LogOperation(flatList[currentFlatIndex], "Закрытие лонга");
+			deal.CloseDealCandle = flatList[currentFlatIndex + 1].leavingCandle;
+			SellOnPrice(deal.CloseDealCandle.close);
+			deal.delta = balanceAccount - balanceBeforeDeal;
+			if (deal.delta > mostProfitDeal.delta)
+			{
+				mostProfitDeal = deal;
+			}
+			if (deal.delta < leastProfitDeal.delta)
+			{
+				leastProfitDeal = deal;
+			}
+			LogOperation(flatList[currentFlatIndex + 1], "Закрытие лонга");
 			currentFlatIndex++;
 		}
 
@@ -126,5 +167,9 @@ namespace FlatTraderBot
 		private readonly List<FlatIdentifier> flatList;
 		private readonly int flatsOverall;
 		private double balanceAccount;
+		private int profitDeals;
+		private int lossDeals;
+		private _DealStruct mostProfitDeal;
+		private _DealStruct leastProfitDeal;
 	}
 }
