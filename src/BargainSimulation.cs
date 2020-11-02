@@ -38,17 +38,7 @@ namespace FlatTraderBot
 					}
 					case Direction.Up:
 					{
-						double balanceBeforeDeal = balanceAccount;
 						LongDeal(ref i, leavingDirection);
-						double deltaDeal = balanceAccount - balanceBeforeDeal;
-						if (deltaDeal >= 0)
-						{
-							profitDeals++;
-						}
-						else
-						{
-							lossDeals++;
-						}
 						break;
 					}
 					case Direction.Neutral:
@@ -57,6 +47,7 @@ namespace FlatTraderBot
 						throw new ArgumentOutOfRangeException();
 				}
 			}
+			CountProfitLossDeals();
 			LogAllDeals();
 			LogDealsConclusion();
 		}
@@ -107,7 +98,7 @@ namespace FlatTraderBot
 		{
 			try
 			{
-				balanceAccount += price;
+				balanceAccount += price * _Constants.NumberOfAssetsForDeal;
 			}
 			catch (Exception exception)
 			{
@@ -120,7 +111,7 @@ namespace FlatTraderBot
 		{
 			try
 			{
-				balanceAccount -= price;
+				balanceAccount -= price * _Constants.NumberOfAssetsForDeal;
 			}
 			catch (Exception exception)
 			{
@@ -141,6 +132,17 @@ namespace FlatTraderBot
 			}
 		}
 
+		private void CountProfitLossDeals()
+		{
+			foreach (_DealStruct deal in dealsList)
+			{
+				if (deal.profit > 0)
+					profitDeals++;
+				else
+					lossDeals++;
+			}
+		}
+
 		private void LogAllDeals()
 		{
 			foreach (_DealStruct d in dealsList)
@@ -155,11 +157,11 @@ namespace FlatTraderBot
 			logger.Trace($"Most profit;" +
 			             $"[{mostProfitDeal.OpenCandle.date}];[{mostProfitDeal.OpenCandle.time}]" +
 			             $";[{mostProfitDeal.CloseCandle.date}];[{mostProfitDeal.CloseCandle.time}];" +
-			             $"{mostProfitDeal.type};{mostProfitDeal.profit}");
+			             $"{mostProfitDeal.profit};{mostProfitDeal.type}");
 			logger.Trace($"Least profit;" +
 			             $"[{leastProfitDeal.OpenCandle.date}];[{leastProfitDeal.OpenCandle.time}]" +
 			             $";[{leastProfitDeal.CloseCandle.date}];[{leastProfitDeal.CloseCandle.time}];" +
-			             $"{mostProfitDeal.type};{leastProfitDeal.profit}");
+			             $"{leastProfitDeal.profit};{mostProfitDeal.type}");
 			logger.Trace($"[balance] = {balanceAccount} RUB");
 		}
 		
