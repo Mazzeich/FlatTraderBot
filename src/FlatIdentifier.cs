@@ -72,10 +72,10 @@ namespace FlatTraderBot
             gMin = GetGlobalMinimum(candles);
             gMax = GetGlobalMaximum(candles);
             mean = GetMean(candles);
-            flatWidth = gMax - gMin;
             SDMean = GetStandartDeviationMean(candles);
             SDL = mean - SDMean;
             SDH = mean + SDMean;
+            flatWidth = SDH - SDL;
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
@@ -295,27 +295,27 @@ namespace FlatTraderBot
 
             if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
             {
-                result += "Ширина коридора. ";
+                result += "Ширина коридора.";
             }
             if (exsNearSDL < _Constants.MinExtremumsNearSD)
             {
-                result += "Вершины СКО лоу.  ";
+                result += "Вершины СКО лоу.";
             }
             if (exsNearSDH < _Constants.MinExtremumsNearSD)
             {
-                result += "Вершины СКО хай. ";
+                result += "Вершины СКО хай.";
             }
             
             switch (trend)
             {
                 case Direction.Down:
                 {
-                    result += "Нисходящий тренд. ";
+                    result += "Нисходящий тренд.";
                     break;
                 }
                 case Direction.Up:
                 {
-                    result += "Восходящий тренд. ";
+                    result += "Восходящий тренд.";
                     break;
                 }
                 case Direction.Neutral:

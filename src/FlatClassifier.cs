@@ -195,8 +195,8 @@ namespace FlatTraderBot
 			int currentIndex = currentFlat.flatBounds.right.index + 1;
 			_CandleStruct result = globalCandles[currentIndex];
 			double priceOffset = currentFlat.mean * _Constants.CloseCoeff;
-			double flatUpperBound = currentFlat.gMax + priceOffset;
-			double flatLowerBound = currentFlat.gMin - priceOffset;
+			double flatUpperBound = currentFlat.SDH + priceOffset;
+			double flatLowerBound = currentFlat.SDL - priceOffset;
 
 			if (flatNumber == flatsOverall - 1)
 				return globalCandles[^1];

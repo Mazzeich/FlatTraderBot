@@ -28,7 +28,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Минимальная ширина коридора (коэфф. от цены инструмента)
         /// </summary>
-        public const double MinWidthCoeff = 0.002;
+        public const double MinWidthCoeff = 0.001;
         /// <summary>
         /// Коэффициент для определения поведения тренда
         /// </summary>
