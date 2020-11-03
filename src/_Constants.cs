@@ -4,7 +4,7 @@ namespace FlatTraderBot
     public struct _Constants
     {
         /// <summary> На сколько свечей увеличивать окно </summary>
-        public const int ExpansionRate = 3;
+        public const int ExpansionRate = 6;
         
         /// <summary> Размер окна </summary>
         public const int NAperture = 50;
@@ -22,7 +22,7 @@ namespace FlatTraderBot
         public const int NumberOfAssetsForDeal = 100;
         
         /// <summary> Минимальная ширина коридора (коэфф. от цены инструмента) </summary>
-        public const double MinWidthCoeff = 0.001;
+        public const double MinWidthCoeff = 0.001125;
         
         /// <summary> Коэффициент для определения поведения тренда </summary>
         public const double KOffset = 0.0015;

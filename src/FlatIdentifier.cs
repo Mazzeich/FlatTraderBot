@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using NLog;
 
 namespace FlatTraderBot
 {
-    /// <summary>
-    /// Класс, реализующий определение бокового движения в заданном интервале свечей
-    /// </summary>
+    /// <summary> Класс, реализующий определение бокового движения в заданном интервале свечей </summary>
     public class FlatIdentifier
     {
         public FlatIdentifier()
@@ -25,6 +22,9 @@ namespace FlatTraderBot
             candles = new List<_CandleStruct>(aperture);
         }
 
+        /// <summary>
+        /// Функция устанавливает флаг isFlat по вычисленным полям объекта
+        /// </summary>
         public void Identify()
         {
             logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
@@ -37,7 +37,7 @@ namespace FlatTraderBot
                 
                 bool isEnoughExtremumsNearSDL = exsNearSDL >= _Constants.MinExtremumsNearSD;
                 bool isEnoughExtremumsNearSDH = exsNearSDH >= _Constants.MinExtremumsNearSD;
-                bool isEnoughFlatWidth        = flatWidth  >= _Constants.MinWidthCoeff * candles[^1].close;
+                bool isEnoughFlatWidth        = flatWidth  >= _Constants.MinWidthCoeff * mean;
                 
                 if (isEnoughExtremumsNearSDL && isEnoughExtremumsNearSDH && isEnoughFlatWidth)
                 {
@@ -79,7 +79,6 @@ namespace FlatTraderBot
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
-            maximumDeviationFromOpening = CalculateMaximumDeviationFromOpening(candles);
             
             LogFlatProperties();
         }
@@ -241,24 +240,6 @@ namespace FlatTraderBot
         }
 
         /// <summary>
-        /// Функция рассчитывает максимальное отклонение от точки входа в боковик
-        /// </summary>
-        /// <param name="candleStructs"></param>
-        /// <returns></returns>
-        private double CalculateMaximumDeviationFromOpening(IReadOnlyList<_CandleStruct> candleStructs)
-        {
-            double opening = candleStructs[0].open;
-            double result = 0;
-            for (int i = 1; i < candleStructs.Count; i++)
-            {
-                double currentDeviation = Math.Abs(candleStructs[i].open - opening);
-                if (currentDeviation > result)
-                    result = currentDeviation;
-            }
-            return result;
-        }
-
-        /// <summary>
         /// Логгирует все поля объекта
         /// </summary>
         private void LogFlatProperties()
@@ -285,6 +266,16 @@ namespace FlatTraderBot
             return result;
         }
         
+        /// <summary>
+        /// Функция подрезает окно после того, как боковик не определился
+        /// </summary>
+        private void CutAperture()
+        {
+            isFlat = false;
+            candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
+            reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
+        }
+
         /// <summary>
         /// Функция для отладки, позволяющая вывести возможные причины отсутстивия нужного бокового движения 
         /// </summary>
@@ -326,16 +317,6 @@ namespace FlatTraderBot
                     throw new ArgumentOutOfRangeException();
             }
             return result;
-        }
-        
-        /// <summary>
-        /// Функция подрезает окн после того, как боковик не определился
-        /// </summary>
-        private void CutAperture()
-        {
-            isFlat = false;
-            candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-            reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
         }
 
         /// <summary>
@@ -426,5 +407,7 @@ namespace FlatTraderBot
         /// Точка максимального пробоя боковика
         /// </summary>
         public _TakeProfitCandle takeProfitCandle { get; set; }
+
+        public double stopLoss { get; set; }
     }
 }
