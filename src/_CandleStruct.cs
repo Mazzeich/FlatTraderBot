@@ -10,6 +10,10 @@ namespace FlatTraderBot
         /// </summary>
         public int index;
         /// <summary>
+        /// Индекс свечи внутри одного дня торгов
+        /// </summary>
+        public int intradayIndex;
+        /// <summary>
         /// Цена открытия текущей свечи
         /// </summary>
         public double open;

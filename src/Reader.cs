@@ -46,6 +46,7 @@ namespace FlatTraderBot
             csvReader.ReadHeader();
 
             int i = 0;
+            int intraday = 0;
             while (csvReader.Read())
             {
                 _CandleStruct temp;
@@ -55,12 +56,19 @@ namespace FlatTraderBot
                 temp.high  = csvReader.GetField<double>("<HIGH>");
                 temp.open  = csvReader.GetField<double>("<OPEN>");
                 temp.close = csvReader.GetField<double>("<CLOSE>");
-                temp.avg   = (temp.high + temp.low) * 0.5;
                 temp.date  = csvReader.GetField<string>("<DATE>");
                 temp.time  = csvReader.GetField<string>("<TIME>");
+                temp.avg   = (temp.high + temp.low) * 0.5;
+                
+                if (temp.time == "10:00")
+                    intraday = 0;
+
+                temp.intradayIndex = intraday;
 
                 candleStruct.Add(temp);
+                //Console.WriteLine(temp.time + " " + temp.intradayIndex);
                 i++;
+                intraday++;
             }
 
             logger.Trace($"Finished reading data from {pathHistoricalData}");
