@@ -25,20 +25,21 @@ namespace FlatTraderBot
 
 		public void Start()
 		{
+			SetFlatStopLosses();
 			logger.Trace($"\n[balance] = {balanceAccount}");
-			for (int i = 0; i < flatsOverall - 2;)
+			for (int i = 0; i < flatsOverall - 1;)
 			{
-				Direction leavingDirection = flatList[i].leavingDirection;
-				switch (leavingDirection)
+				Direction currentLeavingDirection = flatList[i].leavingDirection;
+				switch (currentLeavingDirection)
 				{
 					case Direction.Down:
 					{
-						ShortDeal(ref i, leavingDirection);
+						ShortDeal(ref i);
 						break;
 					}
 					case Direction.Up:
 					{
-						LongDeal(ref i, leavingDirection);
+						LongDeal(ref i);
 						break;
 					}
 					case Direction.Neutral:
@@ -52,18 +53,49 @@ namespace FlatTraderBot
 			LogDealsConclusion();
 		}
 
-		private void ShortDeal(ref int currentFlatIndex, Direction openDirection)
+		private void SetFlatStopLosses()
 		{
+			foreach (FlatIdentifier flat in flatList)
+			{
+				if (flat.leavingCandle.close > flat.mean)
+				{
+					flat.stopLoss = flat.mean - flat.leavingCandle.close + flat.mean;
+				} else if (flat.leavingCandle.close < flat.mean)
+				{
+					flat.stopLoss = flat.mean + flat.mean - flat.leavingCandle.close;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Совершение шорт-сделки
+		/// </summary>
+		/// <param name="currentFlatIndex">Индекс флета, после которого открывается сделка</param>
+		private void ShortDeal(ref int currentFlatIndex)
+		{
+			const Direction openLeavingDirection = Direction.Down;
 			_DealStruct deal = default;
 			deal.type = 'S';
 			deal.OpenCandle = flatList[currentFlatIndex].leavingCandle;
 			double balanceBeforeDeal = balanceAccount;
 			SellOnPrice(deal.OpenCandle.close);
-			Direction newDirection = flatList[currentFlatIndex + 1].leavingDirection;
-			while (newDirection == openDirection && currentFlatIndex + 1 < flatsOverall - 2)
+			Direction newLeavingDirection = flatList[currentFlatIndex + 1].leavingDirection;
+			if (newLeavingDirection == openLeavingDirection)
 			{
-				currentFlatIndex++;
-				newDirection = flatList[currentFlatIndex + 1].leavingDirection;
+				while (newLeavingDirection == openLeavingDirection && currentFlatIndex < flatsOverall - 2)
+				{
+					bool isStopLossTriggered = IsShortStopLossTriggered(ref currentFlatIndex, ref deal, balanceBeforeDeal);
+					if (isStopLossTriggered)
+						return;
+					currentFlatIndex++;
+					newLeavingDirection = flatList[currentFlatIndex + 1].leavingDirection;
+				}
+			} 
+			else
+			{
+				bool isStopLossTriggered = IsShortStopLossTriggered(ref currentFlatIndex, ref deal, balanceBeforeDeal);
+				if (isStopLossTriggered)
+					return;
 			}
 			deal.CloseCandle = flatList[currentFlatIndex + 1].leavingCandle;
 			BuyOnPrice(deal.CloseCandle.close);
@@ -73,18 +105,35 @@ namespace FlatTraderBot
 			currentFlatIndex++;
 		}
 
-		private void LongDeal(ref int currentFlatIndex, Direction openDirection)
+		/// <summary>
+		/// Совершение лонг-сделки
+		/// </summary>
+		/// <param name="currentFlatIndex">Индекс флета, после которого открывается сделка</param>
+		private void LongDeal(ref int currentFlatIndex)
 		{
+			const Direction openLeavingDirection = Direction.Up;
 			_DealStruct deal = default;
 			deal.type = 'L';
 			deal.OpenCandle = flatList[currentFlatIndex].leavingCandle;
 			double balanceBeforeDeal = balanceAccount;
 			BuyOnPrice(deal.OpenCandle.close);
-			Direction newDirection = flatList[currentFlatIndex + 1].leavingDirection;
-			while (newDirection == openDirection && currentFlatIndex + 1 < flatsOverall - 2)
+			Direction newLeavingDirection = flatList[currentFlatIndex + 1].leavingDirection;
+			if (newLeavingDirection == openLeavingDirection)
 			{
-				currentFlatIndex++;
-				newDirection = flatList[currentFlatIndex + 1].leavingDirection;
+				while (newLeavingDirection == openLeavingDirection && currentFlatIndex < flatsOverall - 2)
+				{
+					bool isStopLossTriggered = IsLongStopLossTriggered(ref currentFlatIndex, ref deal, balanceBeforeDeal);
+					if (isStopLossTriggered)
+						return;
+					currentFlatIndex++;
+					newLeavingDirection = flatList[currentFlatIndex + 1].leavingDirection;
+				}
+			}
+			else
+			{
+				bool isStopLossTriggered = IsLongStopLossTriggered(ref currentFlatIndex, ref deal, balanceBeforeDeal);
+				if (isStopLossTriggered)
+					return;
 			}
 			deal.CloseCandle = flatList[currentFlatIndex + 1].leavingCandle;
 			SellOnPrice(deal.CloseCandle.close);
@@ -118,6 +167,46 @@ namespace FlatTraderBot
 				logger.Trace(exception);
 				throw;
 			}
+		}
+
+		private bool IsLongStopLossTriggered(ref int currentFlatIndex, ref _DealStruct deal, double balanceBeforeDeal)
+		{
+			FlatIdentifier currentFlat = flatList[currentFlatIndex];
+			FlatIdentifier nextFlat = flatList[currentFlatIndex + 1];
+			for (int i = currentFlat.leavingCandle.index; i < nextFlat.leavingCandle.index; i++)
+			{
+				if (globalCandles[i].low <= currentFlat.stopLoss)
+				{
+					deal.CloseCandle = globalCandles[i];
+					SellOnPrice(deal.CloseCandle.close);
+					deal.profit = balanceAccount - balanceBeforeDeal;
+					SetLeastAndMostProfitableDeals(deal);
+					dealsList.Add(deal);
+					currentFlatIndex++;
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private bool IsShortStopLossTriggered(ref int currentFlatIndex, ref _DealStruct deal, double balanceBeforeDeal)
+		{
+			FlatIdentifier currentFlat = flatList[currentFlatIndex];
+			FlatIdentifier nextFlat = flatList[currentFlatIndex + 1];
+			for (int i = currentFlat.leavingCandle.index; i < nextFlat.leavingCandle.index; i++)
+			{
+				if (globalCandles[i].high >= currentFlat.stopLoss)
+				{
+					deal.CloseCandle = globalCandles[i];
+					BuyOnPrice(deal.CloseCandle.close);
+					deal.profit = balanceAccount - balanceBeforeDeal;
+					SetLeastAndMostProfitableDeals(deal);
+					dealsList.Add(deal);
+					currentFlatIndex++;
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private void SetLeastAndMostProfitableDeals(_DealStruct deal)
