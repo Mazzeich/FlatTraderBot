@@ -64,6 +64,8 @@ namespace FlatTraderBot
 					default:
 						break;
 				}
+
+				ClassifyFlatType(flatFormedFromDirection, flatLeavingDirection);
 			}
 
 			int flatsFromAscensionPercantage  = flatsFromAscension 		 * 100 / flatsOverall;
@@ -78,6 +80,7 @@ namespace FlatTraderBot
 
 			meanFlatDuration = CalculateMeanFlatDuration(flatList);
 			logger.Trace($"[meanFlatDuration] = {meanFlatDuration}");
+			logger.Trace($"[type11] = {type11} [type10] = {type10} [type01] = {type01} [type00] = {type00}");
 		}
 
 		/// <summary> Определяет, что предшествовало боковому движению </summary>
@@ -106,7 +109,7 @@ namespace FlatTraderBot
 				int currentIndex = currentFlat.flatBounds.left.index - candlesPassed;
 				_CandleStruct closestExtremum = globalCandles[currentIndex];
 
-				if (globalCandles[currentIndex - 2].time == "10:00")
+				if (globalCandles[currentIndex].index < 5)
 					return globalCandles[0];
 
 				if (closestExtremum.low < currentFlat.gMin - _Constants.FlatClassifyOffset * currentFlat.gMin && IsCandleLowerThanNearests(closestExtremum))
@@ -170,13 +173,13 @@ namespace FlatTraderBot
 			_CandleStruct leavingCandle = FindLeavingCandle(flatNumber);
 			flat.leavingCandle = leavingCandle;
 			logger.Trace($"Leaving to candle of [{flat.flatBounds.left.time} {flat.flatBounds.right.time}]: {leavingCandle.time}");
-			if (leavingCandle.high > flat.mean)
+			if (leavingCandle.close > flat.mean)
 			{
 				const Direction result = Direction.Up;
 				flat.leavingDirection = result;
 				return result;
 			}
-			else if (leavingCandle.low < flat.mean)
+			else if (leavingCandle.close < flat.mean)
 			{
 				const Direction result = Direction.Down;
 				flat.leavingDirection = result;
@@ -214,6 +217,34 @@ namespace FlatTraderBot
 			return result;
 		}
 
+		/// <summary>
+		/// Классифицирует флет по типу направления формирования и направлению выхода из движения
+		/// </summary>
+		/// <param name="flatFormedFromDirection">Направление формирования флета</param>
+		/// <param name="flatLeavingDirection">Направление выхода из флета</param>
+		private void ClassifyFlatType(Direction flatFormedFromDirection, Direction flatLeavingDirection)
+		{
+			switch (flatFormedFromDirection)
+			{
+				case Direction.Up when flatLeavingDirection == Direction.Up:
+					type11++;
+					break;
+				case Direction.Up when flatLeavingDirection == Direction.Down:
+					type10++;
+					break;
+				case Direction.Down when flatLeavingDirection == Direction.Up:
+					type01++;
+					break;
+				case Direction.Down when flatLeavingDirection == Direction.Down:
+					type00++;
+					break;
+				case Direction.Neutral:
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(flatFormedFromDirection), flatFormedFromDirection, null);
+			}
+		}
+
 		/// <summary> Логгер </summary>
 		private readonly Logger logger = LogManager.GetCurrentClassLogger();
 		/// <summary> Список всех найденных боковиков </summary>
@@ -232,5 +263,21 @@ namespace FlatTraderBot
 		private int flatsLeavingToAscension;
 		/// <summary> Средний интервал между боковиками </summary>
 		private double meanFlatDuration;
+		/// <summary>
+		/// Флет сформирован сверху и уходит наверх
+		/// </summary>
+		private int type11;
+		/// <summary>
+		/// Флет сформирован сверху и уходит вниз
+		/// </summary>
+		private int type10;
+		/// <summary>
+		/// Флет сформирован снизу и уходи вверх
+		/// </summary>
+		private int type01;
+		/// <summary>
+		/// Флет сформирован снизу и уходит вниз
+		/// </summary>
+		private int type00;
 	}
 }
