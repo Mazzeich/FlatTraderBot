@@ -29,8 +29,16 @@ namespace FlatTraderBot
             takeProfitFinder.RefreshTakeProfit();
             takeProfitFinder.GetTakeProfitStatistics();
             
-            BargainSimulation simulator = new BargainSimulation(candles, ref flatList);
-            simulator.Start();
+            // TakeProfitCandlesFinder takeProfitCandlesFinder = new TakeProfitCandlesFinder(candles, ref flatList);
+            // takeProfitCandlesFinder.FindTakeProfits();
+            // takeProfitCandlesFinder.RefreshTakeProfit();
+            // takeProfitCandlesFinder.GetTakeProfitStatistics();
+            
+            // BargainSimulation simulator = new BargainSimulation(candles, ref flatList);
+            // simulator.Start();
+            
+            Dealer dealer = new Dealer(candles, flatList);
+            dealer.SimulateDealing();
             
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
