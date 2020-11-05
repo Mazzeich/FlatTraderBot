@@ -20,13 +20,18 @@ namespace FlatTraderBot
             
             FlatPostprocessor flatPostprocessor = new FlatPostprocessor(candles, ref flatList);
             flatPostprocessor.UniteFlats();
+            logger.Trace($"Флетов после объединения: {flatList.Count}");
 
             FlatClassifier flatClassifier = new FlatClassifier(candles, ref flatList);
             flatClassifier.ClassifyAllFlats();
-            flatClassifier.FindBreakthroughs();
-
-            flatPostprocessor.UniteBreakthroughs();
-
+            TakeProfitFinder takeProfitFinder = new TakeProfitFinder(candles, ref flatList);
+            takeProfitFinder.FindTakeProfits();
+            takeProfitFinder.RefreshTakeProfit();
+            takeProfitFinder.GetTakeProfitStatistics();
+            
+            BargainSimulation simulator = new BargainSimulation(candles, ref flatList);
+            simulator.Start();
+            
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
         }

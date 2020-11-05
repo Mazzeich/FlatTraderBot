@@ -12,8 +12,7 @@ namespace FlatTraderBot
         private readonly HistoricalFlatFinder historicalFlatFinder;
 
         private Printer()
-        {
-        }
+        { }
         public Printer(FlatIdentifier flatIdentifier) : this()
         {
             this.flatIdentifier = flatIdentifier;
@@ -27,38 +26,34 @@ namespace FlatTraderBot
         [Obsolete("Use FlatIdentifier.LogFlatProperties() instead")]
         public void OutputApertureInfo()
         {
-            logger.Trace("Окно {0} с {1} по {2}", 
-                flatIdentifier.flatBounds.left.date, 
-                flatIdentifier.flatBounds.left.time, 
-                flatIdentifier.flatBounds.right.time);
-
-            logger.Trace("[gMin] = {0} [{1}]\t[gMax] = {2} [{3}]", flatIdentifier.gMin, flatIdentifier.idxGmin + 1, flatIdentifier.gMax, flatIdentifier.idxGmax + 1);
-            logger.Trace("[k] = {0}", flatIdentifier.k);
-            logger.Trace("[mean] = {0}", flatIdentifier.mean);
-            logger.Trace("[candles.Count] = {0}", flatIdentifier.candles.Count);
-            logger.Trace("[SDMean] = {0}\t[SDL] = {1}\t[SDH] = {2}", flatIdentifier.SDMean, flatIdentifier.SDL, flatIdentifier.SDH);
-            logger.Trace("[Экстремумы рядом с СКО low] = {0}\t[Экстремумы рядом с СКО high] = {1}", flatIdentifier.exsNearSDL, flatIdentifier.exsNearSDH);
-            logger.Trace("[Границы окна]: [{0}]\t[{1}]", flatIdentifier.flatBounds.left.date, flatIdentifier.flatBounds.right.date);
+            logger.Trace($"Окно {flatIdentifier.flatBounds.left.date} с {flatIdentifier.flatBounds.left.time} по {flatIdentifier.flatBounds.right.time}");
+            logger.Trace($"[gMin] = {flatIdentifier.gMin} [{0}]\t[gMax] = {flatIdentifier.gMax} [{1}]",  flatIdentifier.idxGmin + 1, flatIdentifier.idxGmax + 1);
+            logger.Trace($"[k] = {flatIdentifier.k}");
+            logger.Trace($"[mean] = {flatIdentifier.mean}");
+            logger.Trace($"[candles.Count] = {flatIdentifier.candles.Count}");
+            logger.Trace($"[SDMean] = {flatIdentifier.SDMean}\t[SDL] = {flatIdentifier.SDL}\t[SDH] = {flatIdentifier.SDH}");
+            logger.Trace($"[Экстремумы рядом с СКО low] = {flatIdentifier.exsNearSDL}\t[Экстремумы рядом с СКО high] = {flatIdentifier.exsNearSDH}");
+            logger.Trace($"[Границы окна]: [{flatIdentifier.flatBounds.left.date}]\t[{flatIdentifier.flatBounds.right.date}]");
             
             switch (flatIdentifier.trend)
             {
                 case Direction.Down:
                 {
-                    logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
+                    logger.Trace($"[Ширина коридора] = {flatIdentifier.flatWidth}\t");
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия имеет сильный убывающий тренд");
                     break;
                 }
                 case Direction.Up:
                 {
-                    logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
+                    logger.Trace($"[Ширина коридора] = {flatIdentifier.flatWidth}\t");
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия имеет сильный возрастающий тренд\n");
                     break;
                 }
                 case Direction.Neutral:
                 {
-                    logger.Trace("[Ширина коридора] = {0}\t", flatIdentifier.flatWidth);
+                    logger.Trace($"[Ширина коридора] = {flatIdentifier.flatWidth}\t");
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный");
                     if (flatIdentifier.isFlat)
@@ -81,7 +76,7 @@ namespace FlatTraderBot
         {
             if (historicalFlatFinder != null)
             {
-                logger.Trace("Боковиков найдено: {0}", historicalFlatFinder.flatsFound);
+                logger.Trace($"Боковиков найдено: {historicalFlatFinder.flatsFound}");
                 logger.Trace("Боковики определены в: ");
                 foreach (FlatIdentifier flat in historicalFlatFinder.flatList)
                 {

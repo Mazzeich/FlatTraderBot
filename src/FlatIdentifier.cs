@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using NLog;
 
 namespace FlatTraderBot
 {
-    /// <summary>
-    /// Класс, реализующий определение бокового движения в заданном интервале свечей
-    /// </summary>
+    /// <summary> Класс, реализующий определение бокового движения в заданном интервале свечей </summary>
     public class FlatIdentifier
     {
         public FlatIdentifier()
@@ -25,6 +22,9 @@ namespace FlatTraderBot
             candles = new List<_CandleStruct>(aperture);
         }
 
+        /// <summary>
+        /// Функция устанавливает флаг isFlat по вычисленным полям объекта
+        /// </summary>
         public void Identify()
         {
             logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
@@ -35,9 +35,9 @@ namespace FlatTraderBot
             {
                 trend = Direction.Neutral;
                 
-                bool isEnoughExtremumsNearSDL = exsNearSDL > _Constants.MinExtremumsNearSD;
-                bool isEnoughExtremumsNearSDH = exsNearSDH > _Constants.MinExtremumsNearSD;
-                bool isEnoughFlatWidth        = flatWidth  > _Constants.MinWidthCoeff * candles[^1].close;
+                bool isEnoughExtremumsNearSDL = exsNearSDL >= _Constants.MinExtremumsNearSD;
+                bool isEnoughExtremumsNearSDH = exsNearSDH >= _Constants.MinExtremumsNearSD;
+                bool isEnoughFlatWidth        = flatWidth  >= _Constants.MinWidthCoeff * mean;
                 
                 if (isEnoughExtremumsNearSDL && isEnoughExtremumsNearSDH && isEnoughFlatWidth)
                 {
@@ -46,6 +46,7 @@ namespace FlatTraderBot
                 }
                 else
                 {
+                    isFlat = false;
                     reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
                 }
             } 
@@ -71,14 +72,13 @@ namespace FlatTraderBot
             gMin = GetGlobalMinimum(candles);
             gMax = GetGlobalMaximum(candles);
             mean = GetMean(candles);
-            flatWidth = gMax - gMin;
             SDMean = GetStandartDeviationMean(candles);
             SDL = mean - SDMean;
             SDH = mean + SDMean;
+            flatWidth = SDH - SDL;
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
-            maximumDeviationFromOpening = CalculateMaximumDeviationFromOpening(candles);
             
             LogFlatProperties();
         }
@@ -182,40 +182,6 @@ namespace FlatTraderBot
         }
 
         /// <summary>
-        /// Функция находит среднеквадратическое отклонение свечей тех, что ниже среднего, 
-        /// и тех, что выше внутри коридора
-        /// </summary>
-        /// <returns>double SDLow, double SDHigh</returns>
-        [Obsolete("Method was used to calculate standart deviations way extreme than it should have been")]
-        private (double, double) GetStandartDeviations()
-        {
-            double sumLow = 0;
-            double sumHigh = 0;
-
-            int lowsCount = 0;
-            int highsCount = 0;
-
-            for (int i = 0; i < candles.Count - 1; i++)
-            {
-                if ((candles[i].low) <= mean) 
-                {
-                    sumLow += Math.Pow(mean - candles[i].low, 2);
-                    lowsCount++;
-                }
-                else if ((candles[i].high) >= mean)
-                {
-                    sumHigh += Math.Pow(candles[i].high - mean, 2);
-                    highsCount++; 
-                }
-            }
-            double SDLow = Math.Sqrt(sumLow / lowsCount);
-            double SDHigh = Math.Sqrt(sumHigh / highsCount);
-            logger.Trace("Standart deviations calculated. [mean] - [SDL] = {0} | [mean] + [SDH] = {1}", mean - SDLow, mean + SDHigh);
-
-            return (mean - SDLow, mean + SDHigh);
-        }
-
-        /// <summary>
         /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по лоу
         /// </summary>
         /// <param name="candleStructs"></param>
@@ -274,24 +240,6 @@ namespace FlatTraderBot
         }
 
         /// <summary>
-        /// Функция рассчитывает максимальное отклонение от точки входа в боковик
-        /// </summary>
-        /// <param name="candleStructs"></param>
-        /// <returns></returns>
-        private double CalculateMaximumDeviationFromOpening(IReadOnlyList<_CandleStruct> candleStructs)
-        {
-            double opening = candleStructs[0].open;
-            double result = 0;
-            for (int i = 1; i < candleStructs.Count; i++)
-            {
-                double currentDeviation = Math.Abs(candleStructs[i].open - opening);
-                if (currentDeviation > result)
-                    result = currentDeviation;
-            }
-            return result;
-        }
-
-        /// <summary>
         /// Логгирует все поля объекта
         /// </summary>
         private void LogFlatProperties()
@@ -319,6 +267,16 @@ namespace FlatTraderBot
         }
         
         /// <summary>
+        /// Функция подрезает окно после того, как боковик не определился
+        /// </summary>
+        private void CutAperture()
+        {
+            isFlat = false;
+            candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
+            reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
+        }
+
+        /// <summary>
         /// Функция для отладки, позволяющая вывести возможные причины отсутстивия нужного бокового движения 
         /// </summary>
         /// <returns>Строка, содержащая возможные причины</returns>
@@ -328,27 +286,27 @@ namespace FlatTraderBot
 
             if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
             {
-                result += "Ширина коридора. ";
+                result += "Ширина коридора.";
             }
             if (exsNearSDL < _Constants.MinExtremumsNearSD)
             {
-                result += "Вершины СКО лоу.  ";
+                result += "Вершины СКО лоу.";
             }
             if (exsNearSDH < _Constants.MinExtremumsNearSD)
             {
-                result += "Вершины СКО хай. ";
+                result += "Вершины СКО хай.";
             }
             
             switch (trend)
             {
                 case Direction.Down:
                 {
-                    result += "Нисходящий тренд. ";
+                    result += "Нисходящий тренд.";
                     break;
                 }
                 case Direction.Up:
                 {
-                    result += "Восходящий тренд. ";
+                    result += "Восходящий тренд.";
                     break;
                 }
                 case Direction.Neutral:
@@ -359,16 +317,6 @@ namespace FlatTraderBot
                     throw new ArgumentOutOfRangeException();
             }
             return result;
-        }
-        
-        /// <summary>
-        /// Функция подрезает окн после того, как боковик не определился
-        /// </summary>
-        private void CutAperture()
-        {
-            isFlat = false;
-            candles.RemoveRange(candles.Count - _Constants.ExpansionRate, _Constants.ExpansionRate);
-            reasonsOfApertureHasNoFlat = ReasonsWhyIsNotFlat();
         }
 
         /// <summary>
@@ -436,7 +384,7 @@ namespace FlatTraderBot
         /// </summary>
         public bool isFlat { get; private set; }
         /// <summary>
-        /// Какой тренд имеет текущее окно (-1/0/1 <=> Down/Neutral/Up)
+        /// Какой тренд имеет текущее окно (Down/Neutral/Up)
         /// </summary>
         public Direction trend;
         /// <summary>
@@ -450,14 +398,16 @@ namespace FlatTraderBot
         /// <summary>
         /// В какую сторону закрылся боковик
         /// </summary>
-        public Direction closingTo { get; set; }
+        public Direction leavingDirection { get; set; }
         /// <summary>
         /// На какой свече произошёл выход 
         /// </summary>
-        public _CandleStruct closingCandle { get; set; }
+        public _CandleStruct leavingCandle { get; set; }
         /// <summary>
         /// Точка максимального пробоя боковика
         /// </summary>
-        public _Breakthrough breakthrough { get; set; }
+        public _TakeProfitCandle takeProfitCandle { get; set; }
+
+        public double stopLoss { get; set; }
     }
 }

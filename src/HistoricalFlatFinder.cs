@@ -26,7 +26,7 @@ namespace FlatTraderBot
         {
             // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
 
-            for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture - 1;)
+            for (int globalIterator = 0; globalIterator < globalCandles.Count - _Constants.NAperture * 2;)
             {
                 FlatIdentifier flat = new FlatIdentifier();
                 flat.AssignAperture(aperture);
@@ -135,7 +135,7 @@ namespace FlatTraderBot
         /// <summary>
         /// Основной, глобальный список свечей
         /// </summary>
-        public readonly List<_CandleStruct> globalCandles;
+        private readonly List<_CandleStruct> globalCandles;
         /// <summary>
         /// Маленький список свечей, формирующий окно
         /// </summary>
@@ -147,6 +147,6 @@ namespace FlatTraderBot
         /// <summary>
         /// Список всех найденных боковиков
         /// </summary>
-        public readonly List<FlatIdentifier> flatList = new List<FlatIdentifier>();
+        public readonly List<FlatIdentifier> flatList;
     }
 }

@@ -11,30 +11,6 @@ namespace FlatTraderBot
 {
     public class Reader
     {
-        /// <summary>
-        /// Инициализация логгера и присваивание ему имени текущего класса "Lua.Reader"
-        /// </summary>
-        private  static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        List<_CandleStruct> candleStruct;
-
-        private static string currentDirectory;
-        
-        private string pathHigh;
-        private string pathLow;
-        private string pathAvg;
-        private string pathOpen;
-        private string pathClose;
-        private string pathVolume;
-        private string pathHistoricalData;
-
-
-        private string[] readHeights;
-        private string[] readLows;
-        private string[] readAvgs;
-        private string[] readCloses;
-        private string[] readOpens;
-        private string[] readVolumes;
-        
         public Reader()
         {
             logger.Trace("\n[Class Reader initialized]");
@@ -70,6 +46,7 @@ namespace FlatTraderBot
             csvReader.ReadHeader();
 
             int i = 0;
+            int intraday = 0;
             while (csvReader.Read())
             {
                 _CandleStruct temp;
@@ -79,16 +56,34 @@ namespace FlatTraderBot
                 temp.high  = csvReader.GetField<double>("<HIGH>");
                 temp.open  = csvReader.GetField<double>("<OPEN>");
                 temp.close = csvReader.GetField<double>("<CLOSE>");
-                temp.avg   = (temp.high + temp.low) * 0.5;
                 temp.date  = csvReader.GetField<string>("<DATE>");
                 temp.time  = csvReader.GetField<string>("<TIME>");
+                temp.avg   = (temp.high + temp.low) * 0.5;
+                
+                if (temp.time == "10:00")
+                    intraday = 0;
+
+                temp.intradayIndex = intraday;
 
                 candleStruct.Add(temp);
+                //Console.WriteLine(temp.time + " " + temp.intradayIndex);
                 i++;
+                intraday++;
             }
 
             logger.Trace($"Finished reading data from {pathHistoricalData}");
             return candleStruct;
         }
+        
+        /// <summary>
+        /// Инициализация логгера и присваивание ему имени текущего класса "Lua.Reader"
+        /// </summary>
+        private  static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        private readonly List<_CandleStruct> candleStruct;
+
+        private static string currentDirectory;
+        
+        private string pathHistoricalData;
     }
 }
