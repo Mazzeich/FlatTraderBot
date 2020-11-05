@@ -75,7 +75,7 @@ namespace FlatTraderBot
             SDMean = GetStandartDeviationMean(candles);
             SDL = mean - SDMean;
             SDH = mean + SDMean;
-            flatWidth = SDH - SDL;
+            flatWidth = (SDH + mean * _Constants.SDOffset) - (SDL - mean * _Constants.SDOffset);
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
