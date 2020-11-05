@@ -404,10 +404,10 @@ namespace FlatTraderBot
         /// </summary>
         public _CandleStruct leavingCandle { get; set; }
         /// <summary>
-        /// Точка максимального пробоя боковика
+        /// Цена стоп-лосса при входе в сделку в этом флете
         /// </summary>
-        public _TakeProfitCandle takeProfitCandle { get; set; }
-
         public double stopLoss { get; set; }
+
+        public _TakeProfitCandle takeProfitCandle;
     }
 }

@@ -24,10 +24,9 @@ namespace FlatTraderBot
 
             FlatClassifier flatClassifier = new FlatClassifier(candles, ref flatList);
             flatClassifier.ClassifyAllFlats();
-            TakeProfitFinder takeProfitFinder = new TakeProfitFinder(candles, ref flatList);
-            takeProfitFinder.FindTakeProfits();
-            takeProfitFinder.RefreshTakeProfit();
-            takeProfitFinder.GetTakeProfitStatistics();
+            
+            StopLossesFinder stopLossesFinder = new StopLossesFinder(candles, ref flatList);
+            stopLossesFinder.FindAndSetStopLosses();
             
             // TakeProfitCandlesFinder takeProfitCandlesFinder = new TakeProfitCandlesFinder(candles, ref flatList);
             // takeProfitCandlesFinder.FindTakeProfits();
