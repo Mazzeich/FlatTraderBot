@@ -4,14 +4,14 @@ using NLog;
 
 namespace FlatTraderBot
 {
-	public class TakeProfitFinder
+	public class TakeProfitCandlesFinder
 	{
-		private TakeProfitFinder()
+		private TakeProfitCandlesFinder()
 		{
 			logger.Trace("-----------------------------------------------------------------");
 		}
 
-		public TakeProfitFinder(List<_CandleStruct> candles, ref List<FlatIdentifier> flatList) : this()
+		public TakeProfitCandlesFinder(List<_CandleStruct> candles, ref List<FlatIdentifier> flatList) : this()
 		{
 			globalCandles = candles;
 			this.flatList = flatList;

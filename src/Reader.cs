@@ -66,7 +66,6 @@ namespace FlatTraderBot
                 temp.intradayIndex = intraday;
 
                 candleStruct.Add(temp);
-                //Console.WriteLine(temp.time + " " + temp.intradayIndex);
                 i++;
                 intraday++;
             }

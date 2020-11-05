@@ -13,7 +13,7 @@ namespace FlatTraderBot
             List<_CandleStruct>  candles  = new List<_CandleStruct>();
             List<FlatIdentifier> flatList = new List<FlatIdentifier>();
             
-            candles = new Reader(candles).GetHistoricalData("data.csv");
+            candles = new Reader(candles).GetHistoricalData("data2020.csv");
             
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles, ref flatList);
             historicalFlatFinder.FindAllFlats();
