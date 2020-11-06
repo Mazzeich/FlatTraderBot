@@ -30,7 +30,8 @@ namespace FlatTraderBot
             logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
             
             CalculateFlatProperties();
-            
+            LogFlatProperties();
+
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Direction.Neutral;
@@ -409,5 +410,7 @@ namespace FlatTraderBot
         public double stopLoss { get; set; }
 
         public _TakeProfitCandle takeProfitCandle;
+        
+        public int duration { get; set; }
     }
 }

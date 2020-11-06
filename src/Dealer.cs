@@ -35,9 +35,7 @@ namespace FlatTraderBot
 						MakeLongDeal(currentFlatIndex, nextOppositeFlatIndex, ref i,  out flatsPassed);
 						if (currentFlatIndex + flatsPassed == flatsOverall)
 						{
-							CountProfitLossDeals();
-							LogAllDeals();
-							LogDealsConclusion();
+							LogDealerInfo();
 							return;
 						}
 						currentFlatIndex += flatsPassed;
@@ -49,9 +47,7 @@ namespace FlatTraderBot
 						MakeShortDeal(currentFlatIndex, nextOppositeFlatIndex, ref i, out flatsPassed);
 						if (currentFlatIndex + flatsPassed == flatsOverall)
 						{
-							CountProfitLossDeals();
-							LogAllDeals();
-							LogDealsConclusion();
+							LogDealerInfo();
 							return;
 						}
 						currentFlatIndex += flatsPassed;
@@ -60,9 +56,7 @@ namespace FlatTraderBot
 						throw new ArgumentOutOfRangeException();
 				}
 			}
-			CountProfitLossDeals();
-			LogAllDeals();
-			LogDealsConclusion();
+			LogDealerInfo();
 		}
 		
 		private _CandleStruct FindFirstLeavingFlatCandle()
@@ -198,6 +192,13 @@ namespace FlatTraderBot
 				leastProfitDeal = deal;
 			}
 		}
+
+		private void LogDealerInfo()
+		{
+			CountProfitLossDeals();
+			LogAllDeals();
+			LogDealsConclusion();
+		}
 		
 		private void CountProfitLossDeals()
 		{
@@ -232,12 +233,12 @@ namespace FlatTraderBot
 			logger.Trace($"[balance] = {balanceAccount} RUB");
 		}
 
-		private Logger logger;
-		private List<_CandleStruct> globalCandles;
-		private List<FlatIdentifier> flatList;
+		private readonly Logger logger;
+		private readonly List<_CandleStruct> globalCandles;
+		private readonly List<FlatIdentifier> flatList;
 		private readonly List<_DealStruct> dealsList;
-		private int globalCandlesOverall;
-		private int flatsOverall;
+		private readonly int globalCandlesOverall;
+		private readonly int flatsOverall;
 		private int profitDeals;
 		private int lossDeals;
 		private double balanceAccount;
