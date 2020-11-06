@@ -80,8 +80,7 @@ namespace FlatTraderBot
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
-            
-            LogFlatProperties();
+            duration = candles[^1].index - candles[0].index;
         }
 
         /// <summary>
