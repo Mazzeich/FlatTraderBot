@@ -41,7 +41,7 @@ namespace FlatTraderBot
 		{
 			foreach (FlatIdentifier flat in flatList)
 			{
-				logger.Trace($"{flat.flatBounds.left.date} [{flat.flatBounds.left.time} {flat.flatBounds.right.time}]: {flat.stopLoss}");
+				logger.Trace($"{flat.bounds.left.date} [{flat.bounds.left.time} {flat.bounds.right.time}]: {flat.stopLoss}");
 			}
 		}
 

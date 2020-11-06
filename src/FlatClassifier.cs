@@ -32,11 +32,11 @@ namespace FlatTraderBot
 				switch (flatFormedFromDirection)
 				{
 					case Direction.Up:
-						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from asceding");
+						logger.Trace($"[{flatList[i].bounds.left.date}]: {flatList[i].bounds.left.time} from asceding");
 						flatsFromAscension++;
 						break;
 					case Direction.Down:
-						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.left.time} from descending");
+						logger.Trace($"[{flatList[i].bounds.left.date}]: {flatList[i].bounds.left.time} from descending");
 						flatsFromDescension++;
 						break;
 					case Direction.Neutral:
@@ -49,13 +49,13 @@ namespace FlatTraderBot
 				{
 					case (Direction.Up):
 					{
-						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} leaving ↑");
+						logger.Trace($"[{flatList[i].bounds.left.date}]: {flatList[i].bounds.right.time} leaving ↑");
 						flatsLeavingToAscension++;
 						break;
 					}
 					case (Direction.Down):
 					{
-						logger.Trace($"[{flatList[i].flatBounds.left.date}]: {flatList[i].flatBounds.right.time} leaving ↓");
+						logger.Trace($"[{flatList[i].bounds.left.date}]: {flatList[i].bounds.right.time} leaving ↓");
 						flatsLeavingToDescension++;
 						break;
 					}
@@ -106,7 +106,7 @@ namespace FlatTraderBot
 			while (candlesPassed < _Constants.MaxFlatLeftExtremumDistance)
 			{
 				candlesPassed++;
-				int currentIndex = currentFlat.flatBounds.left.index - candlesPassed;
+				int currentIndex = currentFlat.bounds.left.index - candlesPassed;
 				_CandleStruct closestExtremum = globalCandles[currentIndex];
 
 				if (globalCandles[currentIndex].index < 5)
@@ -156,7 +156,7 @@ namespace FlatTraderBot
 			double result = 0;
 			foreach (FlatIdentifier flat in flatIdentifiers)
 			{
-				double currentDuration = flat.flatBounds.right.index - flat.flatBounds.left.index;
+				double currentDuration = flat.bounds.right.index - flat.bounds.left.index;
 				result += currentDuration;
 			}
 
@@ -172,7 +172,7 @@ namespace FlatTraderBot
 		{
 			_CandleStruct leavingCandle = FindLeavingCandle(flatNumber);
 			flat.leavingCandle = leavingCandle;
-			logger.Trace($"Leaving to candle of [{flat.flatBounds.left.time} {flat.flatBounds.right.time}]: {leavingCandle.time}");
+			logger.Trace($"Leaving to candle of [{flat.bounds.left.time} {flat.bounds.right.time}]: {leavingCandle.time}");
 			if (leavingCandle.close > flat.mean)
 			{
 				const Direction result = Direction.Up;
@@ -195,16 +195,16 @@ namespace FlatTraderBot
 		private _CandleStruct FindLeavingCandle(int flatNumber)
 		{
 			FlatIdentifier currentFlat = flatList[flatNumber];
-			int currentIndex = currentFlat.flatBounds.right.index + 1;
+			int currentIndex = currentFlat.bounds.right.index + 1;
 			_CandleStruct result = globalCandles[currentIndex];
-			double priceOffset = currentFlat.mean * _Constants.CloseCoeff;
+			double priceOffset = currentFlat.mean * _Constants.LeavingCoeff;
 			double flatUpperBound = currentFlat.SDH + priceOffset;
 			double flatLowerBound = currentFlat.SDL - priceOffset;
 
 			if (flatNumber == flatsOverall - 1)
 				return globalCandles[^1];
 			
-			while (result.time != flatList[flatNumber + 1].flatBounds.right.time)
+			while (result.time != flatList[flatNumber + 1].bounds.right.time)
 			{
 				result = globalCandles[currentIndex];
 				if (result.high > flatUpperBound || result.low < flatLowerBound)

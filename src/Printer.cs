@@ -26,34 +26,34 @@ namespace FlatTraderBot
         [Obsolete("Use FlatIdentifier.LogFlatProperties() instead")]
         public void OutputApertureInfo()
         {
-            logger.Trace($"Окно {flatIdentifier.flatBounds.left.date} с {flatIdentifier.flatBounds.left.time} по {flatIdentifier.flatBounds.right.time}");
+            logger.Trace($"Окно {flatIdentifier.bounds.left.date} с {flatIdentifier.bounds.left.time} по {flatIdentifier.bounds.right.time}");
             logger.Trace($"[gMin] = {flatIdentifier.gMin} [{0}]\t[gMax] = {flatIdentifier.gMax} [{1}]",  flatIdentifier.idxGmin + 1, flatIdentifier.idxGmax + 1);
             logger.Trace($"[k] = {flatIdentifier.k}");
             logger.Trace($"[mean] = {flatIdentifier.mean}");
             logger.Trace($"[candles.Count] = {flatIdentifier.candles.Count}");
             logger.Trace($"[SDMean] = {flatIdentifier.SDMean}\t[SDL] = {flatIdentifier.SDL}\t[SDH] = {flatIdentifier.SDH}");
             logger.Trace($"[Экстремумы рядом с СКО low] = {flatIdentifier.exsNearSDL}\t[Экстремумы рядом с СКО high] = {flatIdentifier.exsNearSDH}");
-            logger.Trace($"[Границы окна]: [{flatIdentifier.flatBounds.left.date}]\t[{flatIdentifier.flatBounds.right.date}]");
+            logger.Trace($"[Границы окна]: [{flatIdentifier.bounds.left.date}]\t[{flatIdentifier.bounds.right.date}]");
             
             switch (flatIdentifier.trend)
             {
                 case Direction.Down:
                 {
-                    logger.Trace($"[Ширина коридора] = {flatIdentifier.flatWidth}\t");
+                    logger.Trace($"[Ширина коридора] = {flatIdentifier.width}\t");
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия имеет сильный убывающий тренд");
                     break;
                 }
                 case Direction.Up:
                 {
-                    logger.Trace($"[Ширина коридора] = {flatIdentifier.flatWidth}\t");
+                    logger.Trace($"[Ширина коридора] = {flatIdentifier.width}\t");
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия имеет сильный возрастающий тренд\n");
                     break;
                 }
                 case Direction.Neutral:
                 {
-                    logger.Trace($"[Ширина коридора] = {flatIdentifier.flatWidth}\t");
+                    logger.Trace($"[Ширина коридора] = {flatIdentifier.width}\t");
                     logger.Trace("[Минимальная ширина коридора] = {0}", _Constants.MinWidthCoeff * flatIdentifier.mean);
                     logger.Trace("Аппроксимирующая линия почти горизонтальна. Тренд нейтральный");
                     if (flatIdentifier.isFlat)
@@ -66,7 +66,7 @@ namespace FlatTraderBot
                     break;
             }
 
-            if ((flatIdentifier.flatWidth) < (_Constants.MinWidthCoeff * flatIdentifier.mean))
+            if ((flatIdentifier.width) < (_Constants.MinWidthCoeff * flatIdentifier.mean))
             {
                 logger.Trace("Боковик слишком узок\n");
             }
@@ -80,7 +80,7 @@ namespace FlatTraderBot
                 logger.Trace("Боковики определены в: ");
                 foreach (FlatIdentifier flat in historicalFlatFinder.flatList)
                 {
-                    logger.Trace($"[{flat.flatBounds.left.date}] с [{flat.flatBounds.left.time}] по [{flat.flatBounds.right.time}]");
+                    logger.Trace($"[{flat.bounds.left.date}] с [{flat.bounds.left.time}] по [{flat.bounds.right.time}]");
                 }                            
             }
             else
