@@ -28,14 +28,9 @@ namespace FlatTraderBot
             StopLossesFinder stopLossesFinder = new StopLossesFinder(candles, ref flatList);
             stopLossesFinder.FindAndSetStopLosses();
             
-            // TakeProfitCandlesFinder takeProfitCandlesFinder = new TakeProfitCandlesFinder(candles, ref flatList);
-            // takeProfitCandlesFinder.FindTakeProfits();
-            // takeProfitCandlesFinder.RefreshTakeProfit();
-            // takeProfitCandlesFinder.GetTakeProfitStatistics();
-            
-            // BargainSimulation simulator = new BargainSimulation(candles, ref flatList);
-            // simulator.Start();
-            
+            TakeProfitsFinder takeProfitsFinder = new TakeProfitsFinder(candles, ref flatList);
+            takeProfitsFinder.FindAndSetTakeProfits();
+
             Dealer dealer = new Dealer(candles, flatList);
             dealer.SimulateDealing();
             
