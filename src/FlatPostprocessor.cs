@@ -25,13 +25,13 @@ namespace FlatTraderBot
                 FlatIdentifier currentFlat = flatList[i];
                 FlatIdentifier prevFlat    = flatList[i-1];
                 
-                bool areFlatsInTheSameDay 	   = currentFlat.flatBounds.left.date == prevFlat.flatBounds.left.date;
-                bool areFlatsTooClose 		   = currentFlat.flatBounds.left.index - prevFlat.flatBounds.right.index <= _Constants.MinFlatGap;
+                bool areFlatsInTheSameDay 	   = currentFlat.bounds.left.date == prevFlat.bounds.left.date;
+                bool areFlatsTooClose 		   = currentFlat.bounds.left.index - prevFlat.bounds.right.index <= _Constants.MinFlatGap;
                 bool areFlatsMeansRoughlyEqual = Math.Abs(currentFlat.mean - prevFlat.mean) <= _Constants.FlatsMeanOffset * (currentFlat.mean + prevFlat.mean) * 0.5;
-                bool isPrevFlatHasClosing	   = prevFlat.flatBounds.left.time != currentFlat.leavingCandle.time;
+                bool isPrevFlatHasClosing	   = prevFlat.bounds.left.time != currentFlat.leavingCandle.time;
 
-                logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.flatBounds.left.time} {prevFlat.flatBounds.right.time}] " +
-                             $"and [{currentFlat.flatBounds.left.time} {currentFlat.flatBounds.right.time}] " +
+                logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.bounds.left.time} {prevFlat.bounds.right.time}] " +
+                             $"and [{currentFlat.bounds.left.time} {currentFlat.bounds.right.time}] " +
                              $"Day = {areFlatsInTheSameDay} Distance = {areFlatsTooClose} Means = {areFlatsMeansRoughlyEqual} PrevFlatClosingAtCurrent = {isPrevFlatHasClosing}");
 
                 // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
@@ -42,15 +42,15 @@ namespace FlatTraderBot
 
 	            logger.Trace("Uniting");
                     
-                List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.flatBounds.right.index - prevFlat.flatBounds.left.index);
-                for (int j = prevFlat.flatBounds.left.index; j <= currentFlat.flatBounds.right.index; j++)
+                List<_CandleStruct> newAperture = new List<_CandleStruct>(currentFlat.bounds.right.index - prevFlat.bounds.left.index);
+                for (int j = prevFlat.bounds.left.index; j <= currentFlat.bounds.right.index; j++)
                 {
 	                newAperture.Add(globalCandles[j]);
                 }
                 FlatIdentifier newFlat = new FlatIdentifier();
                 newFlat.AssignAperture(newAperture);
                 newFlat.CalculateFlatProperties();
-                newFlat.flatBounds = newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
+                newFlat.bounds = newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
                 newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
                     
                 flatList.RemoveRange(i-1, 2);

@@ -10,7 +10,7 @@ namespace FlatTraderBot
         public const int NAperture = 50;
         
         /// <summary> Минимальное количество вершин сверху или снизу возле СКО </summary>
-        public const int MinExtremumsNearSD = 4;
+        public const int MinExtremumsNearSD = 3;
         
         /// <summary> Минимальное расстояние между боковиками, чтобы не склеивать их в один </summary>
         public const int MinFlatGap = 60;
@@ -25,13 +25,13 @@ namespace FlatTraderBot
         public const double MinWidthCoeff = 0.001125;
         
         /// <summary> Коэффициент для определения поведения тренда </summary>
-        public const double KOffset = 0.0015;
+        public const double KOffset = 0.0025;
         
         /// <summary> Возможное отклонение экстремума от линии СКО </summary>
-        public const double SDOffset = 0.0006;
+        public const double SDOffset = 0.0005; // 0.0006
         
         /// <summary> Отклонение свечи от боковика для фиксирования закрытия </summary>
-        public const double CloseCoeff = 0.0002;
+        public const double LeavingCoeff = 0.0002;
         
         /// <summary> Количество фазовых свечей, которые не нужно учитывать при вычислении уголового коэффициента </summary>
         public const double PhaseCandlesCoeff = 0.05;
@@ -41,5 +41,8 @@ namespace FlatTraderBot
         
         /// <summary> Возможное отклонение мат. ожиданий боковиков для их объединения </summary>
         public const double FlatsMeanOffset = 0.0006;
+        
+        /// <summary> Стартовый баланс робота </summary>
+        public const double InitialBalance = 100000;
     }
 }

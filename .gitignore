@@ -1,5 +1,7 @@
 *
 !src
 !src/*.cs
+!src/structs
+!src/structs/*.cs
 !README.md
 /tests_src/

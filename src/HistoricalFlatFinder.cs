@@ -19,9 +19,7 @@ namespace FlatTraderBot
             }
         }
 
-        /// <summary>
-        /// Основная функция, выполняющая поиск всех боковиков в глобальном списке свечей
-        /// </summary>
+        /// <summary> Основная функция, выполняющая поиск всех боковиков в глобальном списке свечей </summary>
         public void FindAllFlats()
         {
             // Как правило, globalIterator хранит в себе индекс начала окна во всём датасете
@@ -57,7 +55,6 @@ namespace FlatTraderBot
                         {
                             flatList.Add(flat);
                             flatsFound++;
-                            logger.Trace($"Боковик определён в [{flat.flatBounds.left.date}] с [{flat.flatBounds.left.time}] по [{flat.flatBounds.right.time}]");
                             return;
                         }
                     }
@@ -71,12 +68,13 @@ namespace FlatTraderBot
                     printer.PrintReasonsApertureIsNotFlat();
                     flatList.Add(flat);
                     flatsFound++;
-                    logger.Trace($"Боковик определён в [{flat.flatBounds.left.date}] с [{flat.flatBounds.left.time}] по [{flat.flatBounds.right.time}]");
 
                     globalIterator += aperture.Count; // Переместить итератор на следующую после найденного окна свечу
                     MoveAperture(ref globalIterator); 
                 }
             }
+
+            LogAllFlats();
         }
 
         /// <summary>
@@ -117,9 +115,7 @@ namespace FlatTraderBot
             }
         }
 
-        /// <summary>
-        /// Расширяет окно на 1 свечу
-        /// </summary>
+        /// <summary> Расширяет окно на 1 свечу </summary>
         /// <param name="i">Начальный индекс, к которому добавить (aperture.Count + 1)</param>
         /// <param name="_aperture">Окно</param>
         private void ExtendAperture(int i, ref List<_CandleStruct> _aperture)
@@ -128,25 +124,24 @@ namespace FlatTraderBot
             _aperture.Add(globalCandles[indexOfAddingCandle]);
         }
 
-        /// <summary>
-        /// Инициализация логгера
-        /// </summary>
+        private void LogAllFlats()
+        {
+            foreach (FlatIdentifier flat in flatList)
+            {
+                logger.Trace($"Флет определён в [{flat.bounds.left.date}] с [{flat.bounds.left.time}] по [{flat.bounds.right.time}]");
+            }
+            logger.Trace($"FlatsOverall: {flatsFound}");
+        }
+
+        /// <summary> Инициализация логгера </summary>
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
-        /// <summary>
-        /// Основной, глобальный список свечей
-        /// </summary>
+        /// <summary> Основной, глобальный список свечей </summary>
         private readonly List<_CandleStruct> globalCandles;
-        /// <summary>
-        /// Маленький список свечей, формирующий окно
-        /// </summary>
+        /// <summary> Маленький список свечей, формирующий окно </summary>
         private List<_CandleStruct> aperture = new List<_CandleStruct>(_Constants.NAperture);
-        /// <summary>
-        /// Сколько боковиков было найдено
-        /// </summary>
+        /// <summary> Сколько боковиков было найдено </summary>
         public int flatsFound { get; private set; }
-        /// <summary>
-        /// Список всех найденных боковиков
-        /// </summary>
+        /// <summary> Список всех найденных боковиков </summary>
         public readonly List<FlatIdentifier> flatList;
     }
 }

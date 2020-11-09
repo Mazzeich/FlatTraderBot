@@ -13,7 +13,7 @@ namespace FlatTraderBot
             List<_CandleStruct>  candles  = new List<_CandleStruct>();
             List<FlatIdentifier> flatList = new List<FlatIdentifier>();
             
-            candles = new Reader(candles).GetHistoricalData("data.csv");
+            candles = new Reader(candles).GetHistoricalData("data2020.csv");
             
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles, ref flatList);
             historicalFlatFinder.FindAllFlats();
@@ -24,13 +24,15 @@ namespace FlatTraderBot
 
             FlatClassifier flatClassifier = new FlatClassifier(candles, ref flatList);
             flatClassifier.ClassifyAllFlats();
-            TakeProfitFinder takeProfitFinder = new TakeProfitFinder(candles, ref flatList);
-            takeProfitFinder.FindTakeProfits();
-            takeProfitFinder.RefreshTakeProfit();
-            takeProfitFinder.GetTakeProfitStatistics();
             
-            BargainSimulation simulator = new BargainSimulation(candles, ref flatList);
-            simulator.Start();
+            StopLossesFinder stopLossesFinder = new StopLossesFinder(candles, ref flatList);
+            stopLossesFinder.FindAndSetStopLosses();
+            
+            TakeProfitsFinder takeProfitsFinder = new TakeProfitsFinder(candles, ref flatList);
+            takeProfitsFinder.FindAndSetTakeProfits();
+
+            Dealer dealer = new Dealer(candles, flatList);
+            dealer.SimulateDealing();
             
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();

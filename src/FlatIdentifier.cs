@@ -30,19 +30,20 @@ namespace FlatTraderBot
             logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
             
             CalculateFlatProperties();
-            
+            LogFlatProperties();
+
             if (Math.Abs(k) < _Constants.KOffset)
             {
                 trend = Direction.Neutral;
                 
                 bool isEnoughExtremumsNearSDL = exsNearSDL >= _Constants.MinExtremumsNearSD;
                 bool isEnoughExtremumsNearSDH = exsNearSDH >= _Constants.MinExtremumsNearSD;
-                bool isEnoughFlatWidth        = flatWidth  >= _Constants.MinWidthCoeff * mean;
+                bool isEnoughFlatWidth = width  >= _Constants.MinWidthCoeff * mean;
                 
                 if (isEnoughExtremumsNearSDL && isEnoughExtremumsNearSDH && isEnoughFlatWidth)
                 {
                     isFlat = true;
-                    flatBounds = SetBounds(candles[0], candles[^1]);
+                    bounds = SetBounds(candles[0], candles[^1]);
                 }
                 else
                 {
@@ -75,12 +76,11 @@ namespace FlatTraderBot
             SDMean = GetStandartDeviationMean(candles);
             SDL = mean - SDMean;
             SDH = mean + SDMean;
-            flatWidth = SDH - SDL;
+            width = (SDH + mean * _Constants.SDOffset) - (SDL - mean * _Constants.SDOffset);
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
-            
-            LogFlatProperties();
+            duration = candles[^1].index - candles[0].index;
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace FlatTraderBot
         {
             logger.Trace($"[gMin] = {gMin} [gMax] = {gMax} [mean] = {mean}");
             logger.Trace($"[Standart Deviation on mean] = {SDMean}");
-            logger.Trace($"[flatWidth] = {flatWidth}");
+            logger.Trace($"[flatWidth] = {width} [duration] = {duration}");
             logger.Trace($"[k] = {k}");
             logger.Trace($"Extremums near SDL = {exsNearSDL}\tExtremums near SDH = {exsNearSDH}");
             logger.Trace($"[maximumDeviationFromOpening] = {maximumDeviationFromOpening}");
@@ -260,7 +260,7 @@ namespace FlatTraderBot
         /// <returns></returns>
         public _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
-            _Bounds result = flatBounds;
+            _Bounds result = bounds;
             result.left = left;
             result.right = right;
             return result;
@@ -284,7 +284,7 @@ namespace FlatTraderBot
         {
             string result = "";
 
-            if ((flatWidth) < (_Constants.MinWidthCoeff * mean))
+            if ((width) < (_Constants.MinWidthCoeff * mean))
             {
                 result += "Ширина коридора.";
             }
@@ -330,11 +330,11 @@ namespace FlatTraderBot
         /// <summary>
         /// Границы начала и конца найденного боковика
         /// </summary>
-        public _Bounds flatBounds { get;  set; }
+        public _Bounds bounds { get;  set; }
         /// <summary>
         /// Ширина текущего коридора
         /// </summary>
-        public  double flatWidth { get; private set; }
+        public  double width { get; private set; }
         /// <summary>
         /// Глобальный минимум в боковике
         /// </summary>
@@ -404,10 +404,12 @@ namespace FlatTraderBot
         /// </summary>
         public _CandleStruct leavingCandle { get; set; }
         /// <summary>
-        /// Точка максимального пробоя боковика
+        /// Цена стоп-лосса при входе в сделку в этом флете
         /// </summary>
-        public _TakeProfitCandle takeProfitCandle { get; set; }
-
         public double stopLoss { get; set; }
+
+        public _TakeProfitCandle takeProfitCandle;
+        
+        public int duration { get; set; }
     }
 }
