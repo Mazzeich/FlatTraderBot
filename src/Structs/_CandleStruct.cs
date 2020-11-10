@@ -1,4 +1,4 @@
-namespace FlatTraderBot
+namespace FlatTraderBot.Structs
 {
     /// <summary>
     /// Структура свечи (index, open, high, low, close, avg, date, time)

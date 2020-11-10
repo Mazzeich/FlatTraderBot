@@ -1,4 +1,4 @@
-﻿namespace FlatTraderBot
+﻿namespace FlatTraderBot.Structs
 {
 	/// <summary>
 	/// Структура свечи дальнего пробоя после боковика

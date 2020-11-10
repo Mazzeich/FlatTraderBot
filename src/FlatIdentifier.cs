@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using FlatTraderBot.Structs;
 using NLog;
 
 namespace FlatTraderBot
