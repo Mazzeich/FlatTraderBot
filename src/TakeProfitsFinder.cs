@@ -20,8 +20,14 @@ namespace FlatTraderBot
 
 		public void FindAndSetTakeProfits()
 		{
-			for (int i = 0; i < flatsOverall;)
+			for (int i = 0; i < flatsOverall; i++)
 			{
+				if (i == flatsOverall - 1)
+				{
+					flatList[i].takeProfitCandle = default;
+					break;
+				}
+				
 				switch (flatList[i].leavingDirection)
 				{
 					case Direction.Up:
@@ -35,8 +41,6 @@ namespace FlatTraderBot
 					default:
 						throw new ArgumentOutOfRangeException();
 				}
-				if (i == flatsOverall - 1)
-					break;
 			}
 
 			LogTakeProfits();
@@ -47,16 +51,17 @@ namespace FlatTraderBot
 		private void SetTakeProfitsForUpLeavingFlats(ref int i)
 		{
 			FlatIdentifier currentFlat = flatList[i];
+			FlatIdentifier nextFlat = flatList[i + 1];
 			int flatsToOpposite = 0;
 			currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave = double.NegativeInfinity;
-			while (currentFlat.leavingDirection == flatList[i + flatsToOpposite].leavingDirection && i + flatsToOpposite < flatsOverall)
+			while (currentFlat.leavingDirection == flatList[i + flatsToOpposite].leavingDirection && i + flatsToOpposite < flatsOverall - 1)
 			{ 
 				flatsToOpposite++;
 			}
 
 			FlatIdentifier nextOppositeFlat = flatList[i + flatsToOpposite];
 
-			for (int j = currentFlat.leavingCandle.index; j < nextOppositeFlat.leavingCandle.index; j++)
+			for (int j = currentFlat.leavingCandle.index; j < nextFlat.leavingCandle.index; j++)
 			{
 				if (globalCandles[j].high - currentFlat.leavingCandle.close > currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave)
 				{
@@ -70,7 +75,6 @@ namespace FlatTraderBot
 			}
 
 			flatList[i].takeProfitCandle = currentFlat.takeProfitCandle;
-			i += flatsToOpposite;
 		}
 
 		/// <summary> Находит и устанавливает тейк-профит для флета, закрывающегося вниз на шорт </summary>
@@ -78,14 +82,15 @@ namespace FlatTraderBot
 		private void SetTakeProfitsForDownLeavingFlats(ref int i)
 		{
 			FlatIdentifier currentFlat = flatList[i];
+			FlatIdentifier nextFlat = flatList[i+1];
 			int flatsToOpposite = 0;
 			currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave = double.PositiveInfinity;
-			while (currentFlat.leavingDirection == flatList[i + flatsToOpposite].leavingDirection && i + flatsToOpposite < flatsOverall)
+			while (currentFlat.leavingDirection == flatList[i + flatsToOpposite].leavingDirection && i + flatsToOpposite < flatsOverall - 1)
 			{
 				flatsToOpposite++;
 			}
 
-			for (int j = currentFlat.leavingCandle.index; j <= flatList[i + flatsToOpposite].leavingCandle.index; j++)
+			for (int j = currentFlat.leavingCandle.index; j <= nextFlat.leavingCandle.index; j++)
 			{
 				if (globalCandles[j].low - currentFlat.leavingCandle.close < currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave)
 				{
@@ -98,7 +103,6 @@ namespace FlatTraderBot
 				}
 			}
 			flatList[i].takeProfitCandle = currentFlat.takeProfitCandle;
-			i += flatsToOpposite;
 		}
 
 		private void LogTakeProfits()
@@ -108,6 +112,22 @@ namespace FlatTraderBot
 				logger.Trace($"{flat.bounds.left.date} [{flat.bounds.left.time} {flat.bounds.right.time}] " +
 				             $"{flat.takeProfitCandle.deltaPriceTakeProfitToLeave} {flat.takeProfitCandle.distanceToLeave}");
 			}
+		}
+
+		public void LogStatistics()
+		{
+			double meanDistance = 0;
+			double meanDelta = 0;
+			int i;
+			for (i = 0; i < flatsOverall - 1; i++)
+			{
+				meanDelta += flatList[i].takeProfitCandle.deltaPriceTakeProfitToLeave;
+				meanDistance += flatList[i].takeProfitCandle.distanceToLeave;
+			}
+
+			meanDistance /= i;
+			meanDelta /= i;
+			logger.Trace($"[meanDistance] = {meanDistance} [meanDelta] = {meanDelta}");
 		}
 
 		private readonly Logger logger;

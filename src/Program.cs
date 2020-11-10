@@ -31,6 +31,7 @@ namespace FlatTraderBot
             
             TakeProfitsFinder takeProfitsFinder = new TakeProfitsFinder(candles, ref flatList);
             takeProfitsFinder.FindAndSetTakeProfits();
+            takeProfitsFinder.LogStatistics();
 
             Dealer dealer = new Dealer(candles, flatList);
             dealer.SimulateDealing();

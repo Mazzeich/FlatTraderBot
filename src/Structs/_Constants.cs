@@ -28,10 +28,10 @@ namespace FlatTraderBot.Structs
         public const double KOffset = 0.0025;
         
         /// <summary> Возможное отклонение экстремума от линии СКО </summary>
-        public const double SDOffset = 0.0005; // 0.0006
+        public const double SDOffset = 0.0005;
         
         /// <summary> Отклонение свечи от боковика для фиксирования закрытия </summary>
-        public const double LeavingCoeff = 0.0002;
+        public const double LeavingCoeff = 0.0004;
         
         /// <summary> Количество фазовых свечей, которые не нужно учитывать при вычислении уголового коэффициента </summary>
         public const double PhaseCandlesCoeff = 0.05;
@@ -44,5 +44,8 @@ namespace FlatTraderBot.Structs
         
         /// <summary> Стартовый баланс робота </summary>
         public const double InitialBalance = 100000;
+
+        /// <summary> Множитель для выставления тейк-профита на заявке </summary>
+        public const double TakeProfitPriceCoeff = 0.005;
     }
 }

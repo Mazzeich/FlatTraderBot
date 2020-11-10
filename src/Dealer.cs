@@ -34,6 +34,7 @@ namespace FlatTraderBot
 					case Direction.Up:
 						nextOppositeFlatIndex = FindNextOppositeFlatIndex(currentFlatIndex);
 						MakeLongDeal(currentFlatIndex, nextOppositeFlatIndex, ref i,  out flatsPassed);
+						flatsPassed++;
 						if (currentFlatIndex + flatsPassed == flatsOverall)
 						{
 							LogDealerInfo();
@@ -46,6 +47,7 @@ namespace FlatTraderBot
 					case Direction.Down:
 						nextOppositeFlatIndex = FindNextOppositeFlatIndex(currentFlatIndex);
 						MakeShortDeal(currentFlatIndex, nextOppositeFlatIndex, ref i, out flatsPassed);
+						flatsPassed++;
 						if (currentFlatIndex + flatsPassed == flatsOverall)
 						{
 							LogDealerInfo();
@@ -60,6 +62,8 @@ namespace FlatTraderBot
 			LogDealerInfo();
 		}
 		
+		/// <summary> Функция находит свечу выхода из первого вреченного флета </summary>
+		/// <returns>Объект свечи</returns>
 		private _CandleStruct FindFirstLeavingFlatCandle()
 		{
 			for (int i = 0; i < globalCandlesOverall; i++)
@@ -84,6 +88,9 @@ namespace FlatTraderBot
 			return deal;
 		}
 
+		/// <summary> Функция находит индекс первого флета, закрывшегося в противоположную сторону от текущего </summary>
+		/// <param name="currentFlatIndex">Индекс текущего флета</param>
+		/// <returns>Индекс следующего закрывшегося в другую сторону флета</returns>
 		private int FindNextOppositeFlatIndex(int currentFlatIndex)
 		{
 			for (int i = currentFlatIndex + 1; i < flatsOverall; i++)
@@ -105,16 +112,26 @@ namespace FlatTraderBot
 			BuyOnPrice(currentFlat.leavingCandle.close);
 			deal.type = 'L';
 			deal.OpenCandle = currentFlat.leavingCandle;
-			while (globalCandles[currentFlat.leavingCandle.index + localIterator].low > currentFlat.stopLoss &&
-			       currentFlat.leavingCandle.index + localIterator < nextOppositeFlat.leavingCandle.index)
+			bool stopLossNotTriggered = true;
+			bool notEndOfDeal = true;
+			bool takeProfitNotTriggered = true;
+			while (stopLossNotTriggered && notEndOfDeal && takeProfitNotTriggered)
 			{
+				if (currentFlatIndex + flatsPassed == flatsOverall - 1)
+				{
+					break;
+				}
 				FlatIdentifier nextFlat = flatList[currentFlatIndex + flatsPassed + 1];
 				if (currentFlat.leavingCandle.index + localIterator == nextFlat.leavingCandle.index)
 				{
 					// currentFlat.stopLoss = nextFlat.stopLoss;
 					flatsPassed++;
 				}
+
 				localIterator++;
+				stopLossNotTriggered = globalCandles[currentFlat.leavingCandle.index + localIterator].low > currentFlat.stopLoss;
+				notEndOfDeal = currentFlat.leavingCandle.index + localIterator < nextOppositeFlat.leavingCandle.index;
+				takeProfitNotTriggered = globalCandles[currentFlat.leavingCandle.index + localIterator].high < currentFlat.leavingCandle.close + currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave;
 			}
 			SellOnPrice(globalCandles[currentFlat.leavingCandle.index + localIterator].close);
 			deal.profit = balanceAccount - balanceBeforeDeal;
@@ -122,9 +139,8 @@ namespace FlatTraderBot
 			SetLeastAndMostProfitableDeals(deal);
 			dealsList.Add(deal);
 			i += localIterator;
-			flatsPassed++;
 		}
-		
+
 		private void MakeShortDeal(int currentFlatIndex, int nextOppositeFlatIndex, ref int i, out int flatsPassed)
 		{
 			flatsPassed = 0;
@@ -136,16 +152,26 @@ namespace FlatTraderBot
 			SellOnPrice(currentFlat.leavingCandle.close);
 			deal.type = 'S';
 			deal.OpenCandle = currentFlat.leavingCandle;
-			while (globalCandles[currentFlat.leavingCandle.index + localIterator].high < currentFlat.stopLoss &&
-			       currentFlat.leavingCandle.index + localIterator < nextOppositeFlat.leavingCandle.index)
+			bool stopLossNotTriggered = true;
+			bool notEndOfDeal = true;
+			bool takeProfitNotTriggered = true;
+			while (stopLossNotTriggered && notEndOfDeal && takeProfitNotTriggered)
 			{
+				if (currentFlatIndex + flatsPassed == flatsOverall - 1)
+				{
+					break;
+				}
 				FlatIdentifier nextFlat = flatList[currentFlatIndex + flatsPassed + 1];
 				if (currentFlat.leavingCandle.index + localIterator == nextFlat.leavingCandle.index)
 				{
 					// currentFlat.stopLoss = nextFlat.stopLoss;
 					flatsPassed++;
 				}
+
 				localIterator++;
+				stopLossNotTriggered = globalCandles[currentFlat.leavingCandle.index + localIterator].high < currentFlat.stopLoss;
+				notEndOfDeal = currentFlat.leavingCandle.index + localIterator < nextOppositeFlat.leavingCandle.index;
+				takeProfitNotTriggered = globalCandles[currentFlat.leavingCandle.index + localIterator].low > currentFlat.leavingCandle.close - currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave;
 			}
 			BuyOnPrice(globalCandles[currentFlat.leavingCandle.index + localIterator].close);
 			deal.profit = balanceAccount - balanceBeforeDeal;
@@ -153,7 +179,6 @@ namespace FlatTraderBot
 			SetLeastAndMostProfitableDeals(deal);
 			dealsList.Add(deal);
 			i += localIterator;
-			flatsPassed++;
 		}
 		
 		private void SellOnPrice(double price)
