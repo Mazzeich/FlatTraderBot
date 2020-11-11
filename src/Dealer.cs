@@ -112,10 +112,8 @@ namespace FlatTraderBot
 			BuyOnPrice(currentFlat.leavingCandle.close);
 			deal.type = 'L';
 			deal.OpenCandle = currentFlat.leavingCandle;
-			bool stopLossNotTriggered = true;
-			bool notEndOfDeal = true;
-			bool takeProfitNotTriggered = true;
-			while (stopLossNotTriggered && notEndOfDeal && takeProfitNotTriggered)
+			bool isClosingLongDealTriggered = false;
+			while (!isClosingLongDealTriggered && currentFlat.leavingCandle.index + localIterator < globalCandles[^1].index)
 			{
 				if (currentFlatIndex + flatsPassed == flatsOverall - 1)
 				{
@@ -129,9 +127,7 @@ namespace FlatTraderBot
 				}
 
 				localIterator++;
-				stopLossNotTriggered = globalCandles[currentFlat.leavingCandle.index + localIterator].low > currentFlat.stopLoss;
-				notEndOfDeal = currentFlat.leavingCandle.index + localIterator < nextOppositeFlat.leavingCandle.index;
-				takeProfitNotTriggered = globalCandles[currentFlat.leavingCandle.index + localIterator].high < currentFlat.leavingCandle.close + currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave;
+				isClosingLongDealTriggered = IsClosingLongDealTriggered(globalCandles[currentFlat.leavingCandle.index + localIterator], currentFlat, nextOppositeFlat);
 			}
 			SellOnPrice(globalCandles[currentFlat.leavingCandle.index + localIterator].close);
 			deal.profit = balanceAccount - balanceBeforeDeal;
@@ -152,10 +148,8 @@ namespace FlatTraderBot
 			SellOnPrice(currentFlat.leavingCandle.close);
 			deal.type = 'S';
 			deal.OpenCandle = currentFlat.leavingCandle;
-			bool stopLossNotTriggered = true;
-			bool notEndOfDeal = true;
-			bool takeProfitNotTriggered = true;
-			while (stopLossNotTriggered && notEndOfDeal && takeProfitNotTriggered)
+			bool isClosingShortDealTriggered = false;
+			while (!isClosingShortDealTriggered && currentFlat.leavingCandle.index + localIterator < globalCandles[^1].index)
 			{
 				if (currentFlatIndex + flatsPassed == flatsOverall - 1)
 				{
@@ -169,9 +163,7 @@ namespace FlatTraderBot
 				}
 
 				localIterator++;
-				stopLossNotTriggered = globalCandles[currentFlat.leavingCandle.index + localIterator].high < currentFlat.stopLoss;
-				notEndOfDeal = currentFlat.leavingCandle.index + localIterator < nextOppositeFlat.leavingCandle.index;
-				takeProfitNotTriggered = globalCandles[currentFlat.leavingCandle.index + localIterator].low > currentFlat.leavingCandle.close - currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave;
+				isClosingShortDealTriggered = IsClosingShortDealTriggered(globalCandles[currentFlat.leavingCandle.index + localIterator], currentFlat, nextOppositeFlat);
 			}
 			BuyOnPrice(globalCandles[currentFlat.leavingCandle.index + localIterator].close);
 			deal.profit = balanceAccount - balanceBeforeDeal;
@@ -179,6 +171,41 @@ namespace FlatTraderBot
 			SetLeastAndMostProfitableDeals(deal);
 			dealsList.Add(deal);
 			i += localIterator;
+		}
+
+		private bool IsClosingShortDealTriggered(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
+		{
+			return IsShortStopLossTriggered(currentCandle, currentFlat) || IsShortTakeProfitTriggered(currentCandle, currentFlat) || IsDealExpired(currentCandle, currentFlat, nextOppositeFlat);
+		}
+
+		private bool IsClosingLongDealTriggered(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
+		{
+			return IsLongStopLossTriggered(currentCandle, currentFlat) || IsLongTakeProfitTriggered(currentCandle, currentFlat) || IsDealExpired(currentCandle, currentFlat, nextOppositeFlat);
+		}
+
+		private bool IsShortStopLossTriggered(_CandleStruct candle, FlatIdentifier flat)
+		{
+			return candle.high >= flat.stopLoss;
+		}
+		
+		private bool IsLongStopLossTriggered(_CandleStruct candle, FlatIdentifier flat)
+		{
+			return candle.low <= flat.stopLoss;
+		}
+
+		private bool IsShortTakeProfitTriggered(_CandleStruct candle, FlatIdentifier flat)
+		{
+			return candle.low <= flat.leavingCandle.close - flat.mean * _Constants.TakeProfitPriceCoeff;
+		}
+		
+		private bool IsLongTakeProfitTriggered(_CandleStruct candle, FlatIdentifier flat)
+		{
+			return candle.high >= flat.leavingCandle.close + flat.mean * _Constants.TakeProfitPriceCoeff;
+		}
+
+		private bool IsDealExpired(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
+		{
+			return currentCandle.index == nextOppositeFlat.leavingCandle.index;
 		}
 		
 		private void SellOnPrice(double price)
