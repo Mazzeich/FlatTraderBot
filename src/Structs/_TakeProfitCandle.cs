@@ -1,21 +1,21 @@
 ﻿namespace FlatTraderBot.Structs
 {
 	/// <summary>
-	/// Структура свечи дальнего пробоя после боковика
+	/// Структура тейк-профита флета (используется для сбора статистики)
 	/// </summary>
 	public struct _TakeProfitCandle
 	{
 		/// <summary>
-		/// Сама свеча пробоя
+		/// Свеча тейк-профита
 		/// </summary>
 		public _CandleStruct candle;
 		/// <summary>
 		/// Расстояние в свечах между свечой закрытия и самой свечой пробоя
 		/// </summary>
-		public int distanceToLeave;
+		public int deltaDistance;
 		/// <summary>
 		/// Разница в цене между ценой закрытия свечи закрытия боковика и самой свечой пробоя
 		/// </summary>
-		public double deltaPriceTakeProfitToLeave;
+		public double deltaPrice;
 	}
 }

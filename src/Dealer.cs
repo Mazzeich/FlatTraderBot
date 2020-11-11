@@ -78,16 +78,6 @@ namespace FlatTraderBot
 			return default;
 		}
 
-		private _DealStruct InitializeDeal()
-		{
-			_DealStruct deal;
-			deal.profit = default;
-			deal.type = default;
-			deal.OpenCandle = default;
-			deal.CloseCandle = default;
-			return deal;
-		}
-
 		/// <summary> Функция находит индекс первого флета, закрывшегося в противоположную сторону от текущего </summary>
 		/// <param name="currentFlatIndex">Индекс текущего флета</param>
 		/// <returns>Индекс следующего закрывшегося в другую сторону флета</returns>
@@ -122,7 +112,7 @@ namespace FlatTraderBot
 				FlatIdentifier nextFlat = flatList[currentFlatIndex + flatsPassed + 1];
 				if (currentFlat.leavingCandle.index + localIterator == nextFlat.leavingCandle.index)
 				{
-					// currentFlat.stopLoss = nextFlat.stopLoss;
+					currentFlat.stopLoss = nextFlat.stopLoss;
 					flatsPassed++;
 				}
 
@@ -158,7 +148,7 @@ namespace FlatTraderBot
 				FlatIdentifier nextFlat = flatList[currentFlatIndex + flatsPassed + 1];
 				if (currentFlat.leavingCandle.index + localIterator == nextFlat.leavingCandle.index)
 				{
-					// currentFlat.stopLoss = nextFlat.stopLoss;
+					currentFlat.stopLoss = nextFlat.stopLoss;
 					flatsPassed++;
 				}
 
@@ -259,8 +249,9 @@ namespace FlatTraderBot
 			{
 				if (deal.profit > 0)
 					profitDeals++;
-				else
+				else if (deal.profit < 0)
 					lossDeals++;
+				else nonProfitDeals++;
 			}
 		}
 		
@@ -274,7 +265,7 @@ namespace FlatTraderBot
 		
 		private void LogDealsConclusion()
 		{
-			logger.Trace($"[DEALS];{profitDeals};{lossDeals}");
+			logger.Trace($"[DEALS];{profitDeals};{lossDeals};{nonProfitDeals}");
 			logger.Trace($"Most profit;" +
 			             $"[{mostProfitDeal.OpenCandle.date}];[{mostProfitDeal.OpenCandle.time}]" +
 			             $";[{mostProfitDeal.CloseCandle.date}];[{mostProfitDeal.CloseCandle.time}];" +
@@ -284,6 +275,7 @@ namespace FlatTraderBot
 			             $";[{leastProfitDeal.CloseCandle.date}];[{leastProfitDeal.CloseCandle.time}];" +
 			             $"{leastProfitDeal.profit};{mostProfitDeal.type}");
 			logger.Trace($"[balance] = {balanceAccount} RUB");
+			Console.WriteLine($"{profitDeals} {lossDeals} {balanceAccount} {leastProfitDeal.profit} {mostProfitDeal.profit}");
 		}
 
 		private readonly Logger logger;
@@ -294,6 +286,7 @@ namespace FlatTraderBot
 		private readonly int flatsOverall;
 		private int profitDeals;
 		private int lossDeals;
+		private int nonProfitDeals;
 		private double balanceAccount;
 		private _DealStruct mostProfitDeal;
 		private _DealStruct leastProfitDeal;

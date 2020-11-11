@@ -31,7 +31,6 @@ namespace FlatTraderBot
             logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
             
             CalculateFlatProperties();
-            LogFlatProperties();
 
             if (Math.Abs(k) < _Constants.KOffset)
             {
@@ -62,13 +61,12 @@ namespace FlatTraderBot
                 trend = Direction.Up;
                 CutAperture();
             }
+            LogFlatProperties();
 
             logger.Trace($"isFlat = {isFlat}\n------------------------------------");
         }
 
-        /// <summary>
-        /// Функция вычислет все поля класса
-        /// </summary>
+        /// <summary> Функция вычислет все поля класса </summary>
         public void CalculateFlatProperties()
         {
             gMin = GetGlobalMinimum(candles);
@@ -77,16 +75,16 @@ namespace FlatTraderBot
             SDMean = GetStandartDeviationMean(candles);
             SDL = mean - SDMean;
             SDH = mean + SDMean;
-            width = (SDH + mean * _Constants.SDOffset) - (SDL - mean * _Constants.SDOffset);
+            upperBound = SDH + mean * _Constants.SDOffset;
+            lowerBound = SDL - mean * _Constants.SDOffset;
+            width = upperBound - lowerBound;
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
             duration = candles[^1].index - candles[0].index;
         }
 
-        /// <summary>
-        /// Функция находит глобальный минимум окна
-        /// </summary>
+        /// <summary> Функция находит глобальный минимум окна </summary>
         /// <param name="candleStructs">Список свечей окна</param>
         private double GetGlobalMinimum(IReadOnlyList<_CandleStruct> candleStructs)
         {
@@ -99,13 +97,10 @@ namespace FlatTraderBot
                     idxGmin = i;
                 }
             }
-
             return result;
         }
 
-        /// <summary>
-        /// Функция находит глобальный максимум окна
-        /// </summary>
+        /// <summary> Функция находит глобальный максимум окна </summary>
         /// <param name="candleStructs">Список свечей окна</param>
         private double GetGlobalMaximum(IReadOnlyList<_CandleStruct> candleStructs)
         {
@@ -118,13 +113,10 @@ namespace FlatTraderBot
                     idxGmax = i;
                 }
             }
-
             return result;
         }
 
-        /// <summary>
-        /// Функция находит мат. ожидание окна
-        /// </summary>
+        /// <summary> Функция находит мат. ожидание окна </summary>
         /// <param name="candleStructs">Список свечей окна</param>
         private double GetMean(IReadOnlyList<_CandleStruct> candleStructs)
         {
@@ -137,9 +129,7 @@ namespace FlatTraderBot
             return result;
         }
 
-        /// <summary>
-        /// Функция поиска угла наклона аппроксимирующей прямой
-        /// </summary>
+        /// <summary> Функция поиска угла наклона аппроксимирующей прямой </summary>
         /// <returns>Угловой коэффициент аппроксимирующей прямой</returns>
         private double FindK(IReadOnlyList<_CandleStruct> candleStructs)
         {
@@ -167,9 +157,7 @@ namespace FlatTraderBot
             return result;
         }
 
-        /// <summary>
-        /// Функция вычисляет СКО окна по avg всех свечей
-        /// </summary>
+        /// <summary> Функция вычисляет СКО окна по avg всех свечей </summary>
         /// <returns></returns>
         private double GetStandartDeviationMean(IReadOnlyList<_CandleStruct> candleStructs)
         {
@@ -182,9 +170,7 @@ namespace FlatTraderBot
             return result;
         }
 
-        /// <summary>
-        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по лоу
-        /// </summary>
+        /// <summary> Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по лоу </summary>
         /// <param name="candleStructs"></param>
         /// <returns>Количество экстремумов возле СКО лоу</returns>
         private int EstimateExtremumsNearSDL(IList<_CandleStruct> candleStructs)
@@ -248,6 +234,7 @@ namespace FlatTraderBot
             logger.Trace($"[gMin] = {gMin} [gMax] = {gMax} [mean] = {mean}");
             logger.Trace($"[Standart Deviation on mean] = {SDMean}");
             logger.Trace($"[flatWidth] = {width} [duration] = {duration}");
+            logger.Trace($"[lowerBound] = {lowerBound} [upperBound] = {upperBound}");
             logger.Trace($"[k] = {k}");
             logger.Trace($"Extremums near SDL = {exsNearSDL}\tExtremums near SDH = {exsNearSDH}");
             logger.Trace($"[maximumDeviationFromOpening] = {maximumDeviationFromOpening}");
@@ -369,6 +356,14 @@ namespace FlatTraderBot
         /// </summary>
         public double SDH { get; private set; }
         /// <summary>
+        /// Нижняя граница флета (цена)
+        /// </summary>
+        public double lowerBound { get; private set; }
+        /// <summary>
+        /// Верхняя граница флета (цена)
+        /// </summary>
+        public double upperBound { get; private set; }
+        /// <summary>
         /// Среднеквадратическое отклонение в боковике
         /// </summary>
         public double SDMean { get; private set; }
@@ -410,7 +405,7 @@ namespace FlatTraderBot
         public double stopLoss { get; set; }
 
         public _TakeProfitCandle takeProfitCandle;
-        
-        public int duration { get; set; }
+
+        private int duration { get; set; }
     }
 }

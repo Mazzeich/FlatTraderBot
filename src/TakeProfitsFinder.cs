@@ -53,7 +53,7 @@ namespace FlatTraderBot
 			FlatIdentifier currentFlat = flatList[i];
 			FlatIdentifier nextFlat = flatList[i + 1];
 			int flatsToOpposite = 0;
-			currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave = double.NegativeInfinity;
+			currentFlat.takeProfitCandle.deltaPrice = double.NegativeInfinity;
 			while (currentFlat.leavingDirection == flatList[i + flatsToOpposite].leavingDirection && i + flatsToOpposite < flatsOverall - 1)
 			{ 
 				flatsToOpposite++;
@@ -63,18 +63,19 @@ namespace FlatTraderBot
 
 			for (int j = currentFlat.leavingCandle.index; j < nextFlat.leavingCandle.index; j++)
 			{
-				if (globalCandles[j].high - currentFlat.leavingCandle.close > currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave)
+				if (globalCandles[j].high - currentFlat.leavingCandle.close > currentFlat.takeProfitCandle.deltaPrice)
 				{
 					_TakeProfitCandle takeProfit;
 					takeProfit.candle = globalCandles[j];
-					takeProfit.distanceToLeave = globalCandles[j].index - currentFlat.leavingCandle.index;
-					takeProfit.deltaPriceTakeProfitToLeave = Math.Abs(globalCandles[j].high - currentFlat.leavingCandle.close);
+					takeProfit.deltaDistance = globalCandles[j].index - currentFlat.leavingCandle.index;
+					takeProfit.deltaPrice = Math.Abs(globalCandles[j].high - currentFlat.leavingCandle.close);
 					
 					currentFlat.takeProfitCandle = takeProfit;
 				}
 			}
 
 			flatList[i].takeProfitCandle = currentFlat.takeProfitCandle;
+			i += flatsToOpposite;
 		}
 
 		/// <summary> Находит и устанавливает тейк-профит для флета, закрывающегося вниз на шорт </summary>
@@ -84,7 +85,7 @@ namespace FlatTraderBot
 			FlatIdentifier currentFlat = flatList[i];
 			FlatIdentifier nextFlat = flatList[i+1];
 			int flatsToOpposite = 0;
-			currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave = double.PositiveInfinity;
+			currentFlat.takeProfitCandle.deltaPrice = double.PositiveInfinity;
 			while (currentFlat.leavingDirection == flatList[i + flatsToOpposite].leavingDirection && i + flatsToOpposite < flatsOverall - 1)
 			{
 				flatsToOpposite++;
@@ -92,17 +93,18 @@ namespace FlatTraderBot
 
 			for (int j = currentFlat.leavingCandle.index; j <= nextFlat.leavingCandle.index; j++)
 			{
-				if (globalCandles[j].low - currentFlat.leavingCandle.close < currentFlat.takeProfitCandle.deltaPriceTakeProfitToLeave)
+				if (globalCandles[j].low - currentFlat.leavingCandle.close < currentFlat.takeProfitCandle.deltaPrice)
 				{
 					_TakeProfitCandle takeProfit;
 					takeProfit.candle = globalCandles[j];
-					takeProfit.distanceToLeave = globalCandles[j].index - currentFlat.leavingCandle.index;
-					takeProfit.deltaPriceTakeProfitToLeave = Math.Abs(currentFlat.leavingCandle.close - globalCandles[j].low);
+					takeProfit.deltaDistance = globalCandles[j].index - currentFlat.leavingCandle.index;
+					takeProfit.deltaPrice = Math.Abs(currentFlat.leavingCandle.close - globalCandles[j].low);
 
 					currentFlat.takeProfitCandle = takeProfit;
 				}
 			}
 			flatList[i].takeProfitCandle = currentFlat.takeProfitCandle;
+			i += flatsToOpposite;
 		}
 
 		private void LogTakeProfits()
@@ -110,24 +112,31 @@ namespace FlatTraderBot
 			foreach (FlatIdentifier flat in flatList)
 			{
 				logger.Trace($"{flat.bounds.left.date} [{flat.bounds.left.time} {flat.bounds.right.time}] " +
-				             $"{flat.takeProfitCandle.deltaPriceTakeProfitToLeave} {flat.takeProfitCandle.distanceToLeave}");
+				             $"{flat.takeProfitCandle.deltaPrice} {flat.takeProfitCandle.deltaDistance}");
 			}
 		}
 
 		public void LogStatistics()
 		{
-			double meanDistance = 0;
-			double meanDelta = 0;
-			int i;
-			for (i = 0; i < flatsOverall - 1; i++)
+			double meanDeltaDistance = 0;
+			double meanDeltaPrice = 0;
+			int i = -1;
+			/*for (i = 0; i < flatsOverall - 1; i++)
 			{
-				meanDelta += flatList[i].takeProfitCandle.deltaPriceTakeProfitToLeave;
-				meanDistance += flatList[i].takeProfitCandle.distanceToLeave;
+				meanDeltaPrice += flatList[i].takeProfitCandle.deltaPrice;
+				meanDeltaDistance += flatList[i].takeProfitCandle.deltaDistance;
+			}*/
+
+			foreach (FlatIdentifier flat in flatList.Where(flat => flat.takeProfitCandle.deltaPrice != 0))
+			{
+				meanDeltaPrice += flat.takeProfitCandle.deltaPrice;
+				meanDeltaDistance += flat.takeProfitCandle.deltaDistance;
+				i++;
 			}
 
-			meanDistance /= i;
-			meanDelta /= i;
-			logger.Trace($"[meanDistance] = {meanDistance} [meanDelta] = {meanDelta}");
+			meanDeltaDistance /= i;
+			meanDeltaPrice /= i;
+			logger.Trace($"[meanDistance] = {meanDeltaDistance} [meanDelta] = {meanDeltaPrice}");
 		}
 
 		private readonly Logger logger;

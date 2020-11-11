@@ -24,10 +24,10 @@ namespace FlatTraderBot
 				switch (flat.leavingDirection)
 				{
 					case Direction.Down:
-						flat.stopLoss = flat.mean - flat.leavingCandle.close + flat.mean;
+						flat.stopLoss = flat.upperBound + flat.mean * _Constants.LeavingCoeff;
 						break;
 					case Direction.Up:
-						flat.stopLoss = flat.mean + flat.mean - flat.leavingCandle.close;
+						flat.stopLoss = flat.lowerBound - flat.mean * _Constants.LeavingCoeff;
 						break;
 					case Direction.Neutral:
 						break;
@@ -46,9 +46,9 @@ namespace FlatTraderBot
 			}
 		}
 
-		private Logger logger;
+		private readonly Logger logger;
 		private List<_CandleStruct> globalCandles;
-		private List<FlatIdentifier> flatList;
+		private readonly List<FlatIdentifier> flatList;
 		private int flatsOverall;
 	}
 }
