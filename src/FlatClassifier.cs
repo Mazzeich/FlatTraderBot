@@ -92,6 +92,7 @@ namespace FlatTraderBot
 		{
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
 			Direction result = closestExtremum.avg > flat.mean ? Direction.Up : Direction.Down;
+			flat.formedFrom = result;
 			return result;
 		}
 
