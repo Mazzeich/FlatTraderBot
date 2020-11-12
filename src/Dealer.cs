@@ -321,7 +321,8 @@ namespace FlatTraderBot
 		/// </summary>
 		private void LogAllDeals()
 		{
-			foreach (_DealStruct d in dealsList)
+			List<_DealStruct> sortedDeals = dealsList.OrderByDescending(x => x.profit).ToList();
+			foreach (_DealStruct d in sortedDeals)
 			{
 				logger.Trace($"[{d.OpenCandle.date}];[{d.OpenCandle.time}];[{d.CloseCandle.date}];[{d.CloseCandle.time}];{d.type};{d.profit}");
 			}
