@@ -19,10 +19,10 @@ namespace FlatTraderBot.Structs
         public const int MaxFlatLeftExtremumDistance = 100;
         
         /// <summary> Сколько активов участвует в одной сделке </summary>
-        public const int NumberOfAssetsForDeal = 100;
+        public const int NumberOfAssetsForDeal = 1;
         
         /// <summary> Минимальная ширина коридора (коэфф. от цены инструмента) </summary>
-        public const double MinWidthCoeff = 0.001125;
+        public const double MinWidthCoeff = 0.0025;
         
         /// <summary> Коэффициент для определения поведения тренда </summary>
         public const double KOffset = 0.0025;
@@ -40,9 +40,9 @@ namespace FlatTraderBot.Structs
         public const double FlatsMeanOffset = 0.0006;
         
         /// <summary> Стартовый баланс робота </summary>
-        public const double InitialBalance = 100000;
+        public const double InitialBalance = 1000;
 
         /// <summary> Множитель для выставления тейк-профита на заявке </summary>
-        public const double TakeProfitPriceCoeff = 0.005; //0.005
+        public const double TakeProfitPriceCoeff = 0.005; 
     }
 }
