@@ -164,41 +164,91 @@ namespace FlatTraderBot
 			i += localIterator;
 		}
 
+		/// <summary> Проверка срабатывания условий для выхода из открытой сделки в шорте </summary>
+		/// <param name="currentCandle">Текущая свеча</param>
+		/// <param name="currentFlat">Флет, на которой была открыта сделка</param>
+		/// <param name="nextOppositeFlat">Следующий флет, закрывшийся в противоположную сторону</param>
+		/// <returns>Сработало ли одно из условий выхода из сделки</returns>
 		private bool IsClosingShortDealTriggered(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
 		{
-			return IsShortStopLossTriggered(currentCandle, currentFlat) || IsShortTakeProfitTriggered(currentCandle, currentFlat) || IsDealExpired(currentCandle, currentFlat, nextOppositeFlat);
+			return IsShortStopLossTriggered(currentCandle, currentFlat) ||
+			       IsShortTakeProfitTriggered(currentCandle, currentFlat) ||
+			       IsDealExpired(currentCandle, currentFlat, nextOppositeFlat) ||
+			       IsEndOfDay(currentCandle);
 		}
 
+		/// <summary> Проверка срабатывания условий для выхода из открытой сделки в лонге </summary>
+		/// <param name="currentCandle">Текущая свеча</param>
+		/// <param name="currentFlat">Флет, на которой была открыта сделка</param>
+		/// <param name="nextOppositeFlat">Следующий флет, закрывшийся в противоположную сторону</param>
+		/// <returns>Сработало ли одно из условий выхода из сделки</returns>
 		private bool IsClosingLongDealTriggered(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
 		{
-			return IsLongStopLossTriggered(currentCandle, currentFlat) || IsLongTakeProfitTriggered(currentCandle, currentFlat) || IsDealExpired(currentCandle, currentFlat, nextOppositeFlat);
+			return IsLongStopLossTriggered(currentCandle, currentFlat) ||
+			       IsLongTakeProfitTriggered(currentCandle, currentFlat) ||
+			       IsDealExpired(currentCandle, currentFlat, nextOppositeFlat) ||
+			       IsEndOfDay(currentCandle);
 		}
 
+		/// <summary> УСЛОВИЕ <br/> Сработал стоп-лосс по шорту
+		/// </summary>
+		/// <param name="candle">Текущая свеча</param>
+		/// <param name="flat">Стоп-лосс флета</param>
+		/// <returns>Сработало ли условие</returns>
 		private bool IsShortStopLossTriggered(_CandleStruct candle, FlatIdentifier flat)
 		{
 			return candle.high >= flat.stopLoss;
 		}
 		
+		/// <summary> УСЛОВИЕ <br/> Сработал стоп-лосс по лонгу
+		/// </summary>
+		/// <param name="candle">Текущая свеча</param>
+		/// <param name="flat">Стоп-лосс флета</param>
+		/// <returns>Сработало ли условие</returns>
 		private bool IsLongStopLossTriggered(_CandleStruct candle, FlatIdentifier flat)
 		{
 			return candle.low <= flat.stopLoss;
 		}
 
+		/// <summary> УСЛОВИЕ <br/> Сработал тейк-профит по шорту </summary>
+		/// <param name="candle">Текущая свеча</param>
+		/// <param name="flat">Стоп-лосс флета</param>
+		/// <returns>Сработало ли условие</returns>
 		private bool IsShortTakeProfitTriggered(_CandleStruct candle, FlatIdentifier flat)
 		{
 			return candle.low <= flat.leavingCandle.close - flat.mean * _Constants.TakeProfitPriceCoeff;
 		}
 		
+		/// <summary> УСЛОВИЕ <br/> Сработал тейк-профит по шорту </summary>
+		/// <param name="candle">Текущая свеча</param>
+		/// <param name="flat">Стоп-лосс флета</param>
+		/// <returns>Сработало ли условие</returns>
 		private bool IsLongTakeProfitTriggered(_CandleStruct candle, FlatIdentifier flat)
 		{
 			return candle.high >= flat.leavingCandle.close + flat.mean * _Constants.TakeProfitPriceCoeff;
 		}
 
+		/// <summary> УСЛОВИЕ <br/> Дошли до следующего противоположного флета </summary>
+		/// <param name="currentCandle">Текущая свеча</param>
+		/// <param name="currentFlat">Текущий флет</param>
+		/// <param name="nextOppositeFlat">Следующий противоположный флет</param>
+		/// <returns>Сработало ли условие</returns>
 		private bool IsDealExpired(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
 		{
 			return currentCandle.index == nextOppositeFlat.leavingCandle.index;
 		}
+
+		/// <summary> УСЛОВИЕ <br/> Дошли до конца торгового дня </summary>
+		/// <param name="currentCandle">Текущая свеча</param>
+		/// <returns>Сработало ли условие</returns>
+		private bool IsEndOfDay(_CandleStruct currentCandle)
+		{
+			return false;
+			return currentCandle.intradayIndex >= 510;
+		}
 		
+		/// <summary> Совершить продажу по цене </summary>
+		/// <param name="price">цена</param>
 		private void SellOnPrice(double price)
 		{
 			try
@@ -212,6 +262,8 @@ namespace FlatTraderBot
 			}
 		}
 
+		/// <summary> Совершить покупку поцене </summary>
+		/// <param name="price">Цена</param>
 		private void BuyOnPrice(double price)
 		{
 			try
@@ -225,6 +277,8 @@ namespace FlatTraderBot
 			}
 		}
 		
+		/// <summary> Установка самой прибыльной и самой убыточной сделки </summary>
+		/// <param name="deal">Объект сделки</param>
 		private void SetLeastAndMostProfitableDeals(_DealStruct deal)
 		{
 			if (deal.profit > mostProfitDeal.profit)
@@ -237,6 +291,9 @@ namespace FlatTraderBot
 			}
 		}
 
+		/// <summary>
+		/// Вызов функций логгирования по сделкам
+		/// </summary>
 		private void LogDealerInfo()
 		{
 			CountProfitLossDeals();
@@ -244,6 +301,9 @@ namespace FlatTraderBot
 			LogDealsConclusion();
 		}
 		
+		/// <summary>
+		/// Подсчёт количества прибыльных, убыточных и нулевых сделок
+		/// </summary>
 		private void CountProfitLossDeals()
 		{
 			foreach (_DealStruct deal in dealsList)
@@ -256,6 +316,9 @@ namespace FlatTraderBot
 			}
 		}
 		
+		/// <summary>
+		/// Логгирование информации по всем сделкам
+		/// </summary>
 		private void LogAllDeals()
 		{
 			foreach (_DealStruct d in dealsList)
@@ -264,6 +327,9 @@ namespace FlatTraderBot
 			}
 		}
 		
+		/// <summary>
+		/// Логгирование ключевых параметров статистики
+		/// </summary>
 		private void LogDealsConclusion()
 		{
 			logger.Trace($"[DEALS];{profitDeals};{lossDeals};{nonProfitDeals}");

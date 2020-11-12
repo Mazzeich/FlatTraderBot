@@ -392,6 +392,10 @@ namespace FlatTraderBot
         /// </summary>
         private double maximumDeviationFromOpening { get; set; }
         /// <summary>
+        /// С какой стороны сформировался флет
+        /// </summary>
+        public Direction formedFrom { get; set; }
+        /// <summary>
         /// В какую сторону закрылся боковик
         /// </summary>
         public Direction leavingDirection { get; set; }
@@ -403,9 +407,13 @@ namespace FlatTraderBot
         /// Цена стоп-лосса при входе в сделку в этом флете
         /// </summary>
         public double stopLoss { get; set; }
-
+        /// <summary>
+        /// Свеча тейк-профита
+        /// </summary>
         public _TakeProfitCandle takeProfitCandle;
-
+        /// <summary>
+        /// Длительность бокового движения (в свечах)
+        /// </summary>
         private int duration { get; set; }
     }
 }
