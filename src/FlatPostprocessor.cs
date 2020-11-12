@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using FlatTraderBot.Structs;
-using NLog;
 
 namespace FlatTraderBot
 {

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using FlatTraderBot.Structs;
+﻿using FlatTraderBot.Structs;
 using NLog;
+using System;
+using System.Collections.Generic;
 
 namespace FlatTraderBot
 {

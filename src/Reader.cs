@@ -1,10 +1,10 @@
+using CsvHelper;
+using FlatTraderBot.Structs;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using CsvHelper;
-using FlatTraderBot.Structs;
-using NLog;
 
 namespace FlatTraderBot
 {
