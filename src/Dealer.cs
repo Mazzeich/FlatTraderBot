@@ -1,6 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using FlatTraderBot.Structs;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FlatTraderBot
 {
@@ -33,6 +35,7 @@ namespace FlatTraderBot
 					case Direction.Up:
 						nextOppositeFlatIndex = FindNextOppositeFlatIndex(currentFlatIndex);
 						MakeLongDeal(currentFlatIndex, nextOppositeFlatIndex, ref i,  out flatsPassed);
+						flatsPassed++;
 						if (currentFlatIndex + flatsPassed == flatsOverall)
 						{
 							LogDealerInfo();
@@ -45,6 +48,7 @@ namespace FlatTraderBot
 					case Direction.Down:
 						nextOppositeFlatIndex = FindNextOppositeFlatIndex(currentFlatIndex);
 						MakeShortDeal(currentFlatIndex, nextOppositeFlatIndex, ref i, out flatsPassed);
+						flatsPassed++;
 						if (currentFlatIndex + flatsPassed == flatsOverall)
 						{
 							LogDealerInfo();
@@ -59,6 +63,8 @@ namespace FlatTraderBot
 			LogDealerInfo();
 		}
 		
+		/// <summary> Функция находит свечу выхода из первого вреченного флета </summary>
+		/// <returns>Объект свечи</returns>
 		private _CandleStruct FindFirstLeavingFlatCandle()
 		{
 			for (int i = 0; i < globalCandlesOverall; i++)
@@ -73,16 +79,9 @@ namespace FlatTraderBot
 			return default;
 		}
 
-		private _DealStruct InitializeDeal()
-		{
-			_DealStruct deal;
-			deal.profit = default;
-			deal.type = default;
-			deal.OpenCandle = default;
-			deal.CloseCandle = default;
-			return deal;
-		}
-
+		/// <summary> Функция находит индекс первого флета, закрывшегося в противоположную сторону от текущего </summary>
+		/// <param name="currentFlatIndex">Индекс текущего флета</param>
+		/// <returns>Индекс следующего закрывшегося в другую сторону флета</returns>
 		private int FindNextOppositeFlatIndex(int currentFlatIndex)
 		{
 			for (int i = currentFlatIndex + 1; i < flatsOverall; i++)
@@ -104,16 +103,22 @@ namespace FlatTraderBot
 			BuyOnPrice(currentFlat.leavingCandle.close);
 			deal.type = 'L';
 			deal.OpenCandle = currentFlat.leavingCandle;
-			while (globalCandles[currentFlat.leavingCandle.index + localIterator].low > currentFlat.stopLoss &&
-			       currentFlat.leavingCandle.index + localIterator < nextOppositeFlat.leavingCandle.index)
+			bool isClosingLongDealTriggered = false;
+			while (!isClosingLongDealTriggered && currentFlat.leavingCandle.index + localIterator < globalCandles[^1].index)
 			{
+				if (currentFlatIndex + flatsPassed == flatsOverall - 1)
+				{
+					break;
+				}
 				FlatIdentifier nextFlat = flatList[currentFlatIndex + flatsPassed + 1];
 				if (currentFlat.leavingCandle.index + localIterator == nextFlat.leavingCandle.index)
 				{
-					// currentFlat.stopLoss = nextFlat.stopLoss;
+					currentFlat.stopLoss = nextFlat.stopLoss;
 					flatsPassed++;
 				}
+
 				localIterator++;
+				isClosingLongDealTriggered = IsClosingLongDealTriggered(globalCandles[currentFlat.leavingCandle.index + localIterator], currentFlat, nextOppositeFlat);
 			}
 			SellOnPrice(globalCandles[currentFlat.leavingCandle.index + localIterator].close);
 			deal.profit = balanceAccount - balanceBeforeDeal;
@@ -121,9 +126,8 @@ namespace FlatTraderBot
 			SetLeastAndMostProfitableDeals(deal);
 			dealsList.Add(deal);
 			i += localIterator;
-			flatsPassed++;
 		}
-		
+
 		private void MakeShortDeal(int currentFlatIndex, int nextOppositeFlatIndex, ref int i, out int flatsPassed)
 		{
 			flatsPassed = 0;
@@ -135,16 +139,22 @@ namespace FlatTraderBot
 			SellOnPrice(currentFlat.leavingCandle.close);
 			deal.type = 'S';
 			deal.OpenCandle = currentFlat.leavingCandle;
-			while (globalCandles[currentFlat.leavingCandle.index + localIterator].high < currentFlat.stopLoss &&
-			       currentFlat.leavingCandle.index + localIterator < nextOppositeFlat.leavingCandle.index)
+			bool isClosingShortDealTriggered = false;
+			while (!isClosingShortDealTriggered && currentFlat.leavingCandle.index + localIterator < globalCandles[^1].index)
 			{
+				if (currentFlatIndex + flatsPassed == flatsOverall - 1)
+				{
+					break;
+				}
 				FlatIdentifier nextFlat = flatList[currentFlatIndex + flatsPassed + 1];
 				if (currentFlat.leavingCandle.index + localIterator == nextFlat.leavingCandle.index)
 				{
-					// currentFlat.stopLoss = nextFlat.stopLoss;
+					currentFlat.stopLoss = nextFlat.stopLoss;
 					flatsPassed++;
 				}
+
 				localIterator++;
+				isClosingShortDealTriggered = IsClosingShortDealTriggered(globalCandles[currentFlat.leavingCandle.index + localIterator], currentFlat, nextOppositeFlat);
 			}
 			BuyOnPrice(globalCandles[currentFlat.leavingCandle.index + localIterator].close);
 			deal.profit = balanceAccount - balanceBeforeDeal;
@@ -152,9 +162,93 @@ namespace FlatTraderBot
 			SetLeastAndMostProfitableDeals(deal);
 			dealsList.Add(deal);
 			i += localIterator;
-			flatsPassed++;
+		}
+
+		/// <summary> Проверка срабатывания условий для выхода из открытой сделки в шорте </summary>
+		/// <param name="currentCandle">Текущая свеча</param>
+		/// <param name="currentFlat">Флет, на которой была открыта сделка</param>
+		/// <param name="nextOppositeFlat">Следующий флет, закрывшийся в противоположную сторону</param>
+		/// <returns>Сработало ли одно из условий выхода из сделки</returns>
+		private bool IsClosingShortDealTriggered(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
+		{
+			return IsShortStopLossTriggered(currentCandle, currentFlat) ||
+			       IsShortTakeProfitTriggered(currentCandle, currentFlat) ||
+			       IsDealExpired(currentCandle, currentFlat, nextOppositeFlat) ||
+			       IsEndOfDay(currentCandle);
+		}
+
+		/// <summary> Проверка срабатывания условий для выхода из открытой сделки в лонге </summary>
+		/// <param name="currentCandle">Текущая свеча</param>
+		/// <param name="currentFlat">Флет, на которой была открыта сделка</param>
+		/// <param name="nextOppositeFlat">Следующий флет, закрывшийся в противоположную сторону</param>
+		/// <returns>Сработало ли одно из условий выхода из сделки</returns>
+		private bool IsClosingLongDealTriggered(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
+		{
+			return IsLongStopLossTriggered(currentCandle, currentFlat) ||
+			       IsLongTakeProfitTriggered(currentCandle, currentFlat) ||
+			       IsDealExpired(currentCandle, currentFlat, nextOppositeFlat) ||
+			       IsEndOfDay(currentCandle);
+		}
+
+		/// <summary> УСЛОВИЕ <br/> Сработал стоп-лосс по шорту
+		/// </summary>
+		/// <param name="candle">Текущая свеча</param>
+		/// <param name="flat">Стоп-лосс флета</param>
+		/// <returns>Сработало ли условие</returns>
+		private bool IsShortStopLossTriggered(_CandleStruct candle, FlatIdentifier flat)
+		{
+			return candle.high >= flat.stopLoss;
 		}
 		
+		/// <summary> УСЛОВИЕ <br/> Сработал стоп-лосс по лонгу
+		/// </summary>
+		/// <param name="candle">Текущая свеча</param>
+		/// <param name="flat">Стоп-лосс флета</param>
+		/// <returns>Сработало ли условие</returns>
+		private bool IsLongStopLossTriggered(_CandleStruct candle, FlatIdentifier flat)
+		{
+			return candle.low <= flat.stopLoss;
+		}
+
+		/// <summary> УСЛОВИЕ <br/> Сработал тейк-профит по шорту </summary>
+		/// <param name="candle">Текущая свеча</param>
+		/// <param name="flat">Стоп-лосс флета</param>
+		/// <returns>Сработало ли условие</returns>
+		private bool IsShortTakeProfitTriggered(_CandleStruct candle, FlatIdentifier flat)
+		{
+			return candle.low <= flat.leavingCandle.close - flat.mean * _Constants.TakeProfitPriceCoeff;
+		}
+		
+		/// <summary> УСЛОВИЕ <br/> Сработал тейк-профит по шорту </summary>
+		/// <param name="candle">Текущая свеча</param>
+		/// <param name="flat">Стоп-лосс флета</param>
+		/// <returns>Сработало ли условие</returns>
+		private bool IsLongTakeProfitTriggered(_CandleStruct candle, FlatIdentifier flat)
+		{
+			return candle.high >= flat.leavingCandle.close + flat.mean * _Constants.TakeProfitPriceCoeff;
+		}
+
+		/// <summary> УСЛОВИЕ <br/> Дошли до следующего противоположного флета </summary>
+		/// <param name="currentCandle">Текущая свеча</param>
+		/// <param name="currentFlat">Текущий флет</param>
+		/// <param name="nextOppositeFlat">Следующий противоположный флет</param>
+		/// <returns>Сработало ли условие</returns>
+		private bool IsDealExpired(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
+		{
+			return currentCandle.index == nextOppositeFlat.leavingCandle.index;
+		}
+
+		/// <summary> УСЛОВИЕ <br/> Дошли до конца торгового дня </summary>
+		/// <param name="currentCandle">Текущая свеча</param>
+		/// <returns>Сработало ли условие</returns>
+		private bool IsEndOfDay(_CandleStruct currentCandle)
+		{
+			return false;
+			return currentCandle.intradayIndex >= 510;
+		}
+		
+		/// <summary> Совершить продажу по цене </summary>
+		/// <param name="price">цена</param>
 		private void SellOnPrice(double price)
 		{
 			try
@@ -168,6 +262,8 @@ namespace FlatTraderBot
 			}
 		}
 
+		/// <summary> Совершить покупку поцене </summary>
+		/// <param name="price">Цена</param>
 		private void BuyOnPrice(double price)
 		{
 			try
@@ -181,6 +277,8 @@ namespace FlatTraderBot
 			}
 		}
 		
+		/// <summary> Установка самой прибыльной и самой убыточной сделки </summary>
+		/// <param name="deal">Объект сделки</param>
 		private void SetLeastAndMostProfitableDeals(_DealStruct deal)
 		{
 			if (deal.profit > mostProfitDeal.profit)
@@ -193,6 +291,9 @@ namespace FlatTraderBot
 			}
 		}
 
+		/// <summary>
+		/// Вызов функций логгирования по сделкам
+		/// </summary>
 		private void LogDealerInfo()
 		{
 			CountProfitLossDeals();
@@ -200,28 +301,39 @@ namespace FlatTraderBot
 			LogDealsConclusion();
 		}
 		
+		/// <summary>
+		/// Подсчёт количества прибыльных, убыточных и нулевых сделок
+		/// </summary>
 		private void CountProfitLossDeals()
 		{
 			foreach (_DealStruct deal in dealsList)
 			{
 				if (deal.profit > 0)
 					profitDeals++;
-				else
+				else if (deal.profit < 0)
 					lossDeals++;
+				else nonProfitDeals++;
 			}
 		}
 		
+		/// <summary>
+		/// Логгирование информации по всем сделкам
+		/// </summary>
 		private void LogAllDeals()
 		{
-			foreach (_DealStruct d in dealsList)
+			List<_DealStruct> sortedDeals = dealsList.OrderByDescending(x => x.profit).ToList();
+			foreach (_DealStruct d in sortedDeals)
 			{
 				logger.Trace($"[{d.OpenCandle.date}];[{d.OpenCandle.time}];[{d.CloseCandle.date}];[{d.CloseCandle.time}];{d.type};{d.profit}");
 			}
 		}
 		
+		/// <summary>
+		/// Логгирование ключевых параметров статистики
+		/// </summary>
 		private void LogDealsConclusion()
 		{
-			logger.Trace($"[DEALS];{profitDeals};{lossDeals}");
+			logger.Trace($"[DEALS];{profitDeals};{lossDeals};{nonProfitDeals}");
 			logger.Trace($"Most profit;" +
 			             $"[{mostProfitDeal.OpenCandle.date}];[{mostProfitDeal.OpenCandle.time}]" +
 			             $";[{mostProfitDeal.CloseCandle.date}];[{mostProfitDeal.CloseCandle.time}];" +
@@ -231,6 +343,7 @@ namespace FlatTraderBot
 			             $";[{leastProfitDeal.CloseCandle.date}];[{leastProfitDeal.CloseCandle.time}];" +
 			             $"{leastProfitDeal.profit};{mostProfitDeal.type}");
 			logger.Trace($"[balance] = {balanceAccount} RUB");
+			Console.WriteLine($"{profitDeals} {lossDeals} {balanceAccount} {leastProfitDeal.profit} {mostProfitDeal.profit}");
 		}
 
 		private readonly Logger logger;
@@ -241,6 +354,7 @@ namespace FlatTraderBot
 		private readonly int flatsOverall;
 		private int profitDeals;
 		private int lossDeals;
+		private int nonProfitDeals;
 		private double balanceAccount;
 		private _DealStruct mostProfitDeal;
 		private _DealStruct leastProfitDeal;

@@ -1,4 +1,4 @@
-﻿namespace FlatTraderBot
+﻿namespace FlatTraderBot.Structs
 {
 	/// <summary> Направление </summary>
 	public enum Direction : int

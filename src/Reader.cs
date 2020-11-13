@@ -1,11 +1,10 @@
+using CsvHelper;
+using FlatTraderBot.Structs;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using CsvHelper;
-using NLog;
-
-// ReSharper disable CommentTypo
 
 namespace FlatTraderBot
 {
@@ -27,9 +26,7 @@ namespace FlatTraderBot
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// Считывание свечей из csv-файла
-        /// </summary>
+        /// <summary> Считывание свечей из csv-файла </summary>
         /// <param name="fileName">Имя файла с расширением</param>
         /// <returns>Список свечей</returns>
         public List<_CandleStruct> GetHistoricalData(string fileName)
@@ -74,15 +71,9 @@ namespace FlatTraderBot
             return candleStruct;
         }
         
-        /// <summary>
-        /// Инициализация логгера и присваивание ему имени текущего класса "Lua.Reader"
-        /// </summary>
         private  static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
         private readonly List<_CandleStruct> candleStruct;
-
         private static string currentDirectory;
-        
         private string pathHistoricalData;
     }
 }

@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using FlatTraderBot.Structs;
 using NLog;
+using System;
+using System.Collections.Generic;
 
 namespace FlatTraderBot
 {
@@ -91,6 +92,7 @@ namespace FlatTraderBot
 		{
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
 			Direction result = closestExtremum.avg > flat.mean ? Direction.Up : Direction.Down;
+			flat.formedFrom = result;
 			return result;
 		}
 

@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using FlatTraderBot.Structs;
 using NLog;
+using System;
+using System.Collections.Generic;
 
 namespace FlatTraderBot
 {
@@ -32,7 +33,7 @@ namespace FlatTraderBot
 
                 logger.Trace($"{prevFlat.candles[0].date}: [{prevFlat.bounds.left.time} {prevFlat.bounds.right.time}] " +
                              $"and [{currentFlat.bounds.left.time} {currentFlat.bounds.right.time}] " +
-                             $"Day = {areFlatsInTheSameDay} Distance = {areFlatsTooClose} Means = {areFlatsMeansRoughlyEqual} PrevFlatClosingAtCurrent = {isPrevFlatHasClosing}");
+                             $"Day = {areFlatsInTheSameDay} Distance = {areFlatsTooClose} Means = {areFlatsMeansRoughlyEqual} PrevFlatCloseAtCurr = {isPrevFlatHasClosing}");
 
                 // ЕСЛИ левая граница предыдущего и левая граница текущего находятся в пределах одного дня
                 // И ЕСЛИ разница в свечах между левой границей текущего и правой границей предыдущего меьше ГАПА

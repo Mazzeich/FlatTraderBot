@@ -1,6 +1,7 @@
+using FlatTraderBot.Structs;
+using NLog;
 using System;
 using System.Collections.Generic;
-using NLog;
 
 namespace FlatTraderBot
 {
@@ -73,8 +74,6 @@ namespace FlatTraderBot
                     MoveAperture(ref globalIterator); 
                 }
             }
-
-            LogAllFlats();
         }
 
         /// <summary>
@@ -124,7 +123,7 @@ namespace FlatTraderBot
             _aperture.Add(globalCandles[indexOfAddingCandle]);
         }
 
-        private void LogAllFlats()
+        public void LogAllFlats()
         {
             foreach (FlatIdentifier flat in flatList)
             {
