@@ -226,9 +226,7 @@ namespace FlatTraderBot
             return result;
         }
 
-        /// <summary>
-        /// Логгирует все поля объекта
-        /// </summary>
+        /// <summary> Логгирует все поля объекта </summary>
         private void LogFlatProperties()
         {
             logger.Trace($"[gMin] = {gMin} [gMax] = {gMax} [mean] = {mean}");
@@ -240,12 +238,10 @@ namespace FlatTraderBot
             logger.Trace($"[maximumDeviationFromOpening] = {maximumDeviationFromOpening}");
         }
 
-        /// <summary>
-        /// Функция устанавливает поле flatBounds
-        /// </summary>
+        /// <summary> Функция устанавливает поле flatBounds </summary>
         /// <param name="left">Левая граница боковика (свеча)</param>
         /// <param name="right">Правая граница боковика (свеча)</param>
-        /// <returns></returns>
+        /// <returns>Объект структуры _Bounds</returns>
         public _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
             _Bounds result = bounds;
@@ -395,6 +391,10 @@ namespace FlatTraderBot
         /// С какой стороны сформировался флет
         /// </summary>
         public Direction formedFrom { get; set; }
+        /// <summary>
+        /// Свеча формирования
+        /// </summary>
+        public _CandleStruct formedFromCandle { get; set; }
         /// <summary>
         /// В какую сторону закрылся боковик
         /// </summary>
