@@ -7,13 +7,23 @@ namespace FlatTraderBot
 {
     internal static class Program
     {
+        private static Logger logger;
         private static void Main()
         {
-            Logger logger = LogManager.GetCurrentClassLogger();
+            logger = LogManager.GetCurrentClassLogger();
             logger.Trace("Program has started...");
-            string[] fileNames = {"data.csv", "data2019.csv", "data2020.csv", "2half2020.csv", "1half2020.csv"};
-            
+            string[] fileNames = {"data.csv", "data2019.csv", "data2020.csv", "2half2020.csv", "1half2020.csv", 
+                "5minData2020.csv", "5minData2019.csv", "5min2half2020.csv", "5min1half2020.csv"};
 
+            // PermutateCoefficients(fileNames);
+            // CalculateLabel(fileNames[5]);
+
+            logger.Trace("Main() completed successfully.");
+            LogManager.Shutdown();
+        }
+
+        private static double CalculateLabel(string fileName)
+        {
             List<_CandleStruct>  candles  = new List<_CandleStruct>();
             List<FlatIdentifier> flatList = new List<FlatIdentifier>();
             
@@ -21,6 +31,12 @@ namespace FlatTraderBot
             
             HistoricalFlatFinder historicalFlatFinder = new HistoricalFlatFinder(candles, ref flatList);
             historicalFlatFinder.FindAllFlats();
+            if (flatList.Count <= _Constants.MinFlatsMustBeFound)
+            {
+                logger.Trace($"Not enough flats found ({flatList.Count})");
+                return _Constants.InitialBalance;
+            }
+
             historicalFlatFinder.LogAllFlats();
             
             FlatClassifier flatClassifier = new FlatClassifier(candles, ref flatList);

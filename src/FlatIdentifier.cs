@@ -68,8 +68,8 @@ namespace FlatTraderBot
             gMax = GetGlobalMaximum(candles);
             mean = GetMean(candles);
             SDMean = GetStandartDeviationMean(candles);
-            SDL = mean - SDMean;
-            SDH = mean + SDMean;
+            SDL = mean - 2 * SDMean;
+            SDH = mean + 2 * SDMean;
             upperBound = SDH + mean * _Constants.SDOffset;
             lowerBound = SDL - mean * _Constants.SDOffset;
             width = upperBound - lowerBound;
