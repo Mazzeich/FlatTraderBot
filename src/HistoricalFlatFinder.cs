@@ -2,6 +2,7 @@ using FlatTraderBot.Structs;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FlatTraderBot
 {
@@ -84,6 +85,8 @@ namespace FlatTraderBot
         private void MoveAperture(ref int i)
         {
             aperture.Clear();
+            if (i + _Constants.NAperture >= globalCandles.Count)
+                return;
             // Если первая и последняя свечи будущего окна находятся в пределах одного дня
             if (globalCandles[i].date == globalCandles[i + _Constants.NAperture].date)
             {

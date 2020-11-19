@@ -256,9 +256,7 @@ namespace FlatTraderBot
 			else slopNegativeCounter++;
 		}
 
-		/// <summary>
-		/// Классифицирует флет по типу направления формирования и направлению выхода из движения
-		/// </summary>
+		/// <summary> Классифицирует флет по типу направления формирования и направлению выхода из движения </summary>
 		/// <param name="flatFormedFromDirection">Направление формирования флета</param>
 		/// <param name="flatLeavingDirection">Направление выхода из флета</param>
 		private void ClassifyFlatType(Direction flatFormedFromDirection, Direction flatLeavingDirection)
@@ -287,7 +285,7 @@ namespace FlatTraderBot
 		/// <summary> Логгер </summary>
 		private readonly Logger logger = LogManager.GetCurrentClassLogger();
 		/// <summary> Список всех найденных боковиков </summary>
-		private List<FlatIdentifier> flatList { get; set; }
+		private List<FlatIdentifier> flatList { get; }
 		/// <summary> Глобальный список свечей </summary>
 		private readonly List<_CandleStruct> globalCandles;
 		/// <summary> Всего боковиков </summary>
@@ -310,8 +308,15 @@ namespace FlatTraderBot
 		private int type01;
 		/// <summary> Флет сформирован снизу и уходит вниз </summary>
 		private int type00;
-
+		/// <summary>
+		/// Количество флетов, которые либо резко сформировались и вышли в противоположную сторону, 
+		/// либо формировались не так резко и продолжили движение после выхода
+		/// </summary>
 		private int slopPositiveCounter;
+		/// <summary>
+		/// Кооличество флетов, которые либо резко сформировались и продолжили движение после выхода,
+		/// либо формировались не так резко и вышли в противоположную сторону
+		/// </summary>
 		private int slopNegativeCounter;
 	}
 }

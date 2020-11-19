@@ -2,7 +2,6 @@ using FlatTraderBot.Structs;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace FlatTraderBot
 {
@@ -14,18 +13,14 @@ namespace FlatTraderBot
             isFlat = false;
         }
 
-        /// <summary>
-        /// Функция устанавливает поле candles
-        /// </summary>
+        /// <summary> Функция устанавливает поле candles </summary>
         /// <param name="aperture">Рассматриваемое окно</param>
         public void AssignAperture(IEnumerable<_CandleStruct> aperture)
         {
             candles = new List<_CandleStruct>(aperture);
         }
 
-        /// <summary>
-        /// Функция устанавливает флаг isFlat по вычисленным полям объекта
-        /// </summary>
+        /// <summary> Функция устанавливает флаг isFlat по вычисленным полям объекта </summary>
         public void Identify()
         {
             logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
@@ -197,9 +192,7 @@ namespace FlatTraderBot
             return result;
         }
         
-        /// <summary>
-        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по хай
-        /// </summary>
+        /// <summary> Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по хай </summary>
         /// <param name="candleStructs"></param>
         /// <returns>Количество экстремумов возле СКО хай</returns>
         private int EstimateExtremumsNearSDH(IList<_CandleStruct> candleStructs)
