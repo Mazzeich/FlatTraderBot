@@ -3,6 +3,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace FlatTraderBot
 {
@@ -19,6 +20,9 @@ namespace FlatTraderBot
 			logger = LogManager.GetCurrentClassLogger();
 			balanceAccount = _Constants.InitialBalance;
 			dealsList = new List<_DealStruct>();
+			triggeredTakeProfits = 0;
+			profitAccumulation = 0;
+			lossAccumulation = 0;
 		}
 
 		public void SimulateDealing()
@@ -173,7 +177,7 @@ namespace FlatTraderBot
 		{
 			return IsShortStopLossTriggered(currentCandle, currentFlat) ||
 			       IsShortTakeProfitTriggered(currentCandle, currentFlat) ||
-			       IsDealExpired(currentCandle, currentFlat, nextOppositeFlat) ||
+			       IsDealExpired(currentCandle, nextOppositeFlat) ||
 			       IsEndOfDay(currentCandle);
 		}
 
@@ -186,7 +190,7 @@ namespace FlatTraderBot
 		{
 			return IsLongStopLossTriggered(currentCandle, currentFlat) ||
 			       IsLongTakeProfitTriggered(currentCandle, currentFlat) ||
-			       IsDealExpired(currentCandle, currentFlat, nextOppositeFlat) ||
+			       IsDealExpired(currentCandle, nextOppositeFlat) ||
 			       IsEndOfDay(currentCandle);
 		}
 
@@ -216,7 +220,13 @@ namespace FlatTraderBot
 		/// <returns>Сработало ли условие</returns>
 		private bool IsShortTakeProfitTriggered(_CandleStruct candle, FlatIdentifier flat)
 		{
-			return candle.low <= flat.leavingCandle.close - flat.mean * _Constants.TakeProfitPriceCoeff;
+			if (candle.low <= flat.leavingCandle.close - flat.mean * _Constants.TakeProfitPriceCoeff)
+			{
+				triggeredTakeProfits++;
+				return true;
+			}
+
+			return false;
 		}
 		
 		/// <summary> УСЛОВИЕ <br/> Сработал тейк-профит по шорту </summary>
@@ -225,7 +235,13 @@ namespace FlatTraderBot
 		/// <returns>Сработало ли условие</returns>
 		private bool IsLongTakeProfitTriggered(_CandleStruct candle, FlatIdentifier flat)
 		{
-			return candle.high >= flat.leavingCandle.close + flat.mean * _Constants.TakeProfitPriceCoeff;
+			if (candle.high >= flat.leavingCandle.close + flat.mean * _Constants.TakeProfitPriceCoeff)
+			{
+				triggeredTakeProfits++;
+				return true;
+			}
+
+			return false;
 		}
 
 		/// <summary> УСЛОВИЕ <br/> Дошли до следующего противоположного флета </summary>
@@ -233,7 +249,7 @@ namespace FlatTraderBot
 		/// <param name="currentFlat">Текущий флет</param>
 		/// <param name="nextOppositeFlat">Следующий противоположный флет</param>
 		/// <returns>Сработало ли условие</returns>
-		private bool IsDealExpired(_CandleStruct currentCandle, FlatIdentifier currentFlat, FlatIdentifier nextOppositeFlat)
+		private bool IsDealExpired(_CandleStruct currentCandle, FlatIdentifier nextOppositeFlat)
 		{
 			return currentCandle.index == nextOppositeFlat.leavingCandle.index;
 		}
@@ -243,8 +259,8 @@ namespace FlatTraderBot
 		/// <returns>Сработало ли условие</returns>
 		private bool IsEndOfDay(_CandleStruct currentCandle)
 		{
-			return false;
-			return currentCandle.intradayIndex >= 510;
+			// return false;
+			return currentCandle.intradayIndex >= 101;
 		}
 		
 		/// <summary> Совершить продажу по цене </summary>
@@ -291,9 +307,7 @@ namespace FlatTraderBot
 			}
 		}
 
-		/// <summary>
-		/// Вызов функций логгирования по сделкам
-		/// </summary>
+		/// <summary> Вызов функций логгирования по сделкам </summary>
 		private void LogDealerInfo()
 		{
 			CountProfitLossDeals();
@@ -301,24 +315,28 @@ namespace FlatTraderBot
 			LogDealsConclusion();
 		}
 		
-		/// <summary>
-		/// Подсчёт количества прибыльных, убыточных и нулевых сделок
-		/// </summary>
+		/// <summary> Подсчёт количества прибыльных, убыточных и нулевых сделок </summary>
 		private void CountProfitLossDeals()
 		{
 			foreach (_DealStruct deal in dealsList)
 			{
 				if (deal.profit > 0)
+				{
 					profitDeals++;
+					profitAccumulation += deal.profit;
+				}
 				else if (deal.profit < 0)
+				{
 					lossDeals++;
+					lossAccumulation += deal.profit;
+				}
 				else nonProfitDeals++;
 			}
+
+			profitLossRatio = profitAccumulation / -lossAccumulation;
 		}
 		
-		/// <summary>
-		/// Логгирование информации по всем сделкам
-		/// </summary>
+		/// <summary> Логгирование информации по всем сделкам </summary>
 		private void LogAllDeals()
 		{
 			List<_DealStruct> sortedDeals = dealsList.OrderByDescending(x => x.profit).ToList();
@@ -328,9 +346,7 @@ namespace FlatTraderBot
 			}
 		}
 		
-		/// <summary>
-		/// Логгирование ключевых параметров статистики
-		/// </summary>
+		/// <summary> Логгирование ключевых параметров статистики </summary>
 		private void LogDealsConclusion()
 		{
 			logger.Trace($"[DEALS];{profitDeals};{lossDeals};{nonProfitDeals}");
@@ -343,8 +359,12 @@ namespace FlatTraderBot
 			             $";[{leastProfitDeal.CloseCandle.date}];[{leastProfitDeal.CloseCandle.time}];" +
 			             $"{leastProfitDeal.profit};{mostProfitDeal.type}");
 			logger.Trace($"[balance] = {balanceAccount} RUB");
-			Console.WriteLine($"{profitDeals} {lossDeals} {balanceAccount} {leastProfitDeal.profit} {mostProfitDeal.profit}");
+			logger.Trace($"[triggered/not-triggered]: {triggeredTakeProfits}/{dealsList.Count}");
+			logger.Trace($"[profitAccumulation] = {profitAccumulation} [lossAccumulation] = {lossAccumulation} [profitLossRatio] = {profitLossRatio}");
 		}
+		
+		[ColumnName("Score")]
+		public double balanceAccount;
 
 		private readonly Logger logger;
 		private readonly List<_CandleStruct> globalCandles;
@@ -352,10 +372,13 @@ namespace FlatTraderBot
 		private readonly List<_DealStruct> dealsList;
 		private readonly int globalCandlesOverall;
 		private readonly int flatsOverall;
+		private double profitAccumulation;
+		private double lossAccumulation;
+		private double profitLossRatio;
 		private int profitDeals;
 		private int lossDeals;
 		private int nonProfitDeals;
-		private double balanceAccount;
+		private int triggeredTakeProfits;
 		private _DealStruct mostProfitDeal;
 		private _DealStruct leastProfitDeal;
 	}

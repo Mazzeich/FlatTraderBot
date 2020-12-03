@@ -17,6 +17,7 @@ namespace FlatTraderBot
 			flatList = new List<FlatIdentifier>(flats);
 			globalCandles = candles;
 			flatsOverall = flatList.Count;
+			slopPositiveCounter = slopNegativeCounter = 0;
 		}
 
 		/// <summary>
@@ -28,7 +29,9 @@ namespace FlatTraderBot
 			for (int i = 0; i < flatsOverall; i++)
 			{
 				Direction flatFormedFromDirection = ClassifyFormedFrom(flatList[i], i);
-				Direction flatLeavingDirection  = ClassifyLeavingDirection(flatList[i] , i);
+				Direction flatLeavingDirection  = ClassifyLeavingDirection(flatList[i], i);
+				double atan = Math.Abs(CalculateArcTanFromClosestExtremum(flatList[i]));
+				Console.WriteLine($"[{flatList[i].bounds.left.date}]: [{flatList[i].bounds.left.time} {flatList[i].bounds.right.time}] {atan}");
 
 				switch (flatFormedFromDirection)
 				{
@@ -65,10 +68,10 @@ namespace FlatTraderBot
 					default:
 						break;
 				}
-
+				ClassifySlops(flatList[i], atan);
 				ClassifyFlatType(flatFormedFromDirection, flatLeavingDirection);
 			}
-
+			
 			int flatsFromAscensionPercantage  = flatsFromAscension 		 * 100 / flatsOverall;
 			int flatsFromDescensionPercentage = flatsFromDescension 	 * 100 / flatsOverall;
 			int flatsToAscensionPercentage 	  = flatsLeavingToAscension  * 100 / flatsOverall;
@@ -82,6 +85,7 @@ namespace FlatTraderBot
 			meanFlatDuration = CalculateMeanFlatDuration(flatList);
 			logger.Trace($"[meanFlatDuration] = {meanFlatDuration}");
 			logger.Trace($"[type11] = {type11} [type10] = {type10} [type01] = {type01} [type00] = {type00}");
+			logger.Trace($"[slopPositive] = {slopPositiveCounter} [slopNegativeCounter] = {slopNegativeCounter}");
 		}
 
 		/// <summary> Определяет, что предшествовало боковому движению </summary>
@@ -91,6 +95,8 @@ namespace FlatTraderBot
 		private Direction ClassifyFormedFrom(FlatIdentifier flat, int flatNumber)
 		{
 			_CandleStruct closestExtremum = FindClosestExtremum(flatNumber);
+			flat.formedFromCandle = closestExtremum;
+			logger.Trace($"[{flat.bounds.left.time} {flat.bounds.right.time}] Closest extremum in {flat.formedFromCandle.time}");
 			Direction result = closestExtremum.avg > flat.mean ? Direction.Up : Direction.Down;
 			flat.formedFrom = result;
 			return result;
@@ -118,7 +124,8 @@ namespace FlatTraderBot
 				{
 					return closestExtremum;
 				}
-				else if (closestExtremum.high > currentFlat.gMax + _Constants.FlatClassifyOffset * currentFlat.gMax && IsCandleHigherThanNearests(closestExtremum))
+
+				if (closestExtremum.high > currentFlat.gMax + _Constants.FlatClassifyOffset * currentFlat.gMax && IsCandleHigherThanNearests(closestExtremum))
 				{
 					return closestExtremum;
 				}
@@ -150,6 +157,26 @@ namespace FlatTraderBot
 			       high > globalCandles[index + 1].high && high > globalCandles[index + 2].high;
 		}
 
+		private double CalculateArcTanFromClosestExtremum(FlatIdentifier flat)
+		{
+			return Math.Atan(CalculateTangentFromClosestExtremum(flat));
+		}
+
+		private double CalculateTangentFromClosestExtremum(FlatIdentifier flat)
+		{
+			return flat.formedFrom == Direction.Down ? GetTangentForDescending(flat) : GetTangentForAscending(flat);
+		}
+
+		private double GetTangentForDescending(FlatIdentifier flat)
+		{
+			return (flat.candles[0].index - flat.formedFromCandle.index)/(flat.mean - flat.formedFromCandle.low);
+		}
+		
+		private double GetTangentForAscending(FlatIdentifier flat)
+		{
+			return (flat.candles[0].index - flat.formedFromCandle.index)/(flat.formedFromCandle.low - flat.mean);
+		}
+
 		/// <summary> Функция вычисляет среднее расстояние между боковиками </summary>
 		/// <param name="flatIdentifiers">Коллекция боковиков</param>
 		/// <returns>Средний интервал</returns>
@@ -174,11 +201,11 @@ namespace FlatTraderBot
 		{
 			_CandleStruct leavingCandle = FindLeavingCandle(flatNumber);
 			flat.leavingCandle = leavingCandle;
-			logger.Trace($"Leaving to candle of [{flat.bounds.left.time} {flat.bounds.right.time}]: {leavingCandle.time}");
+			logger.Trace($"[{flat.bounds.left.time} {flat.bounds.right.time}]: Leaving to candle in {leavingCandle.time}");
 			if (leavingCandle.close > flat.mean)
 			{
 				const Direction result = Direction.Up;
-				flat.leavingDirection = result;
+				flat.leavingDirection = Direction.Up;
 				return result;
 			}
 			else if (leavingCandle.close < flat.mean)
@@ -219,9 +246,17 @@ namespace FlatTraderBot
 			return result;
 		}
 
-		/// <summary>
-		/// Классифицирует флет по типу направления формирования и направлению выхода из движения
-		/// </summary>
+		private void ClassifySlops(FlatIdentifier flat, double atan)
+		{
+			if ((atan < _Constants.ArcTanThreshold && flat.formedFrom == flat.leavingDirection) ||
+			    (atan >= _Constants.ArcTanThreshold && flat.formedFrom != flat.leavingDirection))
+			{
+				slopPositiveCounter++;
+			}
+			else slopNegativeCounter++;
+		}
+
+		/// <summary> Классифицирует флет по типу направления формирования и направлению выхода из движения </summary>
 		/// <param name="flatFormedFromDirection">Направление формирования флета</param>
 		/// <param name="flatLeavingDirection">Направление выхода из флета</param>
 		private void ClassifyFlatType(Direction flatFormedFromDirection, Direction flatLeavingDirection)
@@ -250,7 +285,7 @@ namespace FlatTraderBot
 		/// <summary> Логгер </summary>
 		private readonly Logger logger = LogManager.GetCurrentClassLogger();
 		/// <summary> Список всех найденных боковиков </summary>
-		private List<FlatIdentifier> flatList { get; set; }
+		private List<FlatIdentifier> flatList { get; }
 		/// <summary> Глобальный список свечей </summary>
 		private readonly List<_CandleStruct> globalCandles;
 		/// <summary> Всего боковиков </summary>
@@ -265,21 +300,23 @@ namespace FlatTraderBot
 		private int flatsLeavingToAscension;
 		/// <summary> Средний интервал между боковиками </summary>
 		private double meanFlatDuration;
-		/// <summary>
-		/// Флет сформирован сверху и уходит наверх
-		/// </summary>
+		/// <summary> Флет сформирован сверху и уходит наверх </summary>
 		private int type11;
-		/// <summary>
-		/// Флет сформирован сверху и уходит вниз
-		/// </summary>
+		/// <summary> Флет сформирован сверху и уходит вниз </summary>
 		private int type10;
-		/// <summary>
-		/// Флет сформирован снизу и уходи вверх
-		/// </summary>
+		/// <summary> Флет сформирован снизу и уходи вверх </summary>
 		private int type01;
-		/// <summary>
-		/// Флет сформирован снизу и уходит вниз
-		/// </summary>
+		/// <summary> Флет сформирован снизу и уходит вниз </summary>
 		private int type00;
+		/// <summary>
+		/// Количество флетов, которые либо резко сформировались и вышли в противоположную сторону, 
+		/// либо формировались не так резко и продолжили движение после выхода
+		/// </summary>
+		private int slopPositiveCounter;
+		/// <summary>
+		/// Кооличество флетов, которые либо резко сформировались и продолжили движение после выхода,
+		/// либо формировались не так резко и вышли в противоположную сторону
+		/// </summary>
+		private int slopNegativeCounter;
 	}
 }

@@ -2,7 +2,6 @@ using FlatTraderBot.Structs;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace FlatTraderBot
 {
@@ -14,18 +13,14 @@ namespace FlatTraderBot
             isFlat = false;
         }
 
-        /// <summary>
-        /// Функция устанавливает поле candles
-        /// </summary>
+        /// <summary> Функция устанавливает поле candles </summary>
         /// <param name="aperture">Рассматриваемое окно</param>
         public void AssignAperture(IEnumerable<_CandleStruct> aperture)
         {
             candles = new List<_CandleStruct>(aperture);
         }
 
-        /// <summary>
-        /// Функция устанавливает флаг isFlat по вычисленным полям объекта
-        /// </summary>
+        /// <summary> Функция устанавливает флаг isFlat по вычисленным полям объекта </summary>
         public void Identify()
         {
             logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
@@ -197,9 +192,7 @@ namespace FlatTraderBot
             return result;
         }
         
-        /// <summary>
-        /// Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по хай
-        /// </summary>
+        /// <summary> Функция, подсчитывающая количество экстремумов, находящихся поблизости СКО по хай </summary>
         /// <param name="candleStructs"></param>
         /// <returns>Количество экстремумов возле СКО хай</returns>
         private int EstimateExtremumsNearSDH(IList<_CandleStruct> candleStructs)
@@ -226,9 +219,7 @@ namespace FlatTraderBot
             return result;
         }
 
-        /// <summary>
-        /// Логгирует все поля объекта
-        /// </summary>
+        /// <summary> Логгирует все поля объекта </summary>
         private void LogFlatProperties()
         {
             logger.Trace($"[gMin] = {gMin} [gMax] = {gMax} [mean] = {mean}");
@@ -240,12 +231,10 @@ namespace FlatTraderBot
             logger.Trace($"[maximumDeviationFromOpening] = {maximumDeviationFromOpening}");
         }
 
-        /// <summary>
-        /// Функция устанавливает поле flatBounds
-        /// </summary>
+        /// <summary> Функция устанавливает поле flatBounds </summary>
         /// <param name="left">Левая граница боковика (свеча)</param>
         /// <param name="right">Правая граница боковика (свеча)</param>
-        /// <returns></returns>
+        /// <returns>Объект структуры _Bounds</returns>
         public _Bounds SetBounds(_CandleStruct left, _CandleStruct right)
         {
             _Bounds result = bounds;
@@ -395,6 +384,10 @@ namespace FlatTraderBot
         /// С какой стороны сформировался флет
         /// </summary>
         public Direction formedFrom { get; set; }
+        /// <summary>
+        /// Свеча формирования
+        /// </summary>
+        public _CandleStruct formedFromCandle { get; set; }
         /// <summary>
         /// В какую сторону закрылся боковик
         /// </summary>
