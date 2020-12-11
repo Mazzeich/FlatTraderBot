@@ -88,6 +88,12 @@ namespace FlatTraderBot
             if (i + _Constants.NAperture >= globalCandles.Count)
                 return;
             // Если первая и последняя свечи будущего окна находятся в пределах одного дня
+            for (int j = i; j < i + _Constants.NAperture; j++)
+            {
+                aperture.Add(globalCandles[j]);
+            }
+
+            return;
             if (globalCandles[i].date == globalCandles[i + _Constants.NAperture].date)
             {
                 for (int j = i; j < i + _Constants.NAperture; j++)

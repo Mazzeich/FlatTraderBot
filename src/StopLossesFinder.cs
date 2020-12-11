@@ -24,10 +24,18 @@ namespace FlatTraderBot
 				switch (flat.leavingDirection)
 				{
 					case Direction.Down:
-						flat.stopLoss = flat.upperBound + flat.mean * _Constants.LeavingCoeff;
+						// flat.stopLoss = flat.lowerBound - flat.mean * _Constants.LeavingCoeff; // 1
+						// flat.stopLoss = flat.lowerBound;                                       // 2
+						// flat.stopLoss = flat.upperBound + flat.mean * _Constants.LeavingCoeff; // 3
+						// flat.stopLoss = flat.upperBound;                                       // 4
+						flat.stopLoss = flat.mean;                                             // 5
 						break;
 					case Direction.Up:
-						flat.stopLoss = flat.lowerBound - flat.mean * _Constants.LeavingCoeff;
+						// flat.stopLoss = flat.upperBound + flat.mean * _Constants.LeavingCoeff; // 1
+						// flat.stopLoss = flat.upperBound;                                       // 2
+						// flat.stopLoss = flat.lowerBound - flat.mean * _Constants.LeavingCoeff; // 3
+						// flat.stopLoss = flat.lowerBound;                                       // 4
+						flat.stopLoss = flat.mean;                                             // 5
 						break;
 					case Direction.Neutral:
 						break;
