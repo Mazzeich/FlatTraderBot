@@ -68,8 +68,8 @@ namespace FlatTraderBot
             gMax = GetGlobalMaximum(candles);
             mean = GetMean(candles);
             SDMean = GetStandartDeviationMean(candles);
-            SDL = mean - 2 * SDMean;
-            SDH = mean + 2 * SDMean;
+            SDL = mean - _Constants.SDAmount * SDMean;
+            SDH = mean + _Constants.SDAmount * SDMean;
             upperBound = SDH + mean * _Constants.SDOffset;
             lowerBound = SDL - mean * _Constants.SDOffset;
             width = upperBound - lowerBound;
@@ -146,7 +146,7 @@ namespace FlatTraderBot
             }
             // Точка пересечения с осью ординат
 
-            double result = ((n * sumXY) - (sumX * sumY)) / ((n * sumXsquared) - (sumX * sumX));
+            double result = (n * sumXY - sumX * sumY) / (n * sumXsquared - sumX * sumX);
             double b = (sumY - result * sumX)/n;
             
             return result;
@@ -157,7 +157,7 @@ namespace FlatTraderBot
         private double GetStandartDeviationMean(IReadOnlyList<_CandleStruct> candleStructs)
         {
             double sumMean = 0;
-            for (int i = 0; i < candleStructs.Count - 1; i++)
+            for (int i = 0; i < candleStructs.Count; i++)
             {
                 sumMean += Math.Pow(mean - candleStructs[i].avg, 2);
             }
@@ -172,7 +172,7 @@ namespace FlatTraderBot
         {
             int result = 0;
             double distanceToSD = mean * _Constants.SDOffset;
-            logger.Trace("Near [SDL]: ");
+            logger.Trace("Near [SDL]:");
             for (int i = 2; i < candleStructs.Count - 2; i++)
             {
                 if (Math.Abs(candles[i].low - SDL) <= distanceToSD &&
