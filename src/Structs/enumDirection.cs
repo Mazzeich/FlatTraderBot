@@ -1,7 +1,7 @@
 ﻿namespace FlatTraderBot.Structs
 {
 	/// <summary> Направление </summary>
-	public enum Direction : int
+	public enum Direction
 	{
 		/// <summary> Восходящее </summary>
 		Up = 1,

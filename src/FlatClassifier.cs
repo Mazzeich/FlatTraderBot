@@ -1,7 +1,7 @@
-﻿using FlatTraderBot.Structs;
-using NLog;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using FlatTraderBot.Structs;
+using NLog;
 
 namespace FlatTraderBot
 {
@@ -46,7 +46,7 @@ namespace FlatTraderBot
 					case Direction.Neutral:
 						break;
 					default:
-						break;
+						throw new ArgumentOutOfRangeException();
 				}
 				
 				switch (flatLeavingDirection)
@@ -66,7 +66,7 @@ namespace FlatTraderBot
 					case Direction.Neutral:
 						break;
 					default:
-						break;
+						throw new ArgumentOutOfRangeException();
 				}
 				ClassifySlops(flatList[i], atan);
 				ClassifyFlatType(flatFormedFromDirection, flatLeavingDirection);
@@ -208,7 +208,7 @@ namespace FlatTraderBot
 				flat.leavingDirection = Direction.Up;
 				return result;
 			}
-			else if (leavingCandle.close < flat.mean)
+			if (leavingCandle.close < flat.mean)
 			{
 				const Direction result = Direction.Down;
 				flat.leavingDirection = result;
@@ -248,8 +248,8 @@ namespace FlatTraderBot
 
 		private void ClassifySlops(FlatIdentifier flat, double atan)
 		{
-			if ((atan < _Constants.ArcTanThreshold && flat.formedFrom == flat.leavingDirection) ||
-			    (atan >= _Constants.ArcTanThreshold && flat.formedFrom != flat.leavingDirection))
+			if (atan < _Constants.ArcTanThreshold && flat.formedFrom == flat.leavingDirection ||
+			    atan >= _Constants.ArcTanThreshold && flat.formedFrom != flat.leavingDirection)
 			{
 				slopPositiveCounter++;
 			}
@@ -304,7 +304,7 @@ namespace FlatTraderBot
 		private int type11;
 		/// <summary> Флет сформирован сверху и уходит вниз </summary>
 		private int type10;
-		/// <summary> Флет сформирован снизу и уходи вверх </summary>
+		/// <summary> Флет сформирован снизу и уходит вверх </summary>
 		private int type01;
 		/// <summary> Флет сформирован снизу и уходит вниз </summary>
 		private int type00;

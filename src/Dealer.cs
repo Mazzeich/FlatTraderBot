@@ -67,7 +67,7 @@ namespace FlatTraderBot
 			LogDealerInfo();
 		}
 		
-		/// <summary> Функция находит свечу выхода из первого вреченного флета </summary>
+		/// <summary> Функция находит свечу выхода из первого встреченного флета </summary>
 		/// <returns>Объект свечи</returns>
 		private _CandleStruct FindFirstLeavingFlatCandle()
 		{
@@ -225,7 +225,6 @@ namespace FlatTraderBot
 				triggeredTakeProfits++;
 				return true;
 			}
-
 			return false;
 		}
 		
@@ -240,13 +239,11 @@ namespace FlatTraderBot
 				triggeredTakeProfits++;
 				return true;
 			}
-
 			return false;
 		}
 
 		/// <summary> УСЛОВИЕ <br/> Дошли до следующего противоположного флета </summary>
 		/// <param name="currentCandle">Текущая свеча</param>
-		/// <param name="currentFlat">Текущий флет</param>
 		/// <param name="nextOppositeFlat">Следующий противоположный флет</param>
 		/// <returns>Сработало ли условие</returns>
 		private bool IsDealExpired(_CandleStruct currentCandle, FlatIdentifier nextOppositeFlat)
@@ -278,7 +275,7 @@ namespace FlatTraderBot
 			}
 		}
 
-		/// <summary> Совершить покупку поцене </summary>
+		/// <summary> Совершить покупку по цене </summary>
 		/// <param name="price">Цена</param>
 		private void BuyOnPrice(double price)
 		{
@@ -350,11 +347,11 @@ namespace FlatTraderBot
 		private void LogDealsConclusion()
 		{
 			logger.Trace($"[DEALS];{profitDeals};{lossDeals};{nonProfitDeals}");
-			logger.Trace($"Most profit;" +
+			logger.Trace("Most profit;" +
 			             $"[{mostProfitDeal.OpenCandle.date}];[{mostProfitDeal.OpenCandle.time}]" +
 			             $";[{mostProfitDeal.CloseCandle.date}];[{mostProfitDeal.CloseCandle.time}];" +
 			             $"{mostProfitDeal.profit};{mostProfitDeal.type}");
-			logger.Trace($"Least profit;" +
+			logger.Trace("Least profit;" +
 			             $"[{leastProfitDeal.OpenCandle.date}];[{leastProfitDeal.OpenCandle.time}]" +
 			             $";[{leastProfitDeal.CloseCandle.date}];[{leastProfitDeal.CloseCandle.time}];" +
 			             $"{leastProfitDeal.profit};{mostProfitDeal.type}");
@@ -367,19 +364,19 @@ namespace FlatTraderBot
 		public double balanceAccount;
 
 		private readonly Logger logger;
-		private readonly List<_CandleStruct> globalCandles;
-		private readonly List<FlatIdentifier> flatList;
 		private readonly List<_DealStruct> dealsList;
-		private readonly int globalCandlesOverall;
+		private readonly List<FlatIdentifier> flatList;
+		private readonly List<_CandleStruct> globalCandles;
 		private readonly int flatsOverall;
-		private double profitAccumulation;
+		private readonly int globalCandlesOverall;
 		private double lossAccumulation;
+		private double profitAccumulation;
 		private double profitLossRatio;
-		private int profitDeals;
 		private int lossDeals;
 		private int nonProfitDeals;
+		private int profitDeals;
 		private int triggeredTakeProfits;
-		private _DealStruct mostProfitDeal;
 		private _DealStruct leastProfitDeal;
+		private _DealStruct mostProfitDeal;
 	}
 }
