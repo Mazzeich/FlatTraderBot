@@ -23,7 +23,7 @@ namespace FlatTraderBot
         /// <summary> Функция устанавливает флаг isFlat по вычисленным полям объекта </summary>
         public void Identify()
         {
-            logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[^1].time}]");
+            logger.Trace($"[{candles[0].date}]: [{candles[0].time} {candles[candles.Count - 1].time}]");
             
             CalculateFlatProperties();
 
@@ -38,7 +38,7 @@ namespace FlatTraderBot
                 if (isEnoughExtremumsNearSDL && isEnoughExtremumsNearSDH && isEnoughFlatWidth)
                 {
                     isFlat = true;
-                    bounds = SetBounds(candles[0], candles[^1]);
+                    bounds = SetBounds(candles[0], candles[candles.Count - 1]);
                 }
                 else
                 {
@@ -76,7 +76,7 @@ namespace FlatTraderBot
             k = FindK(candles);
             exsNearSDL = EstimateExtremumsNearSDL(candles);
             exsNearSDH = EstimateExtremumsNearSDH(candles);
-            duration = candles[^1].index - candles[0].index;
+            duration = candles[candles.Count - 1].index - candles[0].index;
         }
 
         /// <summary> Функция находит глобальный минимум окна </summary>

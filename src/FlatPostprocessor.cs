@@ -51,8 +51,8 @@ namespace FlatTraderBot
                 FlatIdentifier newFlat = new FlatIdentifier();
                 newFlat.AssignAperture(newAperture);
                 newFlat.CalculateFlatProperties();
-                newFlat.bounds = newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
-                newFlat.SetBounds(newFlat.candles[0], newFlat.candles[^1]);
+                newFlat.bounds = newFlat.SetBounds(newFlat.candles[0], newFlat.candles[newFlat.candles.Count - 1]);
+                newFlat.SetBounds(newFlat.candles[0], newFlat.candles[newFlat.candles.Count - 1]);
                     
                 flatList.RemoveRange(i-1, 2);
                 flatList.Insert(i-1, newFlat);

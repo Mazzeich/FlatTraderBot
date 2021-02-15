@@ -231,7 +231,7 @@ namespace FlatTraderBot
 			double flatLowerBound = currentFlat.SDL - priceOffset;
 
 			if (flatNumber == flatsOverall - 1)
-				return globalCandles[^1];
+				return globalCandles[globalCandles.Count - 1];
 			
 			while (result.time != flatList[flatNumber + 1].bounds.right.time)
 			{

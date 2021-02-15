@@ -48,7 +48,7 @@ namespace FlatTraderBot
                     for (int j = 0; j < _Constants.ExpansionRate; j++)
                     {
                         // ЕСЛИ не конец данных
-                        if (globalIterator + aperture.Count + 1 != globalCandles[^1].index)
+                        if (globalIterator + aperture.Count + 1 != globalCandles[globalCandles.Count - 1].index)
                         {
                             // ... расширяем окно на 1 свечу
                             ExtendAperture(globalIterator, ref aperture);
@@ -91,35 +91,6 @@ namespace FlatTraderBot
             for (int j = i; j < i + _Constants.NAperture; j++)
             {
                 aperture.Add(globalCandles[j]);
-            }
-
-            return;
-            if (globalCandles[i].date == globalCandles[i + _Constants.NAperture].date)
-            {
-                for (int j = i; j < i + _Constants.NAperture; j++)
-                {
-                    aperture.Add(globalCandles[j]);
-                }
-            }
-            else
-            {
-                logger.Trace("Начало и конец предполагаемого окна находятся в разных днях.");
-                int indexOfTheNextDay = 0;
-                // Находим начало следующего дня, где дата свечи не совпадает с датой свечи самого начала окна
-                for (int j = i; j < i + _Constants.NAperture; j++)
-                {
-                    indexOfTheNextDay = globalCandles[j].index;
-
-                    if (globalCandles[j].date != globalCandles[i].date)
-                        break;
-                }
-
-                i = indexOfTheNextDay;
-
-                for (int j = i; j < i + _Constants.NAperture; j++)
-                {
-                    aperture.Add(globalCandles[j]);
-                }
             }
         }
 

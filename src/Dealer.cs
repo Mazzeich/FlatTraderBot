@@ -3,7 +3,6 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Data;
 
 namespace FlatTraderBot
 {
@@ -108,7 +107,7 @@ namespace FlatTraderBot
 			deal.type = 'L';
 			deal.OpenCandle = currentFlat.leavingCandle;
 			bool isClosingLongDealTriggered = false;
-			while (!isClosingLongDealTriggered && currentFlat.leavingCandle.index + localIterator < globalCandles[^1].index)
+			while (!isClosingLongDealTriggered && currentFlat.leavingCandle.index + localIterator < globalCandles[globalCandles.Count - 1].index)
 			{
 				if (currentFlatIndex + flatsPassed == flatsOverall - 1)
 				{
@@ -144,7 +143,7 @@ namespace FlatTraderBot
 			deal.type = 'S';
 			deal.OpenCandle = currentFlat.leavingCandle;
 			bool isClosingShortDealTriggered = false;
-			while (!isClosingShortDealTriggered && currentFlat.leavingCandle.index + localIterator < globalCandles[^1].index)
+			while (!isClosingShortDealTriggered && currentFlat.leavingCandle.index + localIterator < globalCandles[globalCandles.Count - 1].index)
 			{
 				if (currentFlatIndex + flatsPassed == flatsOverall - 1)
 				{
@@ -360,7 +359,6 @@ namespace FlatTraderBot
 			logger.Trace($"[profitAccumulation] = {profitAccumulation} [lossAccumulation] = {lossAccumulation} [profitLossRatio] = {profitLossRatio}");
 		}
 		
-		[ColumnName("Score")]
 		public double balanceAccount;
 
 		private readonly Logger logger;
