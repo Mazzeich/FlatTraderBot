@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using Microsoft.ML;
 
 namespace FlatTraderBot
 {
@@ -72,21 +71,6 @@ namespace FlatTraderBot
             return candleStruct;
         }
 
-        public (IDataView, IDataView) GetMLData(string fileName)
-        {
-            pathHistoricalData = Path.Combine(currentDirectory, @"Data\" + fileName);
-
-            MLContext context = new MLContext(seed: 0);
-            IDataView data = context.Data.LoadFromTextFile<_CandleStruct>(pathHistoricalData, hasHeader: true, separatorChar: ',');
-            
-            // Split the data into a training set and a test set
-            var trainTestData = context.Data.TrainTestSplit(data, testFraction: 0.2, seed: 0);
-            IDataView trainData = trainTestData.TrainSet;
-            IDataView testData = trainTestData.TestSet;
-
-            return (trainData, testData);
-        }
-        
         private  static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly List<_CandleStruct> candleStruct;
         private static string currentDirectory;

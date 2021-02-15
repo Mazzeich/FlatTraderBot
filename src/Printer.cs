@@ -92,7 +92,7 @@ namespace FlatTraderBot
 
         public void PrintReasonsApertureIsNotFlat()
         {
-            logger.Trace($"[{flat.candles[0].date}]: [{flat.candles[0].time} {flat.candles[^1].time}]: {flat.reasonsOfApertureHasNoFlat}");
+            logger.Trace($"[{flat.candles[0].date}]: [{flat.candles[0].time} {flat.candles[flat.candles.Count - 1].time}]: {flat.reasonsOfApertureHasNoFlat}");
         }
     }
 }
