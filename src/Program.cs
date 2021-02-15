@@ -10,16 +10,17 @@ namespace FlatTraderBot
         private static void Main() 
         {
             logger.Trace("Program has started...");
-            string[] fileNames = 
-                
+            string[] fileNames =
             {
                 "data.csv"        , "data2019.csv"    , "data2020.csv"     , "2half2020.csv"    , "1half2020.csv", 
                 "5minData2020.csv", "5minData2019.csv", "5min2half2020.csv", "5min1half2020.csv", 
                 "15minData2020.csv", "15minData20172020.csv", "1hourData20142020.csv"
             };
 
-            // PermutateCoefficients(fileNames);
-            CalculateLabel(fileNames[2]);
+            foreach (string fileName in fileNames)
+            {
+                CalculateLabel(fileName);
+            }
 
             logger.Trace("Main() completed successfully.");
             LogManager.Shutdown();
@@ -59,4 +60,3 @@ namespace FlatTraderBot
         }
     }
 }
-
